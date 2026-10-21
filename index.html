@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Slugger (NEO) v0.4.5 Hotfix</title>
+<title>Slugger (NEO) v0.5.1 Hotfix</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -83,6 +83,23 @@ nav{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}
 #pvpEndOverlay.draw h2{color:#ffcc00;text-shadow:0 0 20px #ffcc0066}
 .pvpLobbyBtn{width:100%;padding:10px;font-size:14px;margin-top:8px}
 .pvpLobbyRow{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ffffff11;font-size:13px}
+
+#v05ToastLayer{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:130;display:flex;flex-direction:column;align-items:center;gap:6px;width:min(680px,92vw);pointer-events:none}
+.v05-toast{background:linear-gradient(110deg,#0a1024f5,#20104bf5);border:1px solid #00ff88;border-radius:10px;padding:9px 15px;color:#eafff5;box-shadow:0 0 18px #00ff8833;animation:v05ToastIn .2s ease-out;max-width:100%;overflow-wrap:anywhere;pointer-events:auto;cursor:pointer}
+.v05-toast.fade{opacity:0;transform:translateY(-8px);transition:opacity .6s,transform .6s}
+@keyframes v05ToastIn{from{opacity:0;transform:translateY(-9px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+#v05QuitBtn{position:fixed;right:10px;top:8px;z-index:70;pointer-events:auto;background:#4b1025;color:#fff;border-color:#ff3355;padding:6px 11px;box-shadow:0 0 12px #ff335544}
+#v05SpectatorDM{display:none;position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:75;background:#05060fee;border:1px solid #00ccff;border-radius:10px;padding:8px 10px;width:min(430px,90vw);box-shadow:0 0 18px #00ccff33;pointer-events:auto}
+#v05SpectatorDM b{color:#00ccff;font-size:10px;letter-spacing:1px}
+.v05-chatrow{display:flex;gap:6px;margin-top:5px}.v05-chatrow input{flex:1;min-width:0;background:#080d1d;color:#fff;border:1px solid #24405a;border-radius:5px;padding:7px;font:inherit}.v05-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:#03050df2;z-index:92;overflow:auto}.v05-modal.on{display:flex}
+.v05-panel{width:min(920px,96vw);max-height:92vh;overflow:auto;background:linear-gradient(150deg,#160d36,#081b2d);border:1px solid #00ff88;border-radius:15px;padding:20px;box-shadow:0 0 36px #00ff8822}
+.v05-panel h2{font-size:clamp(21px,3.2vw,34px);margin:3px 0 10px;color:#f2fff9;text-shadow:0 0 14px #00ff882a}
+.v05-kicker{font-size:10px;letter-spacing:2px;color:#00ff88}
+.v05-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:15px 0}.v05-stats>div{background:#0005;border:1px solid #ffffff16;border-radius:8px;padding:10px}.v05-stats b{color:#ffcc00}
+.v05-danger{color:#fff;border-color:#ff3355;background:#411023}
+.v05-upgrade-panel{width:min(1050px,97vw)}.v05-resources{background:#0005;border:1px solid #ffffff19;border-radius:8px;padding:10px;margin:10px 0 14px;color:#ffec9e}.v05-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.v05-columns h3{margin:8px 0;color:#00ccff}.v05-upgrade,.v05-item{display:flex;align-items:center;justify-content:space-between;gap:9px;background:#0004;border:1px solid #ffffff15;border-radius:7px;margin:5px 0;padding:8px}.v05-upgrade span,.v05-item small{display:block;color:#a9c4d8;font-size:10px}.v05-upgrade button,.v05-item button{white-space:nowrap}.v05-actions{display:flex;gap:10px;margin-top:14px}.v05-actions button{flex:1}.v05-item span{min-width:0}.v05-item small{overflow-wrap:anywhere}
+@media(max-width:700px){.v05-columns{grid-template-columns:1fr}.v05-panel{padding:13px}.v05-actions{flex-direction:column}.v05-upgrade{align-items:flex-start;flex-wrap:wrap}}
+
 </style></head><body>
 <div id="wrap"><canvas id="gameCanvas"></canvas><div id="topHUD"></div><div id="hubOverlay" class="ov"></div>
 <div id="pauseOverlay" class="ov" style="text-align:center;padding-top:18%"><h2>Paused</h2><button onclick="pz()">Resume (Esc)</button><button onclick="endRun(false)">Abandon run</button></div></div>
@@ -90,7 +107,7 @@ nav{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}
 <div id="authModal" class="modal2">
   <div class="authBox">
     <h1>SLUGGER (NEO)</h1>
-    <p style="text-align:center;color:#a9c4d8;font-size:11px;margin:0 0 12px">v0.4.5 — Hotfix & Feature Patch</p>
+    <p style="text-align:center;color:#a9c4d8;font-size:11px;margin:0 0 12px">v0.5.1 Hotfix — Isolated 1v1 Campaign</p>
     <div class="authTabs" id="authTabs">
       <button class="tab on" id="authTabLogin" onclick="authTab('login')">Login</button>
       <button class="tab" id="authTabRegister" onclick="authTab('register')">Create Account</button>
@@ -153,6 +170,7 @@ aesl:{n:'Aether Slug',t:'p',k:1.1,r:.35,pi:3,sc:300,tier:3,ds:'Piercing divine d
 const SETS={fire:{n:'Pyre',need:3,b2:'+10% fire damage while attuned to Fire',b:'A damaging fire aura while attuned to Fire.'},ice:{n:'Cryo',need:3,b2:'+15% damage reduction',b:'Cryo plating slows hazards and reduces incoming damage.'},solar:{n:'Solar Flare',need:3,b2:'+10% damage',b:'Scorching aura and the Solar Cataclysm special.'},vortex:{n:'Vortex Void',need:3,b2:'+10% thrust',b:'Black-hole special that drags small foes.'},void:{n:'Void Rift',need:3,b2:'+20% Vortex damage',b:'Rift pulse pulls nearby enemies and improves Vortex shots.'},aether:{n:'Aether Divine',need:4,b2:'+10% max HP',b:'Damage taken becomes empowered ammo (+60% shot damage). Hazard immunity applies once hazards exist.'}},SN={w:'Weapon',s:'Shield',a:'Armor',c:'Boost / Charm',p:'Spirit'};
 const SK='slugger_neo_v0.2-alpha',DEF=()=>({warp:0,pro:0,cell:0,pur:0,key:3,fus:0,souls:0,cr:{wood:0,iron:0,solar:0,vortex:0,aether:0},inv:{blaster:{d:0,r:0}},eq:{w:'blaster',s:null,a:null,c:null,p:null},aw:{},att:['neutral'],up:{hp:0,oc:0,thr:0,slime:0,amp:0},wl:{},cp:[1],rec:{},hi:0,lastSaveTimestamp:Date.now()});
 let S;try{S=normaliseSave(JSON.parse(localStorage.getItem(SK)||'{}'))}catch(e){S=DEF()}
+const V05_SESSION_KEY='slugger_neo_save_1v1_v05';let save_sp=S,save_1v1=null,activeSaveMode='sp';
 const firebaseConfig={apiKey:"AIzaSyAu7prBgEdGWbPY8u8g2CYCJbHjz2fLTl4",authDomain:"slugger-aether.firebaseapp.com",projectId:"slugger-aether",storageBucket:"slugger-aether.firebasestorage.app",messagingSenderId:"156152123566",appId:"1:156152123566:web:22cc7d829fa41ecd615d3f",measurementId:"G-TDDDMFNKZ9"};
 const FIREBASE_CONFIG_ATTEMPTED=!!firebaseConfig.apiKey&&!firebaseConfig.apiKey.startsWith('YOUR_');
 let FIREBASE_CONFIGURED=false,fbAuth=null,fbDb=null;
@@ -223,10 +241,10 @@ function mergeSaveProgress(localRaw,cloudRaw){
   out.lastSaveTimestamp=Math.max(ln,cn);return normaliseSave(out)
 }
 function cloudSaveDebounced(){
-  if(!fbDb||!AUTH.user||AUTH.guest)return;cloudSavePending=true;if(cloudSaveTimer)clearTimeout(cloudSaveTimer);
+  if(!fbDb||!AUTH.user||AUTH.guest||activeSaveMode==='pvp')return;cloudSavePending=true;if(cloudSaveTimer)clearTimeout(cloudSaveTimer);
   const generation=++cloudGeneration,uid=AUTH.user.uid,username=AUTH.username||'Player',snapshot=JSON.parse(JSON.stringify(normaliseSave(S)));
-  cloudSaveTimer=setTimeout(async()=>{cloudSaveTimer=null;if(generation!==cloudGeneration||!AUTH.user||AUTH.guest||AUTH.user.uid!==uid)return;cloudSavePending=false;
-    try{const ref=fbDb.collection('saves').doc(uid);const wrote=await fbDb.runTransaction(async tx=>{const d=await tx.get(ref);if(generation!==cloudGeneration||!AUTH.user||AUTH.guest||AUTH.user.uid!==uid)return false;
+  cloudSaveTimer=setTimeout(async()=>{cloudSaveTimer=null;if(generation!==cloudGeneration||!AUTH.user||AUTH.guest||AUTH.user.uid!==uid||activeSaveMode==='pvp')return;cloudSavePending=false;
+    try{const ref=fbDb.collection('saves').doc(uid);const wrote=await fbDb.runTransaction(async tx=>{const d=await tx.get(ref);if(generation!==cloudGeneration||!AUTH.user||AUTH.guest||AUTH.user.uid!==uid||activeSaveMode==='pvp')return false;
       const remoteTs=d.exists?Number(d.data().lastSaveTimestamp)||0:0,localTs=Number(snapshot.lastSaveTimestamp)||0;
       if(remoteTs>localTs)return false;
       const doc={data:snapshot,lastSaveTimestamp:localTs||Date.now(),username,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};tx.set(ref,doc,{merge:true});return true;
@@ -238,8 +256,8 @@ function cloudSaveDebounced(){
   },1800)
 }
 async function loadCloudSave(){
-  if(!fbDb||!AUTH.user||AUTH.guest)return;const uid=AUTH.user.uid,requestGeneration=cloudGeneration;
-  try{const doc=await fbDb.collection('saves').doc(uid).get();if(!AUTH.user||AUTH.guest||AUTH.user.uid!==uid)return;
+  if(activeSaveMode==='pvp'||!fbDb||!AUTH.user||AUTH.guest)return;const uid=AUTH.user.uid,requestGeneration=cloudGeneration;
+  try{const doc=await fbDb.collection('saves').doc(uid).get();if(activeSaveMode==='pvp'||!AUTH.user||AUTH.guest||AUTH.user.uid!==uid)return;
     const localLatest=normaliseSave(S);
     if(!doc.exists){S=localLatest;save();return}
     const dat=doc.data()||{},cloudData=normaliseSave(dat.data),cloudTs=Number(dat.lastSaveTimestamp||cloudData.lastSaveTimestamp)||0;cloudData.lastSaveTimestamp=cloudTs;
@@ -251,9 +269,9 @@ async function loadCloudSave(){
     await syncCloudProfileSummary();
   }catch(e){console.warn('Cloud load failed:',e);logs=['Cloud load failed; using local save.']}
 }
-const save=()=>{S.lastSaveTimestamp=Math.max(Date.now(),(Number(S.lastSaveTimestamp)||0)+1);S=normaliseSave(S);try{localStorage.setItem(SK,JSON.stringify(S))}catch(e){}cloudSaveDebounced();};
+const save=()=>{const sessionWrite=activeSaveMode==='pvp'&&!!save_1v1;S.lastSaveTimestamp=Math.max(Date.now(),(Number(S.lastSaveTimestamp)||0)+1);S=normaliseSave(S);if(sessionWrite){save_1v1=S;try{sessionStorage.setItem(V05_SESSION_KEY,JSON.stringify(S))}catch(e){}return;}save_sp=S;try{localStorage.setItem(SK,JSON.stringify(S))}catch(e){}cloudSaveDebounced();};
 function cloudProfileSummary(s=S){const crates=Object.values(s.cr||{}).reduce((a,v)=>a+(Number(v)||0),0);const equipment={weapon:s.eq?.w?{id:s.eq.w,tier:Number(s.inv?.[s.eq.w]?.r)||0}:null,shield:s.eq?.s?{id:s.eq.s,tier:Number(s.inv?.[s.eq.s]?.r)||0}:null,armor:s.eq?.a?{id:s.eq.a,tier:Number(s.inv?.[s.eq.a]?.r)||0}:null,boost:s.eq?.c?{id:s.eq.c,tier:Number(s.inv?.[s.eq.c]?.r)||0}:null,spirit:s.eq?.p?{id:s.eq.p,tier:Number(s.inv?.[s.eq.p]?.r)||0}:null};return{stats:{warp:Number(s.warp)||0,protons:Number(s.pro)||0,cells:Number(s.cell)||0,purifiedWarp:Number(s.pur)||0,souls:Number(s.souls)||0,crates},checkpoints:s.cp||[1],equipment,inventory:Object.entries(s.inv||{}).map(([id,v])=>({id,tier:Number(v.r)||0,duplicates:Number(v.d)||0,awakened:!!s.aw?.[id]})),lastSaveTimestamp:Number(s.lastSaveTimestamp)||0};}
-async function syncCloudProfileSummary(){if(!fbDb||!AUTH.user||AUTH.guest)return;const uid=AUTH.user.uid;try{await fbDb.collection('users').doc(uid).set({...cloudProfileSummary(),username:AUTH.username||'Player',slugId:NET.id||loadId(),lastLogin:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})}catch(e){console.warn('Profile stats sync failed:',e)}}
+async function syncCloudProfileSummary(){if(!fbDb||!AUTH.user||AUTH.guest||activeSaveMode==='pvp')return;const uid=AUTH.user.uid;try{await fbDb.collection('users').doc(uid).set({...cloudProfileSummary(),username:AUTH.username||'Player',slugId:NET.id||loadId(),lastLogin:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})}catch(e){console.warn('Profile stats sync failed:',e)}}
 let tab=0,ub=null,dm=false,T=0;
 const O="stroke='#0a0814' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'",sv=(w,h,b)=>`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${w} ${h}' width='${w}' height='${h}'>${b}</svg>`;
 function boss(c,x){return `<g ${O}>${x}<circle cx='60' cy='66' r='42' fill='${c}'/><circle cx='60' cy='66' r='20' fill='#fff' fill-opacity='.35'/></g><circle cx='44' cy='58' r='9' fill='#fff' stroke='#0a0814' stroke-width='3'/><circle cx='76' cy='58' r='9' fill='#fff' stroke='#0a0814' stroke-width='3'/><circle cx='46' cy='60' r='4' fill='#0a0814'/><circle cx='78' cy='60' r='4' fill='#0a0814'/><path d='M36 46L54 52M84 46L66 52' stroke='#0a0814' stroke-width='5' stroke-linecap='round'/><path d='M44 84Q60 96 76 84' stroke='#0a0814' stroke-width='4' fill='none' stroke-linecap='round'/>`}
@@ -296,7 +314,7 @@ const stars=Array.from({length:70},()=>({x:R(0,W),y:R(0,H),s:R(.6,1.8)}));
 const rk=id=>1+.2*((S.inv[id]||{}).r||0),eqI=t=>IT[S.eq[t]]||null,setN=s=>'wsac'.split('').filter(t=>eqI(t)&&eqI(t).set===s).length,nearest=(x,y,r)=>{let b=null,bd=r*r;for(const e of E){const d=(e.x-x)**2+(e.y-y)**2;if(d<bd){bd=d;b=e}}return b};
 function calc(){const id=IT[S.eq.w]?S.eq.w:'blaster',w=IT[id],a=eqI('a'),c=S.eq.c,fi=setN('fire'),ic=setN('ice'),so=setN('solar'),vo=setN('vortex'),vd=setN('void'),ae=setN('aether');
 return{w,dmg:w.d*rk(id)*(1+.1*(S.wl[id]||0))*(c==='rotc'?1.25:1)*(so>=2?1.1:1),cd:w.r*Math.max(.3,1-.12*S.up.oc),mhp:(100+20*S.up.hp+(a?a.hp*rk(S.eq.a):0))*(ae>=2?1.1:1),dr:Math.min(.75,(a?a.dr*rk(S.eq.a):0)+(ic>=2?.15:0)),spd:vo>=2?1.1:1,mag:c==='magn'?200:80,fi:fi>=2,ic:ic>=3,fireAura:fi>=3,so:so===3,vo:vo===3||vd>=3,vd:vd>=2,ad:ae===4,tk:c==='rotc'?1.25:1}}
-function burst(x,y,c,n,s){const sh=c===EC.ice?2:(c===EC.fire||c===EC.solar)?1:0;for(let i=0;i<n&&PT.length<500;i++){const a=R(0,6.283),v=R(.2,1)*s;PT.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:R(.3,.7),c,sh,a})}}
+function burst(x,y,c,n,s){const sh=c===EC.ice?2:(c===EC.fire||c===EC.solar)?1:0;for(let i=0;i<n&&PT.length<500;i++){const a=Math.random()*6.283,v=(.2+Math.random()*.8)*s;PT.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:.3+Math.random()*.4,c,sh,a})}}
 function swap(el){if(mode!=='play'||!S.att.includes(el)||P.at===el)return;P.at=el;SFX.swap();burst(P.x,P.y,EC[el],18,220)}
 function cyc(d){const l=EL6.filter(x=>S.att.includes(x)),i=l.indexOf(P.at);swap(l[(i+d+l.length)%l.length])}
 let TL=[],HZ=[],MS=[],BM=[],SHK=0,HS=0;
@@ -406,7 +424,7 @@ TL.forEach(l=>l.t-=dt);TL=TL.filter(l=>l.t>0);
 MS.forEach(m=>{m.t+=dt;if(m.t>=m.T)burst(m.x1,m.y1,m.c,10,180)});MS=MS.filter(m=>m.t<m.T);
 BM.forEach(b=>{if(b.e){if(b.e.hp>0){b.x=b.e.x;b.y=b.e.y}else b.t=0}b.a+=b.rot*dt;if(b.w>0){b.w-=dt;return}b.t-=dt;const test=(x,y,r)=>{const px=x-b.x,py=y-b.y;return px*Math.cos(b.a)+py*Math.sin(b.a)>0&&Math.abs(-px*Math.sin(b.a)+py*Math.cos(b.a))<b.wd+r};if(test(P.x,P.y,P.r))hurt(12+G.w*2,P.x,P.y,true);if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&!PVP.oppHazardImmune&&test(PVP.oppX,PVP.oppY,13))damagePvpGuest((12+G.w*2)*dt,'boss-beam')});BM=BM.filter(b=>b.t>0);
 SHK=Math.max(0,SHK-dt*30)}
-function deploy(cp){SFX.click();ST=calc();pendingGuestCrates.clear();enemyUidCounter=0;crateUidCounter=0;bulletUidCounter=0;G={w:cp-1,warp:S.rec[cp]||0,startWarp:S.rec[cp]||0,runBanked:false,seed:PVP.active?(PVP.seed||1):((Math.random()*0xffffffff)>>>0),rngState:((PVP.seed||1)^cp)>>>0,cr:{wood:0,iron:0,solar:0,vortex:0,aether:0},kills:0,q:[],t:0,gap:1,st:'inter',tmr:1.5,el:'neutral',name:'Get ready',storm:0,stt:0,souls:0,spi:(eqI('p')&&S.aw[S.eq.p])?{cd:0,x:0,y:0}:null};P.at='neutral';P.rx=P.rv=P.ammo=0;
+function deploy(cp){if(PVP.active&&PVP.phase!=='playing')return;SFX.click();ST=calc();pendingGuestCrates.clear();enemyUidCounter=0;crateUidCounter=0;bulletUidCounter=0;G={w:cp-1,warp:S.rec[cp]||0,startWarp:S.rec[cp]||0,runBanked:false,seed:PVP.active?(PVP.seed||1):((Math.random()*0xffffffff)>>>0),rngState:((PVP.seed||1)^cp)>>>0,cr:{wood:0,iron:0,solar:0,vortex:0,aether:0},kills:0,q:[],t:0,gap:1,st:'inter',tmr:1.5,el:'neutral',name:'Get ready',storm:0,stt:0,souls:0,spi:(eqI('p')&&S.aw[S.eq.p])?{cd:0,x:0,y:0}:null};P.at='neutral';P.rx=P.rv=P.ammo=0;
 Object.assign(P,{x:W/2,y:H/2,vx:0,vy:0,hp:ST.mhp,inv:0,sp:0,spm:6,cd:0});deterministicRandom=(PVP.active&&PVP.role==='host')?()=>seededRand():null;E=[];B=[];EB=[];CR=[];PT=[];SL=[];HO=[];TL=[];HZ=[];MS=[];BM=[];SHK=HS=0;P.sm=1;mode='play';$('hubOverlay').className='ov';$('pauseOverlay').className='ov';netBroadcast({type:'status',mode:'play'})}
 function nextWave(){const w=++G.w;G.rngState=((PVP.seed||G.seed||1)^Math.imul(w,0x9e3779b1))>>>0;S.rec[w]=Math.max(S.rec[w]||0,G.warp);G.q=[];HZ=[];BM=[];TL=[];MS=[];EB=[];const b=w%5===0,ids=w===5?[13,14]:[w*3-3,w*3-2,w*3-1],wt=w===5?[.5,.5]:[.45,.3,.25];
 const baseCount=b?w+6:5+w*3,actualCount=PVP.active?Math.ceil(baseCount*1.35):baseCount;
@@ -419,13 +437,13 @@ const hpScale=(PVP.active?1.5:1)*(mini?.4:1);
 e.hp=e.mh=n.hp*sc*hpScale;E.push(e);if(bs&&PVP.active&&PVP.role==='host'&&PVP.phase==='playing')netSend(PVP.opponent,{type:'pvp_boss_spawn',matchId:PVP.matchId,uid:e.uid,id,wave:G.w,name:n.n,el:e.el});}
 function dmgE(e,d,el,fromGuest){if(e.inv>0||e.gh)return;const actual=Math.max(0,d*emul(el,e.el));e.hp-=actual;if(d>2)e.fl=.034;e._lastHitBy=fromGuest?'guest':'host';if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'&&PVP.stats){PVP.stats[fromGuest?'guest':'host'].damage+=actual;}}
 function kill(e,j){const killer=e._lastHitBy||'host';E.splice(j,1);G.dead++;G.kills++;const bounty=Math.round((e.ty==='b'?150:Math.max(5,EN30[e.id].hp/6))*(1+.12*G.w)),souls=e.ty==='b'?25:1;if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'&&PVP.stats){const who=killer==='guest'?'guest':'host',st=PVP.stats[who],now=Date.now();st.kills++;st.souls=(st.souls||0)+souls;st.warp=(st.warp||0)+bounty;if(now-(st.lastKillAt||0)>3500)st.combo=0;st.combo=(st.combo||0)+1;st.bestCombo=Math.max(st.bestCombo||0,st.combo);st.lastKillAt=now;if(who==='host'){G.souls+=souls;G.warp+=bounty;}}else{G.souls+=souls;G.warp+=bounty;}burst(e.x,e.y,EC[e.el],e.ty==='b'?70:14,e.ty==='b'?320:170);SFX.boom();SHK=Math.max(SHK,e.ty==='b'?18:2.5);if(e.ty==='b')HS=6;if(e.dk)DK[e.dk](e);if(e.ty==='b'||seededRand()<.07)addCrate(e.x,e.y,CT[G.w-1],0);
-if(PVP.active&&PVP.role==='host'&&e.ty==='b'&&G.w===PVP.target&&!PVP.finished){queuePvpResult(killer,'boss')}}
+if(PVP.active&&PVP.role==='host'&&e.ty==='b'&&G.w===PVP.target&&!PVP.finished){endPvp(killer==='guest'?'guest':'host','boss',{wave:G.w,boss:e.id,killer})}}
 function damagePvpGuest(amount,reason='hazard'){
   if(!PVP.active||PVP.role!=='host'||PVP.phase!=='playing'||!PVP.oppAlive||PVP.finished)return;
   const raw=Math.max(0,Number(amount)||0),dmg=raw*(1-cl(Number(PVP.oppDr)||0,0,.75))*cl(Number(PVP.oppTk)||1,.5,2);if(!dmg)return;
   PVP.oppHp=Math.max(0,PVP.oppHp-dmg);
   const now=Date.now();
-  if(PVP.oppHp<=0){PVP.oppAlive=false;PVP.oppDead=true;netSend(PVP.opponent,{type:'pvp_guest_hp',matchId:PVP.matchId,hp:0,dmg,reason});netSend(PVP.opponent,{type:'pvp_you_died',matchId:PVP.matchId});queuePvpResult(PVP.playerDead?'draw':'host',PVP.playerDead?'both-dead':'opponent-death');}
+  if(PVP.oppHp<=0){PVP.oppAlive=false;PVP.oppDead=true;clearV05DeadAttacks('guest');netSend(PVP.opponent,{type:'pvp_guest_hp',matchId:PVP.matchId,hp:0,dmg,reason});netSend(PVP.opponent,{type:'pvp_you_died',matchId:PVP.matchId});queuePvpResult(PVP.playerDead?'draw':'host',PVP.playerDead?'both-dead':'opponent-death');}
   else if(now-(PVP.lastGuestHpPacket||0)>=50){PVP.lastGuestHpPacket=now;netSend(PVP.opponent,{type:'pvp_guest_hp',matchId:PVP.matchId,hp:PVP.oppHp,dmg,reason});}
 }
 function hurtPlayerDeath(){
@@ -462,10 +480,10 @@ function special(){
   }
   if(ST.so){P.sp=P.spm=15;G.storm=2.5;G.stt=0;G.stormOwner='host'}
   else if(ST.vo){P.sp=P.spm=12;HO.push({x:mx,y:my,t:4,owner:'host'})}
-  else{P.sp=P.spm=6;burst(P.x,P.y,'#00ff88',50,300);E.forEach(e=>{const d=D(e,P)||1;if(d<170){dmgE(e,ST.dmg*3,'neutral');e.kx+=(e.x-P.x)/d*600;e.ky+=(e.y-P.y)/d*600}});EB=EB.filter(b=>D(b,P)>150)}
+  else{P.sp=P.spm=6;burst(P.x,P.y,'#00ff88',50,300);E.forEach(e=>{const d=D(e,P)||1;if(d<170){dmgE(e,ST.dmg*3,'neutral');e.kx+=(e.x-P.x)/d*600;e.ky+=(e.y-P.y)/d*600}});if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&Math.hypot(P.x-PVP.oppX,P.y-PVP.oppY)<170)damagePvpGuest(ST.dmg*3,'player-special');EB=EB.filter(b=>D(b,P)>150)}
 }
 function clearWave(){if(PVP.active&&PVP.finished)return;const w=G.w;G.lastClearedWave=Math.max(Number(G.lastClearedWave)||0,w);const clearBonus=w*25;if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'){if(!PVP.playerDead){G.warp+=clearBonus;PVP.stats.host.warp=(PVP.stats.host.warp||0)+clearBonus;}if(PVP.oppAlive)PVP.stats.guest.warp=(PVP.stats.guest.warp||0)+clearBonus;}else G.warp+=clearBonus;SFX.pick();if(w>=4&&!S.cp.includes(w-2))S.cp.push(w-2);
-if(w===10){if(!S.cp.includes(8))S.cp.push(8);if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'){if(!PVP.pendingResult)queuePvpResult('host','boss');return;}G.cr[CT[9]]++;return endRun(true)}
+if(w===10){if(!S.cp.includes(8))S.cp.push(8);if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'){return;}G.cr[CT[9]]++;return endRun(true)}
 addCrate(R(100,W-100),R(100,H-100),CT[w-1],0);G.st='inter';G.tmr=2.5;if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing')netSend(PVP.opponent,{type:'pvp_intermission_tick',matchId:PVP.matchId,wave:w,remaining:G.tmr,nextWave:w+1,name:WV[w][0]});save()}
 function upd(dt){
   const isSpectator=PVP.active&&PVP.playerDead;
@@ -481,8 +499,8 @@ function upd(dt){
   P.ang=Math.atan2(my-P.y,mx-P.x);P.cd-=dt;P.sp=Math.max(0,P.sp-dt);P.inv-=dt;
   if(md&&P.cd<=0&&!isSpectator)fire();
   P.rv=(P.rv-.15*P.rx)*.82;P.rx+=P.rv;
-  if(!isSpectator&&Math.hypot(P.vx,P.vy)>120&&Math.random()<.4)PT.push({x:P.x-Math.cos(P.fa)*18,y:P.y-Math.sin(P.fa)*18,vx:R(-25,25),vy:R(-25,25),l:.5,c:'#7dff3c',sh:0,a:0});
-  if(G.spi&&!isSpectator){const s=eqI('p'),a=T*1.7;G.spi.x=P.x+Math.cos(a)*50;G.spi.y=P.y+Math.sin(a)*50;G.spi.cd-=dt;const t=G.spi.cd<=0&&nearest(G.spi.x,G.spi.y,420);if(t){G.spi.cd=s.r;const an=Math.atan2(t.y-G.spi.y,t.x-G.spi.x);B.push({uid:++bulletUidCounter,x:G.spi.x,y:G.spi.y,vx:Math.cos(an)*560,vy:Math.sin(an)*560,d:ST.dmg*s.k*rk(S.eq.p),el:P.at,l:1,pi:s.pi||1,r:3,h:[]})}}
+  if(!isSpectator&&Math.hypot(P.vx,P.vy)>120&&Math.random()<.4)PT.push({x:P.x-Math.cos(P.fa)*18,y:P.y-Math.sin(P.fa)*18,vx:Math.random()*50-25,vy:Math.random()*50-25,l:.5,c:'#7dff3c',sh:0,a:0});
+  if(G.spi&&!isSpectator){const s=eqI('p'),a=T*1.7;G.spi.x=P.x+Math.cos(a)*50;G.spi.y=P.y+Math.sin(a)*50;G.spi.cd-=dt;const t=G.spi.cd<=0&&nearest(G.spi.x,G.spi.y,420);if(t){G.spi.cd=s.r;const an=Math.atan2(t.y-G.spi.y,t.x-G.spi.x);B.push({uid:++bulletUidCounter,x:G.spi.x,y:G.spi.y,vx:Math.cos(an)*560,vy:Math.sin(an)*560,d:ST.dmg*s.k*rk(S.eq.p),el:P.at,l:1,pi:s.pi||1,r:3,h:[]})}if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&Math.hypot(G.spi.x-PVP.oppX,G.spi.y-PVP.oppY)<18)damagePvpGuest(12*dt,'player-drone')}if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&!PVP.playerDead&&PVP.oppDrone&&Math.hypot(PVP.oppDrone.x-P.x,PVP.oppDrone.y-P.y)<18&&Date.now()>(PVP.guestDroneHitAt||0)){PVP.guestDroneHitAt=Date.now()+300;const dd=Math.max(2,(PVP.opponentLoadout?.damage||10)*.25);PVP.stats.guest.damage=(PVP.stats.guest.damage||0)+dd;hurt(dd,P.x,P.y,true);}
   if(S.up.slime>0&&!isSpectator){P.sl-=dt;if(P.sl<=0&&Math.hypot(P.vx,P.vy)>40){P.sl=.1;SL.push({x:P.x,y:P.y,t:2+S.up.slime})}}
   SL.forEach(s=>s.t-=dt);SL=SL.filter(s=>s.t>0);
   if(PVP.active&&PVP.role==='guest'){
@@ -494,10 +512,11 @@ function upd(dt){
     PVP.oppX+=(PVP.oppXT-PVP.oppX)*0.35;
     PVP.oppY+=(PVP.oppYT-PVP.oppY)*0.35;
     PVP.lastInput+=dt;
-    if(PVP.lastInput>=0.05&&PVP.opponent&&PVP.phase==='playing'){PVP.lastInput=0;netSend(PVP.opponent,{type:'pvp_input',matchId:PVP.matchId,x:P.x,y:P.y,ang:P.ang,alive:!PVP.playerDead,at:P.at,dr:ST.dr,tk:ST.tk,mhp:ST.mhp,mag:ST.mag,shield:!!eqI('s'),shieldSide:eqI('s')?eqI('s').side:0,hazardImmune:!!ST.ad})}
+    if(PVP.lastInput>=0.05&&PVP.opponent&&PVP.phase==='playing'){PVP.lastInput=0;netSend(PVP.opponent,{type:'pvp_input',matchId:PVP.matchId,x:P.x,y:P.y,ang:P.ang,alive:!PVP.playerDead,at:P.at,dr:ST.dr,tk:ST.tk,mhp:ST.mhp,mag:ST.mag,shield:!!eqI('s'),shieldSide:eqI('s')?eqI('s').side:0,hazardImmune:!!ST.ad,drone:G.spi?{x:G.spi.x,y:G.spi.y}:null})}
     for(let i=B.length-1;i>=0;i--){
       const b=B[i];b.x+=b.vx*dt;b.y+=b.vy*dt;b.l-=dt;
       if(b.l<=0||b.x<-20||b.x>W+20||b.y<-20||b.y>H+20){B.splice(i,1);continue}
+      if(PVP.active&&PVP.role==='guest'&&!PVP.playerDead&&Math.hypot(b.x-PVP.oppX,b.y-PVP.oppY)<13+(b.r||4)){burst(b.x,b.y,'#00ccff',5,100);B.splice(i,1);break;}
       for(const e of E){
         if(e.gh||b.h.includes(e.uid))continue;
         if(Math.hypot(b.x-e.x,b.y-e.y)<e.r+(b.r||4)){
@@ -509,7 +528,7 @@ function upd(dt){
       }
     }
     // Guest-side speculative crate magnetism; the host confirms the collection by uid.
-    for(let i=CR.length-1;i>=0;i--){const c=CR[i],uid=Number(c.uid),d=D(c,P)||1;c.b=(c.b||0)+dt;if(d<ST.mag){c.x+=(P.x-c.x)/d*180*dt;c.y+=(P.y-c.y)/d*180*dt;}if(d<P.r+12&&!PVP.playerDead&&!pendingGuestCrates.has(uid)){pendingGuestCrates.set(uid,Date.now());CR.splice(i,1);netSend(PVP.opponent,{type:'pvp_collect_crate',matchId:PVP.matchId,uid});}}
+    for(let i=CR.length-1;i>=0;i--){const c=CR[i],uid=Number(c.uid),d=D(c,P)||1;c.b=(c.b||0)+dt;if(!PVP.playerDead&&d<ST.mag){c.x+=(P.x-c.x)/d*180*dt;c.y+=(P.y-c.y)/d*180*dt;}if(d<P.r+12&&!PVP.playerDead&&!pendingGuestCrates.has(uid)){pendingGuestCrates.set(uid,Date.now());CR.splice(i,1);netSend(PVP.opponent,{type:'pvp_collect_crate',matchId:PVP.matchId,uid});}}
     // Pending requests older than 2 seconds are retried after the next authoritative snapshot.
     for(const [uid,at] of pendingGuestCrates){if(Date.now()-at>2000){pendingGuestCrates.set(uid,Date.now());netSend(PVP.opponent,{type:'pvp_collect_crate',matchId:PVP.matchId,uid});}}
     PT.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.96;p.vy*=.96;p.l-=dt});PT=PT.filter(p=>p.l>0);
@@ -518,6 +537,8 @@ function upd(dt){
   }
   if(G.st==='inter'){G.tmr-=dt;if(G.tmr<=0)nextWave()}else{G.t-=dt;if(G.q.length&&G.t<=0&&E.length<45){spawn(G.q.shift());G.t=G.gap}if(!G.q.length&&!E.length)clearWave()}
   for(let i=B.length-1;i>=0;i--){const b=B[i];b.x+=b.vx*dt;b.y+=b.vy*dt;b.l-=dt;if(b.l<=0||b.x<-20||b.x>W+20||b.y<-20||b.y>H+20){B.splice(i,1);continue}
+  if(PVP.active&&PVP.role==='host'&&b._guest&&!PVP.playerDead&&P.inv<=0&&Math.hypot(b.x-P.x,b.y-P.y)<P.r+(b.r||4)){const dmg=Math.max(0,Number(b.d)||8);PVP.stats.guest.damage=(PVP.stats.guest.damage||0)+dmg;B.splice(i,1);hurt(dmg,b.x,b.y,false);burst(b.x,b.y,'#ff3355',7,130);continue;}
+  if(PVP.active&&PVP.role==='host'&&!b._guest&&PVP.oppAlive&&Math.hypot(b.x-PVP.oppX,b.y-PVP.oppY)<13+(b.r||4)){B.splice(i,1);damagePvpGuest(Math.max(0,Number(b.d)||8),'player-projectile');burst(b.x,b.y,'#00ccff',7,130);continue;}
   for(let j=0;j<E.length;j++){const e=E[j];if(e.hp<=0||e.gh||b.h.includes(e))continue;
   if(e.rg){let bl=0;e.bk=e.bk||[0,0,0];for(let k=0;k<3;k++){const sa=T*2.2+k*2.094;if(e.bk[k]<=0&&Math.hypot(b.x-e.x-Math.cos(sa)*38,b.y-e.y-Math.sin(sa)*38)<10)bl=k+1}if(bl){e.hc=(e.hc||0)+1;if(e.hc>=4){e.hc=0;e.bk[bl-1]=3;burst(e.x,e.y,EC.vortex,10,160)}burst(b.x,b.y,'#fff',4,140);B.splice(i,1);break}}
   if(Math.hypot(b.x-e.x,b.y-e.y)>e.r+b.r)continue;
@@ -529,7 +550,7 @@ function upd(dt){
       const dHost=Math.hypot(P.x-e.x,P.y-e.y);
       const dGuest=Math.hypot(PVP.oppX-e.x,PVP.oppY-e.y);
       if(PVP.playerDead || dGuest<dHost){
-        SIM.x=PVP.oppX;SIM.y=PVP.oppY;SIM.r=13;SIM.ang=Math.atan2(P.y-e.y,P.x-e.x);SIM.hp=PVP.oppHp;
+        SIM.x=PVP.oppX;SIM.y=PVP.oppY;SIM.r=13;SIM.ang=Math.atan2(PVP.oppY-e.y,PVP.oppX-e.x);SIM.hp=PVP.oppHp;
         e._targetGuest=true;
       }else{
         SIM.x=P.x;SIM.y=P.y;SIM.r=P.r;SIM.ang=P.ang;SIM.hp=P.hp;
@@ -549,10 +570,10 @@ function upd(dt){
   });
   for(let i=EB.length-1;i>=0;i--){const b=EB[i];b.x+=b.vx*dt;b.y+=b.vy*dt;b.l-=dt;if(b.l<=0||b.x<-30||b.x>W+30||b.y<-30||b.y>H+30){EB.splice(i,1);continue}if(!PVP.playerDead&&Math.hypot(b.x-P.x,b.y-P.y)<P.r+(b.r||4)){EB.splice(i,1);hurt(b.d||7+G.w*1.5,b.x,b.y,false)}}
   for(let i=CR.length-1;i>=0;i--){const c=CR[i],dh=D(c,P)||1;let target=P,d=dh,who='host';if(PVP.active&&PVP.role==='host'&&PVP.oppAlive){const dg=Math.hypot(c.x-PVP.oppX,c.y-PVP.oppY)||1;if(dg<d){d=dg;target={x:PVP.oppX,y:PVP.oppY};who='guest'}}c.b=(c.b||0)+dt;if(d<ST.mag&&(!PVP.playerDead||who==='guest')){c.x+=(target.x-c.x)/d*180*dt;c.y+=(target.y-c.y)/d*180*dt}if(who==='host'&&dh<P.r+12&&!PVP.playerDead){G.cr[c.t]++;CR.splice(i,1);if(PVP.active&&PVP.role==='host'&&PVP.stats)PVP.stats.host.crates++;SFX.pick();burst(c.x,c.y,'#ffd23a',12,140)}}
-  if(G.storm>0){G.storm-=dt;G.stt-=dt;if(G.stt<=0){G.stt=.25;burst(R(0,W),R(0,H),'#ff7a2a',25,260);SFX.boom();const owner=G.stormOwner==='guest'?'guest':'host',sd=owner==='guest'?(PVP.opponentLoadout?.damage||10):ST.dmg;E.forEach(e=>dmgE(e,sd*1.3,'fire',owner==='guest'))}}
-  HO.forEach(h=>{h.t-=dt;const owner=h.owner==='guest'?'guest':'host',od=owner==='guest'?(PVP.opponentLoadout?.damage||10):ST.dmg;E.forEach(e=>{const dx=h.x-e.x,dy=h.y-e.y,d=Math.hypot(dx,dy)||1;if(d<280&&e.ty!=='b'){e.x+=dx/d*(260-d*.5)*dt;e.y+=dy/d*(260-d*.5)*dt}if(d<110)dmgE(e,od*2.5*dt,'vortex',owner==='guest')})});HO=HO.filter(h=>h.t>0);
-  if(ST.so)E.forEach(e=>{if(D(e,P)<90+e.r)dmgE(e,ST.dmg*1.8*dt,'solar')});if(ST.fireAura&&P.at==='fire')E.forEach(e=>{if(D(e,P)<78+e.r)dmgE(e,ST.dmg*.45*dt,'fire')});
-  if(S.up.slime>0)E.forEach(e=>{if(SL.some(s=>Math.hypot(s.x-e.x,s.y-e.y)<e.r+9))dmgE(e,3*S.up.slime*dt,'neutral')});
+  if(G.storm>0){G.storm-=dt;G.stt-=dt;if(G.stt<=0){G.stt=.25;burst(R(0,W),R(0,H),'#ff7a2a',25,260);SFX.boom();const owner=G.stormOwner==='guest'?'guest':'host',sd=owner==='guest'?(PVP.opponentLoadout?.damage||10):ST.dmg;E.forEach(e=>dmgE(e,sd*1.3,'fire',owner==='guest'));if(PVP.active&&PVP.role==='host'){if(owner==='guest'&&!PVP.playerDead){PVP.stats.guest.damage=(PVP.stats.guest.damage||0)+sd*.35;hurt(sd*.35,P.x,P.y,true)}else if(owner==='host'&&PVP.oppAlive)damagePvpGuest(sd*.35,'player-special')}}}
+  HO.forEach(h=>{h.t-=dt;const owner=h.owner==='guest'?'guest':'host',od=owner==='guest'?(PVP.opponentLoadout?.damage||10):ST.dmg;E.forEach(e=>{const dx=h.x-e.x,dy=h.y-e.y,d=Math.hypot(dx,dy)||1;if(d<280&&e.ty!=='b'){e.x+=dx/d*(260-d*.5)*dt;e.y+=dy/d*(260-d*.5)*dt}if(d<110)dmgE(e,od*2.5*dt,'vortex',owner==='guest')});if(PVP.active&&PVP.role==='host'){if(owner==='host'&&PVP.oppAlive&&Math.hypot(h.x-PVP.oppX,h.y-PVP.oppY)<110)damagePvpGuest(od*.18*dt,'player-special');else if(owner==='guest'&&!PVP.playerDead&&Math.hypot(h.x-P.x,h.y-P.y)<110){PVP.stats.guest.damage=(PVP.stats.guest.damage||0)+od*.18*dt;hurt(od*.18*dt,P.x,P.y,true)}}});HO=HO.filter(h=>h.t>0);
+  // Passive damage belongs to the living local player only. A dead host continues the shared simulation for the survivor, but their equipment auras cannot keep attacking.
+  if(!PVP.active||!PVP.playerDead){if(ST.so)E.forEach(e=>{if(D(e,P)<90+e.r)dmgE(e,ST.dmg*1.8*dt,'solar')});if(ST.fireAura&&P.at==='fire')E.forEach(e=>{if(D(e,P)<78+e.r)dmgE(e,ST.dmg*.45*dt,'fire')});if(S.up.slime>0)E.forEach(e=>{if(SL.some(s=>Math.hypot(s.x-e.x,s.y-e.y)<e.r+9))dmgE(e,3*S.up.slime*dt,'neutral')});}
   for(let j=E.length-1;j>=0;j--)if(E[j].hp<=0)kill(E[j],j);
   upd2(dt);PT.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.96;p.vy*=.96;p.l-=dt});PT=PT.filter(p=>p.l>0);
   if(PVP.active&&PVP.role==='host'&&PVP.opponent&&PVP.phase==='playing'){
@@ -570,20 +591,12 @@ function upd(dt){
         eb:EB.map(b=>({uid:b.uid||null,x:Math.round(b.x),y:Math.round(b.y),r:b.r||4,el:b.el,vx:b.vx,vy:b.vy,d:b.d||0})),
         hb:B.filter(b=>!b._guest).map(b=>({uid:b.uid||null,x:Math.round(b.x),y:Math.round(b.y),r:b.r||4,el:b.el,vx:b.vx,vy:b.vy,pi:b.pi||1})),
         cr:CR.map(c=>({uid:c.uid,x:Math.round(c.x),y:Math.round(c.y),t:c.t,b:c.b||0})),
-        hazards:HZ.map(h=>({x:h.x,y:h.y,r:h.r,ty:h.ty,t:h.t,w:h.w})),lines:TL.map(l=>({...l})),beams:BM.map(b=>({x:b.x,y:b.y,a:b.a,w:b.w,t:b.t,wd:b.wd,c:b.c,rot:b.rot})),
-        hostHp:P.hp,hostMh:ST.mhp,hostAlive:!PVP.playerDead,hostX:Math.round(P.x),hostY:Math.round(P.y),hostAt:P.at,guestHp:PVP.oppHp,guestMh:PVP.oppMh,guestAlive:PVP.oppAlive,lastClearedWave:Number(G.lastClearedWave)||0,stats:PVP.stats});
+        hazards:HZ.map(h=>({x:h.x,y:h.y,r:h.r,ty:h.ty,t:h.t,w:h.w})),lines:TL.map(l=>({...l})),beams:BM.map(b=>({x:b.x,y:b.y,a:b.a,w:b.w,t:b.t,wd:b.wd,c:b.c,rot:b.rot})),particles:PT.slice(-180).map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy,l:p.l,c:p.c,sh:p.sh||0,a:p.a||0})),meteorFx:MS.map(m=>({x0:m.x0,y0:m.y0,x1:m.x1,y1:m.y1,t:m.t,T:m.T,c:m.c})),slime:SL.slice(-120).map(v=>({x:v.x,y:v.y,t:v.t})),holes:HO.map(h=>({x:h.x,y:h.y,t:h.t,owner:h.owner||'host'})),
+        hostHp:P.hp,hostMh:ST.mhp,hostAlive:!PVP.playerDead,hostX:Math.round(P.x),hostY:Math.round(P.y),hostAt:P.at,hostHeading:P.ang,hostDrone:G.spi?{x:G.spi.x,y:G.spi.y}:null,hostTaunt:P.taunt&&P.taunt.until>Date.now()?P.taunt:null,guestTaunt:PVP.oppTaunt&&PVP.oppTaunt.until>Date.now()?PVP.oppTaunt:null,guestHp:PVP.oppHp,guestMh:PVP.oppMh,guestAlive:PVP.oppAlive,lastClearedWave:Number(G.lastClearedWave)||0,storm:Number(G.storm)||0,stormTick:Number(G.stt)||0,stormOwner:G.stormOwner==='guest'?'guest':'host',stats:PVP.stats});
     }
-    if(Date.now()-PVP.startTime>600000&&!PVP.finished)timeoutPvp();
   }
 }
-function timeoutPvp(){
-  if(PVP.finished||!PVP.active||PVP.role!=='host')return;
-  const h=PVP.stats.host,g=PVP.stats.guest;let winner='draw';
-  if(Math.abs((h.damage||0)-(g.damage||0))>0.01)winner=h.damage>g.damage?'host':'guest';
-  else if(h.kills!==g.kills)winner=h.kills>g.kills?'host':'guest';
-  else if(h.crates!==g.crates)winner=h.crates>g.crates?'host':'guest';
-  endPvp(winner,'timeout',{tieBreak:{damage:{host:Math.round(h.damage),guest:Math.round(g.damage)},kills:{host:h.kills,guest:g.kills},crates:{host:h.crates,guest:g.crates}}});
-}
+function timeoutPvp(){ /* v0.5.1: no timer-based match conclusions. */ }
 function drEn(e){const f=Math.floor(T*7+(e.o||0))%2,k='e'+e.id+'_'+f,im=(e.fl>0?WH:SP)[k];if(!im)return;const bs=e.ty==='b',sw=e.r*(bs?2.7:3.5),sq=Math.min(.25,(e.v||0)*.05)+.05*Math.sin(T*9+(e.o||0)),bo=bs?0:Math.abs(Math.sin(T*7+(e.o||0)))*3,col=e.fz?'#ff2222':EC[e.el];
 cx.save();cx.translate(e.x,e.y-bo);cx.globalAlpha=e.gh?.35:1;cx.scale((e.fx||1)*(1+sq),1-sq);cx.shadowColor=col;cx.shadowBlur=e.fz?22:12;cx.drawImage(im,-sw/2,-sw/2,sw,sw);cx.restore();
 cx.fillStyle=col;cx.globalAlpha=e.gh?.3:.85;for(let i=0;i<3;i++){const a=T*2+i*2.09+(e.o||0);cx.beginPath();cx.arc(e.x+Math.cos(a)*(e.r+9),e.y+Math.sin(a)*(e.r+9)-bo,2.5,0,7);cx.fill()}cx.globalAlpha=1;
@@ -592,7 +605,7 @@ if((e.inv||0)>0){cx.strokeStyle='#fff';cx.globalAlpha=.8;cx.lineWidth=5;cx.begin
 if(e.rg)for(let q=0;q<3;q++){const sa=T*2.2+q*2.094;cx.fillStyle=EC.vortex;cx.shadowColor=EC.vortex;cx.shadowBlur=12;cx.beginPath();cx.arc(e.x+Math.cos(sa)*38,e.y+Math.sin(sa)*38,8,0,7);cx.fill();cx.shadowBlur=0}
 if(e.sh){const w=e.sh==='i'?1.3:1;cx.strokeStyle=e.sh==='r'?'#fff':'#9fb0c8';cx.lineWidth=6;cx.lineCap='round';cx.beginPath();cx.arc(e.x,e.y,e.r+8,(e.fa||0)-w,(e.fa||0)+w);cx.stroke()}
 if(bs){cx.strokeStyle=EC[e.el];cx.globalAlpha=.6;cx.lineWidth=3;cx.beginPath();cx.arc(e.x,e.y,e.r+10+3*Math.sin(T*4),0,7);cx.stroke();cx.globalAlpha=1;for(let i=0;i<3;i++){cx.save();cx.translate(e.x,e.y);cx.rotate(T*.8+i*2.09);cx.fillStyle='#4a4470';cx.strokeStyle='#0a0814';cx.lineWidth=3;cx.fillRect(e.r-4,-5,26,10);cx.strokeRect(e.r-4,-5,26,10);cx.fillStyle=EC[e.el];cx.beginPath();cx.arc(e.r+24,0,5,0,7);cx.fill();cx.restore()}}}
-function drSlug(){if(PVP.playerDead){cx.save();cx.translate(P.x,P.y);cx.globalAlpha=.35;cx.fillStyle='#ff3355';cx.beginPath();cx.arc(0,0,15,0,7);cx.fill();cx.globalAlpha=1;cx.fillStyle='#ff3355';cx.font='9px Orbitron,sans-serif';cx.textAlign='center';cx.fillText('DEAD',0,4);cx.restore();return}const sp=Math.hypot(P.vx,P.vy),sq=Math.min(.3,sp/60*.05),col=EC[P.at],fi=P.inv>.15?'h'+(Math.floor(T*14)%2):(md||P.rx<-3)?'f'+(P.rx<-4?0:1):(S.up.slime>0&&sp>40)?'s'+(Math.floor(T*8)%3):'i'+(Math.floor(T*5)%4),im=SP['sl'+fi];if(!im)return;
+function drSlug(){if(PVP.active&&PVP.playerDead)return;const sp=Math.hypot(P.vx,P.vy),sq=Math.min(.3,sp/60*.05),col=EC[P.at],fi=P.inv>.15?'h'+(Math.floor(T*14)%2):(md||P.rx<-3)?'f'+(P.rx<-4?0:1):(S.up.slime>0&&sp>40)?'s'+(Math.floor(T*8)%3):'i'+(Math.floor(T*5)%4),im=SP['sl'+fi];if(!im)return;
 const fa=fi[0]==='f'?P.ang:P.fa,da=P.ang-fa,px=Math.cos(da)*2.4,py=Math.sin(da)*2.4,w=fi[0]==='i'?[0,2,0,-2][+fi[1]]:0;
 cx.save();cx.translate(P.x,P.y);if(P.inv>0&&Math.floor(P.inv*20)%2)cx.globalAlpha=.55;cx.rotate(fa);cx.scale(1+sq,1-sq);cx.shadowColor=col;cx.shadowBlur=24;cx.drawImage(im,-32,-24,64,48);cx.shadowBlur=0;
 cx.fillStyle='#0a0814';for(const s of[-1,1]){cx.beginPath();cx.arc(12+px,s*5.5+py,fi[0]==='h'?2:2.5,0,7);cx.fill()}
@@ -605,7 +618,7 @@ const pl=BG[G?G.el:'neutral']||BG.neutral,gr=cx.createLinearGradient(0,0,0,H);gr
 cx.fillStyle='#fff';stars.forEach((s,i)=>{cx.globalAlpha=.1+.07*(i%3);cx.beginPath();cx.arc(((s.x+Math.sin(T*.4+i)*16)%W+W)%W,(((s.y-T*(4+s.s*3))%H)+H)%H,s.s*5,0,7);cx.fill()});cx.globalAlpha=1;
 cx.strokeStyle=G&&G.fr?'#ff3030cc':'#ffffff22';cx.lineWidth=G&&G.fr?4:2;cx.strokeRect(2,2,W-4,H-4);
 if(!G||mode==='hub')return;
-cx.save();if(SHK>.3)cx.translate(R(-SHK,SHK),R(-SHK,SHK));
+cx.save();if(PVP.active&&PVP.playerDead)cx.translate(W/2-(Number.isFinite(PVP.oppX)?PVP.oppX:P.x),H/2-(Number.isFinite(PVP.oppY)?PVP.oppY:P.y));if(SHK>.3)cx.translate((Math.random()*2-1)*SHK,(Math.random()*2-1)*SHK);
 const dc=(x,y,r,c)=>{cx.fillStyle=c;cx.beginPath();cx.arc(x,y,r,0,7);cx.fill()};
 SL.forEach(s=>{cx.globalAlpha=Math.min(.55,s.t/2);dc(s.x,s.y,10+Math.sin(T*5+s.x)*1.5,'#7dff3c')});cx.globalAlpha=1;
 HO.forEach(h=>{const g=cx.createRadialGradient(h.x,h.y,2,h.x,h.y,70);g.addColorStop(0,'#000');g.addColorStop(.5,'#7a2bd4');g.addColorStop(1,'#7a2bd400');dc(h.x,h.y,70,g)});
@@ -621,18 +634,18 @@ EB.forEach(b=>{cx.shadowColor=EC[b.el];cx.shadowBlur=10;dc(b.x,b.y,(b.r||4)+2,EC
 if(PVP.active&&PVP.role==='guest'){
   PVP.hostBulletsSnap.forEach(b=>{const sp=Math.hypot(b.vx,b.vy)||1;cx.shadowColor=EC[b.el];cx.shadowBlur=14;cx.strokeStyle=EC[b.el];cx.lineWidth=(b.r||4)*1.7;cx.lineCap='round';cx.beginPath();cx.moveTo(b.x-b.vx/sp*12,b.y-b.vy/sp*12);cx.lineTo(b.x,b.y);cx.stroke();dc(b.x,b.y,(b.r||4)*.7,'#fff')});
 }
-if(G.spi){cx.save();cx.translate(G.spi.x,G.spi.y);cx.shadowColor=EC[P.at];cx.shadowBlur=12;cx.fillStyle='#9dffd0';cx.strokeStyle='#0a0814';cx.lineWidth=2.5;cx.beginPath();cx.ellipse(0,0,10,7,Math.sin(T*3)*.3,0,7);cx.fill();cx.stroke();dc(4,-2,2.5,'#fff');dc(5,-2,1.2,'#0a0814');cx.restore()}
-if(ST.so){cx.strokeStyle='#ffcc0099';cx.lineWidth=3;cx.beginPath();cx.arc(P.x,P.y,90+Math.sin(T*6)*3,0,7);cx.stroke()}
+if(G.spi&&(!PVP.active||!PVP.playerDead)){cx.save();cx.translate(G.spi.x,G.spi.y);cx.shadowColor=EC[P.at];cx.shadowBlur=12;cx.fillStyle='#9dffd0';cx.strokeStyle='#0a0814';cx.lineWidth=2.5;cx.beginPath();cx.ellipse(0,0,10,7,Math.sin(T*3)*.3,0,7);cx.fill();cx.stroke();dc(4,-2,2.5,'#fff');dc(5,-2,1.2,'#0a0814');cx.restore()}
+if(ST.so&&!PVP.playerDead){cx.strokeStyle='#ffcc0099';cx.lineWidth=3;cx.beginPath();cx.arc(P.x,P.y,90+Math.sin(T*6)*3,0,7);cx.stroke()}
 const sh=eqI('s');if(sh&&!PVP.playerDead){cx.strokeStyle='#00ccffcc';cx.lineWidth=5;cx.lineCap='round';cx.beginPath();cx.arc(P.x,P.y,34,P.ang+sh.side-1.1,P.ang+sh.side+1.1);cx.stroke()}
 if(PVP.active&&PVP.oppAlive!==false&&PVP.oppX!==undefined){
   const ox=PVP.oppX,oy=PVP.oppY;
-  cx.save();cx.translate(ox,oy);cx.globalAlpha=.55;cx.shadowColor='#00ccff';cx.shadowBlur=14;
+  cx.save();cx.translate(ox,oy);cx.rotate(PVP.oppAng||0);cx.globalAlpha=.55;cx.shadowColor='#00ccff';cx.shadowBlur=14;
   const im=SP['sl'+((Math.floor(T*5)%4===0)?'i1':'i0')];
   if(im)cx.drawImage(im,-24,-18,48,36);
   cx.restore();cx.globalAlpha=1;
   cx.fillStyle='#00ccff';cx.font='9px Orbitron,sans-serif';cx.textAlign='center';cx.fillText('OPP',ox,oy-26);
 }
-drSlug();drGun();
+if(!PVP.active||!PVP.playerDead){drSlug();drGun();}
 cx.globalCompositeOperation='lighter';PT.forEach(p=>{cx.globalAlpha=Math.min(1,p.l*2);cx.fillStyle=p.c;cx.strokeStyle=p.c;if(p.sh===1){cx.lineWidth=2;cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(p.x-p.vx*.04,p.y-p.vy*.04);cx.stroke()}else if(p.sh===2){cx.beginPath();cx.moveTo(p.x+4*Math.cos(p.a),p.y+4*Math.sin(p.a));cx.lineTo(p.x+2*Math.cos(p.a+2.4),p.y+2*Math.sin(p.a+2.4));cx.lineTo(p.x+2*Math.cos(p.a-2.4),p.y+2*Math.sin(p.a-2.4));cx.fill()}else dc(p.x,p.y,2.6,p.c)});cx.globalAlpha=1;cx.globalCompositeOperation='source-over';
 cx.restore();
 if(G.st==='inter'&&G.w<10){const k=1+.06*Math.sin(T*6),tx='Wave '+(G.w+1)+': '+WV[G.w][0];cx.save();cx.translate(W/2,H/2-80);cx.scale(k,k);cx.font='800 30px Orbitron,sans-serif';cx.textAlign='center';cx.lineWidth=7;cx.lineJoin='round';cx.strokeStyle='#0a0814';cx.strokeText(tx,0,0);cx.fillStyle='#fff';cx.fillText(tx,0,0);cx.restore()}
@@ -659,15 +672,15 @@ const mkT=s=>({k:2,l:[[1,'warp',200,420],[1,'cell',1,3],[.2,'pur',40,90],[.5,'se
 const LT={wood:{k:1,l:[[1,'warp',40,110],[.6,'pro',1,3],[.15,'it',k=>IT[k].tier===0,0,'Common gear']]},iron:{k:1,l:[[1,'warp',100,240],[1,'pro',2,4],[.4,'cell',1,2],[.35,'pur',20,60],[.4,'it',k=>IT[k].tier===1,0,'Uncommon gear or Pip Slug']]},solar:mkT('solar'),vortex:mkT('vortex'),aether:{k:4,l:[[1,'warp',500,900],[1,'cell',3,6],[.5,'pur',80,160],[1,'fus',1,1],[.8,'key',1,3],[.6,'set','aether',0,'Aether Divine set piece'],[.4,'it',k=>IT[k].t==='p'&&IT[k].tier===3,0,'Aether Slug']]}};
 function roll(t){const o=[];for(const[p,ty,a,b]of LT[t].l){if(Math.random()>=p)continue;if(ty==='it'||ty==='set'){const f=ty==='set'?(k=>Array.isArray(a)?a.includes(IT[k].set):IT[k].set===a):a,ps=Object.keys(IT).filter(f),id=ps[RI(0,ps.length-1)],v=S.inv[id];if(v){v.d++;o.push(IT[id].n+' (duplicate: reinforce it)')}else{S.inv[id]={d:0,r:0};o.push('NEW: '+IT[id].n)}}else{const v=RI(a,b);S[ty]+=v;o.push('+'+v+' '+LB[ty])}}return o}
 const fin=()=>{save();SFX.buy();hub()},tb=i=>{tab=i;dm=false;SFX.tab();hub()},dmt=()=>{dm=!dm;SFX.click();hub()},dep=w=>deploy(w);
-function upg(k,b){if(S.up[k]<UP.find(u=>u[0]===k)[2]&&S.warp>=UCOST(k,b)){S.warp-=UCOST(k,b);S.up[k]++;fin()}}
-function unl(el){if(el==='aether'){if(S.fus<1)return;S.fus--}else{if(S.warp<AU[el])return;S.warp-=AU[el]}S.att.push(el);fin()}
-const eq=k=>{S.eq[IT[k].t]=k;SFX.click();save();hub()},ue=t=>{S.eq[t]=null;SFX.click();save();hub()};
-const rf=k=>{const v=S.inv[k],c=3*(v.r+1);if(v.d>0&&v.r<5&&S.cell>=c){S.cell-=c;v.d--;v.r++;fin()}};
-const uw=k=>{const l=S.wl[k]||0,c=60*(l+1);if(S.pur>=c){S.pur-=c;S.wl[k]=l+1;fin()}};
-const aw=k=>{const c=IT[k].sc;if(S.souls>=c&&!S.aw[k]){S.souls-=c;S.aw[k]=1;fin()}};
-const bc=t=>{if(S.warp>=BP[t]){S.warp-=BP[t];S.cr[t]++;fin()}};
-function cf(i){if(!(i===1?S.warp>=1000&&S.cell>=4:i===3?S.warp>=80:S.pro>=2&&S.warp>=45))return;if(i===0){S.pro-=2;S.warp-=45;S.cell++}else if(i===1){S.warp-=1000;S.cell-=4;S.pur+=100}else if(i===2){S.pro-=2;S.warp-=45;S.key++}else{S.warp-=80;S.key++}fin()}
-function oc(t){if(ub&&ub.ph===1)return;const L=LT[t];if(!S.cr[t]||S.key<L.k)return;S.cr[t]--;S.key-=L.k;ub={t,ph:1,res:[]};SFX.shake();hub();setTimeout(()=>{ub.res=roll(t);ub.ph=2;save();SFX.open();if(mode==='hub')hub()},900)}
+function upg(k,b){if(PVP.active&&PVP.phase==='upgrade'&&PVP.upgradeReady)return;if(S.up[k]<UP.find(u=>u[0]===k)[2]&&S.warp>=UCOST(k,b)){S.warp-=UCOST(k,b);S.up[k]++;fin()}}
+function unl(el){if(PVP.active&&PVP.phase==='upgrade'&&PVP.upgradeReady)return;if(el==='aether'){if(S.fus<1)return;S.fus--}else{if(S.warp<AU[el])return;S.warp-=AU[el]}S.att.push(el);fin()}
+const eq=k=>{if(PVP.active&&PVP.phase==='upgrade'&&PVP.upgradeReady)return;S.eq[IT[k].t]=k;SFX.click();save();hub()},ue=t=>{if(PVP.active&&PVP.phase==='upgrade'&&PVP.upgradeReady)return;S.eq[t]=null;SFX.click();save();hub()};
+const rf=k=>{if(PVP.active&&PVP.phase==='upgrade'&&PVP.upgradeReady)return;const v=S.inv[k],c=3*(v.r+1);if(v.d>0&&v.r<5&&S.cell>=c){S.cell-=c;v.d--;v.r++;fin()}};
+const uw=k=>{if(PVP.active&&PVP.phase==='upgrade'&&PVP.upgradeReady)return;const l=S.wl[k]||0,c=60*(l+1);if(S.pur>=c){S.pur-=c;S.wl[k]=l+1;fin()}};
+const aw=k=>{if(PVP.active&&PVP.phase==='upgrade'&&PVP.upgradeReady)return;const c=IT[k].sc;if(S.souls>=c&&!S.aw[k]){S.souls-=c;S.aw[k]=1;fin()}};
+const bc=t=>{if(PVP.active&&PVP.phase==='upgrade'&&PVP.upgradeReady)return;if(S.warp>=BP[t]){S.warp-=BP[t];S.cr[t]++;fin()}};
+function cf(i){if(PVP.active&&PVP.phase==='upgrade'&&PVP.upgradeReady)return;if(!(i===1?S.warp>=1000&&S.cell>=4:i===3?S.warp>=80:S.pro>=2&&S.warp>=45))return;if(i===0){S.pro-=2;S.warp-=45;S.cell++}else if(i===1){S.warp-=1000;S.cell-=4;S.pur+=100}else if(i===2){S.pro-=2;S.warp-=45;S.key++}else{S.warp-=80;S.key++}fin()}
+function oc(t){if(PVP.active&&PVP.phase==='upgrade'&&PVP.upgradeReady)return;if(ub&&ub.ph===1)return;const L=LT[t];if(!L||!S.cr[t]||S.key<L.k)return;const targetSave=S,targetMode=activeSaveMode;S.cr[t]--;S.key-=L.k;const opening={t,ph:1,res:[]};ub=opening;SFX.shake();hub();setTimeout(()=>{if(ub!==opening||opening.ph!==1||S!==targetSave||activeSaveMode!==targetMode)return;opening.res=roll(t);opening.ph=2;save();SFX.open();if(mode==='hub'||(PVP.active&&PVP.phase==='upgrade'))hub()},900)}
 function rs(){if(!rsc){rsc=1;logs=['Press Reset save again to wipe all progress.'];return hub()}S=DEF();rsc=0;ub=null;logs=['Save wiped.'];fin()}
 const nm=k=>{const v=S.inv[k];return (v.r?'Reinforced ':'')+IT[k].n+(v.r?' '+RN[v.r]:'')};
 function t0(){return `<p class=ds>Pick a wave to deploy from. Counter each wave's element with the recommended attunement (hotkeys 1-6, or Q and E to cycle).</p><div class=g>${WV.map(([n,el],i)=>{const w=i+1,ok=S.cp.includes(w),c=EC[el],r=REC[el],why=w===1?'Always available.':w<=8?'Complete wave '+(w+2)+' to unlock this starting checkpoint.':'No checkpoint here. Fight through from an earlier checkpoint.';
@@ -692,7 +705,7 @@ function netLoadFriends(){try{NET.friends=JSON.parse(localStorage.getItem(FK)||'
 function netSaveFriends(){try{localStorage.setItem(FK,JSON.stringify(NET.friends))}catch(e){}}
 function pvpBeginReconnect(pid){if(!PVP.active||pid!==PVP.opponent||PVP.finished||PVP.phase==='reconnecting')return;PVP.reconnectPhase=PVP.phase;PVP.phase='reconnecting';PVP.reconnectDeadline=Date.now()+15000;mode='pause';$('pauseOverlay').className='ov on';$('pauseOverlay').innerHTML=`<h2>Connection Lost</h2><p>Reconnecting to ${esc(pid)}…</p><h3 id="pvpReconnectTimer">15</h3><p class=ds>Reconnect from the Friends tab within 15 seconds to resume.</p><button onclick="netConnect('${esc(pid)}')">Reconnect now</button>`;}
 function pvpResumeConnection(pid){if(!PVP.active||pid!==PVP.opponent||PVP.phase!=='reconnecting')return;PVP.reconnectDeadline=0;PVP.phase=PVP.reconnectPhase||'playing';PVP.reconnectPhase=null;mode=PVP.phase==='playing'?'play':PVP.phase==='pause'?'pause':'hub';$('pauseOverlay').innerHTML=PVP.pauseHtml||'<h2>Paused</h2><button onclick="pz()">Resume (Esc)</button><button onclick="endRun(false)">Abandon run</button>';$('pauseOverlay').className=mode==='pause'?'ov on':'ov';netSend(pid,{type:'pvp_resume',matchId:PVP.matchId,phase:PVP.phase,seed:PVP.seed});netSys('Connection restored; match resumed.');}
-function pvpTickReconnect(){if(PVP.phase!=='reconnecting'||!PVP.reconnectDeadline)return;const left=Math.max(0,Math.ceil((PVP.reconnectDeadline-Date.now())/1000)),el=$('pvpReconnectTimer');if(el)el.textContent=left;if(left<=0){PVP.reconnectDeadline=0;const winner=PVP.role==='host'?'host':'guest';endPvp(winner,'disconnect',{reason:'reconnect-timeout'});}}
+function pvpTickReconnect(){if(PVP.phase!=='reconnecting'||!PVP.reconnectDeadline)return;const left=Math.max(0,Math.ceil((PVP.reconnectDeadline-Date.now())/1000)),el=$('pvpReconnectTimer');if(el)el.textContent=left;if(left<=0){PVP.reconnectDeadline=0;if(PVP.role==='host'){endPvp('host','disconnect',{reason:'reconnect-timeout',graceMs:15000});}else{PVP.noReward=false;endPvp('guest','disconnect',{reason:'host-reconnect-timeout',graceMs:15000,opponentRole:'host'});}}}
 function sendPvpStatus(){const modeName=PVP.active?'game':mode==='hub'?'hub':mode==='pause'?'pause':'play';netBroadcast({type:'status',mode:modeName,at:P.at||'neutral',t:Date.now()});}
 function netInit(newId){
   NET.err=null;if(NET.peer){try{NET.peer.destroy()}catch(e){}NET.peer=null}NET.ready=false;
@@ -719,9 +732,9 @@ function netAccept(c){
   });
   c.on('data',d=>netData(c.peer,d));
   c.on('close',()=>{
-    const wasCurrent=NET.conns[c.peer]===c;if(wasCurrent){delete NET.conns[c.peer];if(NET.friends[c.peer])NET.friends[c.peer].status='OFFLINE';netSaveFriends();netSys('Disconnected '+c.peer);if(PVP.active&&PVP.opponent===c.peer&&!PVP.finished){if(['playing','countdown','sync','reconnecting'].includes(PVP.phase)){netSys('Opponent connection lost — 15-second reconnect window started');pvpBeginReconnect(c.peer)}else{netSys('Opponent disconnected from the lobby.');cleanupPvp();if(mode!=='hub'){mode='hub';hub()}}}netRender();}
+    const wasCurrent=NET.conns[c.peer]===c;if(wasCurrent){delete NET.conns[c.peer];if(NET.friends[c.peer])NET.friends[c.peer].status='OFFLINE';netSaveFriends();netSys('Disconnected '+c.peer);if(PVP.active&&PVP.opponent===c.peer&&!PVP.finished){if(['playing','countdown','sync','reconnecting','roundSummary','upgrade','waveSelect'].includes(PVP.phase)){netSys('Opponent connection lost — 15-second reconnect window started');pvpBeginReconnect(c.peer)}else{netSys('Opponent disconnected from the lobby.');cleanupPvp();if(mode!=='hub'){mode='hub';hub()}}}netRender();}
   });
-  c.on('error',err=>{const wasCurrent=NET.conns[c.peer]===c;if(wasCurrent){delete NET.conns[c.peer];if(NET.friends[c.peer])NET.friends[c.peer].status='OFFLINE';netSaveFriends();netSys('Connection issue with '+c.peer+(err&&err.type?': '+err.type:''));netRender();if(PVP.active&&PVP.opponent===c.peer&&!PVP.finished){if(['playing','countdown','sync','reconnecting'].includes(PVP.phase))pvpBeginReconnect(c.peer);else{cleanupPvp();if(mode!=='hub'){mode='hub';hub()}}}}});
+  c.on('error',err=>{const wasCurrent=NET.conns[c.peer]===c;if(wasCurrent){delete NET.conns[c.peer];if(NET.friends[c.peer])NET.friends[c.peer].status='OFFLINE';netSaveFriends();netSys('Connection issue with '+c.peer+(err&&err.type?': '+err.type:''));netRender();if(PVP.active&&PVP.opponent===c.peer&&!PVP.finished){if(['playing','countdown','sync','reconnecting','roundSummary','upgrade','waveSelect'].includes(PVP.phase))pvpBeginReconnect(c.peer);else{cleanupPvp();if(mode!=='hub'){mode='hub';hub()}}}}});
 }
 function netSend(pid,obj){const c=NET.conns[pid];if(!c||!c.open)return false;try{c.send(obj);NET.pktsSent++;NET.bytesSent+=(JSON.stringify(obj)||'').length;return true}catch(e){return false}}
 function netBroadcast(obj){Object.keys(NET.conns).forEach(k=>netSend(k,obj))}
@@ -753,20 +766,21 @@ function netData(pid,d){
   else if(d.type==='pvp_player_died'){
     if(PVP.active&&pid===PVP.opponent&&d.matchId===PVP.matchId){
       if(PVP.role==='host'){
+        B=B.filter(b=>!b._guest);
         // A peer cannot award itself a result merely by claiming it died; the host validates its own HP authority.
-        if(PVP.oppHp<=0||PVP.oppAlive===false){PVP.oppDead=true;PVP.oppAlive=false;queuePvpResult(PVP.playerDead?'draw':'host',PVP.playerDead?'both-dead':'opponent-death');}
+        if(PVP.oppHp<=0||PVP.oppAlive===false){B=B.filter(b=>!b._guest);PVP.oppDead=true;PVP.oppAlive=false;if(PVP.playerDead)queuePvpResult('draw','both-dead');else netSend(pid,{type:'pvp_spectate',matchId:PVP.matchId,guestDead:true});}
       }else netSys('Awaiting host-authoritative match result…');
     }
   }
   else if(d.type==='pvp_blocked'){if(PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId){SFX.hit();burst(Number(d.x)||P.x,Number(d.y)||P.y,'#fff',6,110)}}
   else if(d.type==='pvp_you_died'){
-    if(PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId&&!PVP.playerDead){PVP.playerDead=true;P.hp=0;netSend(pid,{type:'pvp_player_died',role:'guest',matchId:PVP.matchId});netSys('You died — spectating');}
+    if(PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId&&!PVP.playerDead){PVP.playerDead=true;P.hp=0;P.vx=P.vy=0;P.sp=0;md=false;for(const k of Object.keys(K))K[k]=0;netSend(pid,{type:'pvp_player_died',role:'guest',matchId:PVP.matchId});netSys('You died — spectating');}
   }
   else if(d.type==='pvp_guest_hp'){
     if(PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId){
       const oldHp=P.hp;
       P.hp=Math.max(0,Math.min(ST.mhp,Number(d.hp)||0));
-      if(oldHp>P.hp+0.5){SFX.hurt();burst(P.x,P.y,'#ff3355',8,150);if(P.hp<=0&&!PVP.playerDead){PVP.playerDead=true;netSend(PVP.opponent,{type:'pvp_player_died',role:PVP.role,matchId:PVP.matchId});netSys('You died — awaiting the host result.')}}
+      if(oldHp>P.hp+0.5){SFX.hurt();burst(P.x,P.y,'#ff3355',8,150);if(P.hp<=0&&!PVP.playerDead){PVP.playerDead=true;P.vx=P.vy=0;P.sp=0;md=false;clearV05DeadAttacks(PVP.role);for(const k of Object.keys(K))K[k]=0;netSend(PVP.opponent,{type:'pvp_player_died',role:PVP.role,matchId:PVP.matchId});netSys('You died — awaiting the host result.')}}
     }
   }
   else if(d.type==='pvp_special'){
@@ -774,12 +788,12 @@ function netData(pid,d){
       const gx=PVP.oppX,gy=PVP.oppY,kind=['neutral','solar','vortex'].includes(d.kind)?d.kind:'neutral';PVP.guestSpecialReadyAt=Date.now()+(kind==='solar'?15000:kind==='vortex'?12000:6000);
       if(kind==='vortex'&&PVP.oppAlive){HO.push({x:cl(Number(d.x)||gx,0,W),y:cl(Number(d.y)||gy,0,H),t:4,owner:'guest'});}
       else if(kind==='solar'){G.storm=2.5;G.stt=0;G.stormOwner='guest';}
-      else{const specialDamage=(PVP.opponentLoadout?.damage||10)*3;E.forEach(e=>{const dist=Math.hypot(e.x-gx,e.y-gy)||1;if(dist<170){dmgE(e,specialDamage,'neutral',true);e.kx+=(e.x-gx)/dist*600;e.ky+=(e.y-gy)/dist*600}});EB=EB.filter(b=>Math.hypot(b.x-gx,b.y-gy)>150);}
+      else{const specialDamage=(PVP.opponentLoadout?.damage||10)*3;E.forEach(e=>{const dist=Math.hypot(e.x-gx,e.y-gy)||1;if(dist<170){dmgE(e,specialDamage,'neutral',true);e.kx+=(e.x-gx)/dist*600;e.ky+=(e.y-gy)/dist*600}});if(!PVP.playerDead&&Math.hypot(P.x-gx,P.y-gy)<170){PVP.stats.guest.damage=(PVP.stats.guest.damage||0)+specialDamage;hurt(specialDamage,gx,gy,true);}EB=EB.filter(b=>Math.hypot(b.x-gx,b.y-gy)>150);}
       SHK=Math.max(SHK,8);
     }
   }
   else if(d.type==='pvp_fire'){if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'&&pid===PVP.opponent&&PVP.oppAlive&&d.matchId===PVP.matchId&&typeof d.shotId==='string'&&d.shotId.length<=100&&!PVP.receivedShots.has(d.shotId)){const x=Number(d.x),y=Number(d.y),ang=Number(d.ang),damage=Number(d.dmg),el=EC[d.el]?d.el:'neutral',now=Date.now(),volleyId=String(d.volleyId||d.shotId).slice(0,100);let volley=PVP.oppVolleyMap.get(volleyId);if(!volley){if(now-(PVP.oppFireLastAt||0)<Math.max(65,(PVP.oppShotCooldown||.11)*780))return;PVP.oppFireLastAt=now;volley={at:now,count:0,max:PVP.oppPellets||1};PVP.oppVolleyMap.set(volleyId,volley);if(PVP.oppVolleyMap.size>160)PVP.oppVolleyMap.delete(PVP.oppVolleyMap.keys().next().value);}const lim=PVP.oppShotDamageMax||120;if([x,y,ang,damage].every(Number.isFinite)&&Math.hypot(x-PVP.oppX,y-PVP.oppY)<110&&damage>0&&damage<=lim&&volley.count<volley.max){volley.count++;PVP.receivedShots.add(d.shotId);if(PVP.receivedShots.size>2000)PVP.receivedShots=new Set([...PVP.receivedShots].slice(-1000));B.push({uid:d.shotId,x,y,vx:Math.cos(ang)*620,vy:Math.sin(ang)*620,d:damage,el,l:1.1,pi:Math.max(1,Math.min(5,Number(d.pi)||1)),r:Math.max(3,Math.min(9,Number(d.r)||4)),h:[],iceSet:d.iceSet===true&&el==='ice',_guest:true});}}}
-  else if(d.type==='pvp_input'){if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'&&pid===PVP.opponent&&d.matchId===PVP.matchId){const x=Number(d.x),y=Number(d.y),now=Date.now();if(Number.isFinite(x)&&Number.isFinite(y)&&x>=0&&x<=W&&y>=0&&y<=H){if(!PVP.oppLastInputAt){PVP.oppX=x;PVP.oppY=y;}else{const elapsed=cl((now-PVP.oppLastInputAt)/1000,.03,.25),maxStep=640*elapsed+38,dist=Math.hypot(x-PVP.oppX,y-PVP.oppY);if(dist<=maxStep){PVP.oppX=x;PVP.oppY=y;}else if(dist<maxStep*1.35){PVP.oppX+=((x-PVP.oppX)/dist)*maxStep;PVP.oppY+=((y-PVP.oppY)/dist)*maxStep;}}PVP.oppLastInputAt=now;}PVP.oppAt=EN[d.at]?d.at:'neutral';PVP.oppAng=Number.isFinite(Number(d.ang))?Number(d.ang):0;PVP.oppDr=cl(Number(d.dr)||0,0,.75);PVP.oppTk=cl(Number(d.tk)||1,0.5,2);PVP.oppMag=cl(Number(d.mag)||80,40,300);const remoteMhp=cl(Number(d.mhp)||100,50,2000);if(!PVP.oppInitialised){PVP.oppHp=remoteMhp;PVP.oppMh=remoteMhp;PVP.oppInitialised=true;}else{PVP.oppMh=remoteMhp;PVP.oppHp=Math.min(PVP.oppHp,PVP.oppMh)}PVP.oppShield=!!d.shield;PVP.oppShieldSide=Number(d.shieldSide)||0;PVP.oppHazardImmune=!!d.hazardImmune;if(d.alive===false&&PVP.oppHp<=0&&!PVP.oppDead){PVP.oppDead=true;PVP.oppAlive=false;queuePvpResult(PVP.playerDead?'draw':'host',PVP.playerDead?'both-dead':'opponent-death')}}}
+  else if(d.type==='pvp_input'){if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'&&pid===PVP.opponent&&d.matchId===PVP.matchId){const x=Number(d.x),y=Number(d.y),now=Date.now();if(Number.isFinite(x)&&Number.isFinite(y)&&x>=0&&x<=W&&y>=0&&y<=H){if(!PVP.oppLastInputAt){PVP.oppX=x;PVP.oppY=y;}else{const elapsed=cl((now-PVP.oppLastInputAt)/1000,.03,.25),maxStep=640*elapsed+38,dist=Math.hypot(x-PVP.oppX,y-PVP.oppY);if(dist<=maxStep){PVP.oppX=x;PVP.oppY=y;}else if(dist<maxStep*1.35){PVP.oppX+=((x-PVP.oppX)/dist)*maxStep;PVP.oppY+=((y-PVP.oppY)/dist)*maxStep;}}PVP.oppLastInputAt=now;}PVP.oppAt=EN[d.at]?d.at:'neutral';PVP.oppAngTarget=Number.isFinite(Number(d.ang))?Number(d.ang):PVP.oppAngTarget||0;PVP.oppDr=cl(Number(d.dr)||0,0,.75);PVP.oppTk=cl(Number(d.tk)||1,0.5,2);PVP.oppMag=cl(Number(d.mag)||80,40,300);const remoteMhp=cl(Number(d.mhp)||100,50,2000);if(!PVP.oppInitialised){PVP.oppHp=remoteMhp;PVP.oppMh=remoteMhp;PVP.oppInitialised=true;}else{PVP.oppMh=remoteMhp;PVP.oppHp=Math.min(PVP.oppHp,PVP.oppMh)}PVP.oppShield=!!d.shield;PVP.oppShieldSide=Number(d.shieldSide)||0;PVP.oppHazardImmune=!!d.hazardImmune;if(d.drone&&Number.isFinite(Number(d.drone.x))&&Number.isFinite(Number(d.drone.y)))PVP.oppDroneTarget={x:cl(Number(d.drone.x),0,W),y:cl(Number(d.drone.y),0,H)};if(d.alive===false){PVP.oppHp=0;PVP.oppAlive=false;}if(d.alive===false&&(PVP.oppHp<=0||PVP.oppAlive===false)&&!PVP.oppDead){PVP.oppDead=true;PVP.oppAlive=false;if(PVP.playerDead)showBothDeadSummary();else netSend(pid,{type:'pvp_spectate',matchId:PVP.matchId,guestDead:true});}}}
   else if(d.type==='pvp_snapshot'){if(PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId&&['playing','reconnecting'].includes(PVP.phase)){
     const oldEByUid=new Map(E.filter(e=>e.uid!=null).map(e=>[String(e.uid),e]));
     const oldEBByUid=new Map(EB.filter(e=>e.uid!=null).map(e=>[String(e.uid),e]));
@@ -787,10 +801,10 @@ function netData(pid,d){
     E=(d.enemies||[]).filter(e=>e.uid!=null).map(e=>{const prev=oldEByUid.get(String(e.uid));return {...e,x:prev?prev.x:e.x,y:prev?prev.y:e.y,tx:e.x,ty:e.y,v:e.v||0,fx:e.fx||1,fa:e.fa||0,o:e.o||0,cd:0,spd:0,fm:1,dm:1,tr:1,dk:0,sm:0,b:'idle',ph:0};});
     EB=(d.eb||[]).filter(b=>b.uid!=null).map(b=>{const prev=oldEBByUid.get(String(b.uid));return {...b,x:prev?prev.x:b.x,y:prev?prev.y:b.y,tx:b.x,ty:b.y,vx:b.vx||0,vy:b.vy||0,l:1,d:b.d||0}});
     PVP.hostBulletsSnap=(d.hb||[]).filter(b=>b.uid!=null).map(b=>({uid:b.uid,x:b.x,y:b.y,tx:b.x,ty:b.y,r:b.r||4,el:b.el,vx:b.vx,vy:b.vy,l:1}));
-    CR=(d.cr||[]).filter(c=>c.uid!=null&&!pendingGuestCrates.has(Number(c.uid))).map(c=>{const prev=oldCrByUid.get(String(c.uid));return {uid:c.uid,x:prev?prev.x:c.x,y:prev?prev.y:c.y,tx:c.x,ty:c.y,t:c.t,b:c.b||0}});HZ=(d.hazards||[]).map(h=>({...h}));TL=(d.lines||[]).map(l=>({...l}));BM=(d.beams||[]).map(b=>({...b}));
+    CR=(d.cr||[]).filter(c=>c.uid!=null&&!pendingGuestCrates.has(Number(c.uid))).map(c=>{const prev=oldCrByUid.get(String(c.uid));return {uid:c.uid,x:prev?prev.x:c.x,y:prev?prev.y:c.y,tx:c.x,ty:c.y,t:c.t,b:c.b||0}});HZ=(d.hazards||[]).map(h=>({...h}));TL=(d.lines||[]).map(l=>({...l}));BM=(d.beams||[]).map(b=>({...b}));PT=(d.particles||[]).map(p=>({...p}));MS=(d.meteorFx||[]).map(m=>({...m}));SL=(d.slime||[]).map(v=>({...v}));HO=(d.holes||[]).map(h=>({...h}));
     G.w=Number(d.wave)||G.w;if(d.el)G.el=d.el;G.name=d.waveName||WV[Math.max(0,G.w-1)][0];G.fr=d.fr?1:0;G.st=d.stage||G.st;G.tmr=Number(d.intermissionRemaining)||0;G.t=Number(d.waveTimer)||0;G.q=Array(Math.max(0,Number(d.queueCount)||0)).fill(0);G.dead=Number(d.dead)||G.dead;G.tot=Number(d.total)||G.tot;
-    PVP.oppXT=Number(d.hostX)||W/2;PVP.oppYT=Number(d.hostY)||H/2;PVP.oppHp=Number(d.hostHp)||0;PVP.oppMh=cl(Number(d.hostMh)||100,50,2000);PVP.oppAt=EL6.includes(d.hostAt)?d.hostAt:'neutral';PVP.oppAlive=d.hostAlive!==false;G.lastClearedWave=Math.max(Number(G.lastClearedWave)||0,cl(Number(d.lastClearedWave)||0,0,10));if(d.stats&&typeof d.stats==='object'){for(const side of ['host','guest']){const src=d.stats[side];if(!src||typeof src!=='object')continue;for(const key of ['damage','kills','crates','souls','warp','combo','bestCombo']){const n=Number(src[key]);if(Number.isFinite(n))PVP.stats[side][key]=Math.max(0,n);}}}
-    if(!PVP.oppAlive&&!PVP.oppDead){PVP.oppDead=true;netSys('Opponent has died — awaiting match result');if(PVP.role==='host'){if(PVP.playerDead)endPvp('draw','both-dead');else endPvp('host','opponent-death')}}
+    PVP.oppXT=Number(d.hostX)||W/2;PVP.oppYT=Number(d.hostY)||H/2;PVP.oppHp=Number(d.hostHp)||0;PVP.oppMh=cl(Number(d.hostMh)||100,50,2000);PVP.oppAt=EL6.includes(d.hostAt)?d.hostAt:'neutral';PVP.oppAlive=d.hostAlive!==false;G.lastClearedWave=Math.max(Number(G.lastClearedWave)||0,cl(Number(d.lastClearedWave)||0,0,10));G.storm=cl(Number(d.storm)||0,0,10);G.stt=cl(Number(d.stormTick)||0,0,1);G.stormOwner=d.stormOwner==='guest'?'guest':'host';if(d.stats&&typeof d.stats==='object'){for(const side of ['host','guest']){const src=d.stats[side];if(!src||typeof src!=='object')continue;for(const key of ['damage','kills','crates','souls','warp','combo','bestCombo']){const n=Number(src[key]);if(Number.isFinite(n))PVP.stats[side][key]=Math.max(0,n);}}}
+    if(!PVP.oppAlive&&!PVP.oppDead){PVP.oppDead=true;PVP.oppHp=0;clearV05DeadAttacks(PVP.role==='host'?'guest':'host');netSys('Opponent has died — continuing as spectator until the run ends');if(PVP.role==='host'){if(PVP.playerDead)showBothDeadSummary();else netSend(PVP.opponent,{type:'pvp_spectate',matchId:PVP.matchId,guestDead:true});}}
     if(typeof d.guestHp==='number'&&Number.isFinite(d.guestHp)){const oldGuestHp=P.hp;P.hp=Math.max(0,Math.min(ST.mhp,d.guestHp));if(oldGuestHp>P.hp+.5){SFX.hurt();burst(P.x,P.y,'#ff3355',7,130)}if(P.hp<=0&&!PVP.playerDead){PVP.playerDead=true;P.vx=P.vy=0;netSend(pid,{type:'pvp_player_died',role:'guest',matchId:PVP.matchId});netSys('You died — awaiting the host result.')}}if(d.guestAlive===false&&!PVP.playerDead){PVP.playerDead=true;P.hp=0;netSend(pid,{type:'pvp_player_died',role:'guest',matchId:PVP.matchId})}
   }}
   else if(d.type==='pvp_end_ack'){if(PVP.active&&PVP.role==='host'&&pid===PVP.opponent&&d.matchId===PVP.matchId&&PVP.finished){PVP.resultAcked=true;if(PVP.resultResendTimer){clearInterval(PVP.resultResendTimer);PVP.resultResendTimer=null;}if(PVP.resultBanked&&Date.now()-(PVP.resultAt||0)>=4200){if(PVP.resultExpiryTimer)clearTimeout(PVP.resultExpiryTimer);cleanupPvp();hub();}}}
@@ -801,6 +815,7 @@ function netData(pid,d){
 function netChat(pid,msg){if(!msg)return;NET.msgs.push({from:pid,to:NET.id,msg,t:Date.now()});if(NET.msgs.length>200)NET.msgs.shift();netRender()}
 function netSys(msg){NET.msgs.push({sys:1,from:'sys',msg,t:Date.now()});if(NET.msgs.length>200)NET.msgs.shift();netRender()}
 function netConnect(arg){
+  if(PVP.active&&PVP.playerDead){netSys('Spectators can only message the surviving player.');return;}
   let t=arg;if(typeof arg!=='string'){const el=$('netTarget');t=el?el.value:''}
   if(!t)return;
   let raw=t.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(raw.startsWith('SLUG'))raw=raw.slice(4);
@@ -814,8 +829,9 @@ function netConnect(arg){
 function netCopy(){const id=NET.id;if(!id)return;const done=()=>netSys('ID copied: '+id);if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(id).then(done).catch(()=>fallback())}else fallback();function fallback(){const t=document.createElement('textarea');t.value=id;document.body.appendChild(t);t.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(t);done()}}
 function netDel(id){delete NET.friends[id];if(NET.conns[id])try{NET.conns[id].close()}catch(e){}delete NET.conns[id];netSaveFriends();if(dmSelected===id)dmSelected=null;netRender();SFX.click()}
 let dmSelected=null;
-function dmSelect(pid){dmSelected=pid;watchCloudDm(pid);SFX.click();hub()}
+function dmSelect(pid){if(PVP.active&&PVP.playerDead)return;dmSelected=pid;watchCloudDm(pid);SFX.click();hub()}
 async function dmSay(pid){
+  if(PVP.active){netSys(PVP.playerDead?'Spectators can only message the surviving player.':'Direct messages are disabled during an active 1v1.');return;}
   const el=$('netMsg');if(!el)return;const m=el.value.trim();if(!m)return;const messageId=`${NET.id||'local'}:${Date.now()}:${Math.random().toString(36).slice(2,7)}`;
   const conn=netSend(pid,{type:'chat',msg:m,messageId});if(!conn){const ok=await cloudSendDm(pid,{text:m,kind:'text'});if(!ok){netSys('Message failed: recipient is offline and cloud DM is unavailable.');return}}
   NET.msgs.push({from:NET.id,to:pid,msg:m,t:Date.now(),id:messageId});if(NET.msgs.length>200)NET.msgs.shift();el.value='';hub();SFX.click();
@@ -879,7 +895,7 @@ function enterPvpLobby(role,pid,target){
   PVP.active=true;PVP.role=role;PVP.opponent=pid;PVP.target=target;
   PVP.phase='lobby';PVP.hostReady=false;PVP.guestReady=false;
   PVP.playerDead=false;PVP.oppDead=false;PVP.oppHazardImmune=false;PVP.finished=false;PVP.winner=null;PVP.reason='';PVP.pendingResult=null;PVP.initAck=false;PVP.syncStartedAt=0;
-  PVP.oppHp=100;PVP.oppMh=100;PVP.oppInitialised=false;PVP.oppTk=1;PVP.oppMag=80;PVP.oppShotDamageMax=120;PVP.oppShotCooldown=.11;PVP.oppFireLastAt=0;PVP.oppVolleyMap=new Map();PVP.oppAlive=true;PVP.oppX=W/2;PVP.oppY=H/2;PVP.oppXT=W/2;PVP.oppYT=H/2;PVP.oppAt='neutral';PVP.oppLastInputAt=0;PVP.oppFireLastAt=0;PVP.oppVolleyMap=new Map();PVP.oppInitialised=false;PVP.resultBanked=false;PVP.resultAt=0;PVP.resultAcked=false;PVP.guestResultApplied=false;
+  PVP.oppHp=100;PVP.oppMh=100;PVP.oppInitialised=false;PVP.oppTk=1;PVP.oppMag=80;PVP.oppShotDamageMax=120;PVP.oppShotCooldown=.11;PVP.oppFireLastAt=0;PVP.oppVolleyMap=new Map();PVP.oppAlive=true;PVP.oppX=W/2;PVP.oppY=H/2;PVP.oppXT=W/2;PVP.oppYT=H/2;PVP.oppAt='neutral';PVP.oppAng=0;PVP.oppAngTarget=0;PVP.oppDrone=null;PVP.oppDroneTarget=null;PVP.hostDrone=null;PVP.hostDroneTarget=null;PVP.oppLastInputAt=0;PVP.oppFireLastAt=0;PVP.oppVolleyMap=new Map();PVP.oppInitialised=false;PVP.resultBanked=false;PVP.resultAt=0;PVP.resultAcked=false;PVP.guestResultApplied=false;
   PVP.hostBulletsSnap=[];PVP.lastInput=0;PVP.lastSnapshot=0;PVP.matchId=null;PVP.seed=1;PVP.stats={host:{damage:0,kills:0,crates:0,souls:0,warp:0,combo:0,bestCombo:0,lastKillAt:0},guest:{damage:0,kills:0,crates:0,souls:0,warp:0,combo:0,bestCombo:0,lastKillAt:0}};PVP.receivedShots=new Set();PVP.guestSpecialReadyAt=0;PVP.reconnectDeadline=0;PVP.reconnectPhase=null;PVP.timeoutRequested=false;pendingGuestCrates.clear();
   showPvpLobby();
   SFX.warn();
@@ -1013,11 +1029,11 @@ function showPvpEnd(iWon,reason,isDraw,details={},stats=PVP.stats,elapsed=0){
   const o=$('pvpEndOverlay');if(!o)return;o.className=isDraw?'on draw':(iWon?'on':'on lose');
   const title=isDraw?'DRAW':(iWon?'VICTORY':'DEFEAT');let sub='';
   if(reason==='boss')sub=iWon?'You slew the target boss first!':'Opponent slew the target boss first.';
-  else if(reason==='timeout'){const tb=details&&details.tieBreak;sub=tb?`10-minute tie-break — damage ${tb.damage.host} : ${tb.damage.guest}, kills ${tb.kills.host} : ${tb.kills.guest}, crates ${tb.crates.host} : ${tb.crates.guest}.`:'10-minute match timeout.';}
-  else if(reason==='both-dead')sub='Both players fell.';else if(reason==='disconnect')sub='Opponent disconnected.';else if(reason==='player-death'||reason==='opponent-death')sub=iWon?'Opponent defeated; you win.':'You were defeated.';else sub='Match ended.';
+  else if(reason==='timeout')sub='';
+  else if(reason==='both-dead')sub='Both players fell.';else if(reason==='disconnect')sub='Opponent did not reconnect within the grace period.';else if(reason==='forfeit')sub=details&&details.quitRole==='host'?'Host ended the session; opponent wins.':'Opponent left the session; you win.';else if(reason==='player-death'||reason==='opponent-death')sub=iWon?'Opponent defeated; you win.':'You were defeated.';else sub='Match ended.';
   const fmt=n=>{n=Math.max(0,Math.floor(Number(n)||0));return Math.floor(n/60000)+':'+String(Math.floor(n/1000)%60).padStart(2,'0')};
   const h=stats&&stats.host||{},g=stats&&stats.guest||{};
-  const table=`<div class=p style="max-width:660px;width:min(660px,88vw);text-align:left"><h3>Match stats</h3><div class=pvpLobbyRow><b>Metric</b><b>Host</b><b>Guest</b></div><div class=pvpLobbyRow><span>Total time</span><span>${fmt(elapsed||details.elapsed||0)}</span><span>${fmt(elapsed||details.elapsed||0)}</span></div><div class=pvpLobbyRow><span>Damage dealt</span><b>${Math.round(h.damage||0)}</b><b>${Math.round(g.damage||0)}</b></div><div class=pvpLobbyRow><span>Enemies defeated</span><b>${h.kills||0}</b><b>${g.kills||0}</b></div><div class=pvpLobbyRow><span>Crates collected</span><b>${h.crates||0}</b><b>${g.crates||0}</b></div><div class=pvpLobbyRow><span>Highest combo</span><b>${h.bestCombo||0}</b><b>${g.bestCombo||0}</b></div><div class=pvpLobbyRow><span>Ranked souls earned</span><b>${h.souls||0}</b><b>${g.souls||0}</b></div></div>`;
+  const table=`<div class=p style="max-width:660px;width:min(660px,88vw);text-align:left"><h3>Match stats</h3><div class=pvpLobbyRow><b>Metric</b><b>Host</b><b>Guest</b></div><div class=pvpLobbyRow><span>Total time</span><span>${fmt(elapsed||details.elapsed||0)}</span><span>${fmt(elapsed||details.elapsed||0)}</span></div><div class=pvpLobbyRow><span>Wave reached</span><b>${Math.max(1,Math.floor(Number(details.wave||G?.w||PVP.roundWave||1)))}</b><b>${Math.max(1,Math.floor(Number(details.wave||G?.w||PVP.roundWave||1)))}</b></div><div class=pvpLobbyRow><span>Damage dealt</span><b>${Math.round(h.damage||0)}</b><b>${Math.round(g.damage||0)}</b></div><div class=pvpLobbyRow><span>Enemies defeated</span><b>${h.kills||0}</b><b>${g.kills||0}</b></div><div class=pvpLobbyRow><span>Crates collected</span><b>${h.crates||0}</b><b>${g.crates||0}</b></div><div class=pvpLobbyRow><span>Highest combo</span><b>${h.bestCombo||0}</b><b>${g.bestCombo||0}</b></div><div class=pvpLobbyRow><span>Ranked souls earned</span><b>${h.souls||0}</b><b>${g.souls||0}</b></div></div>`;
   const tie=details&&details.tieBreak?`<p class=ds>Timeout tie-break order: damage dealt, kills, then crates.</p>`:'';
   o.innerHTML=`<h2>${title}</h2><p style="color:#d6ffe9;max-width:620px">${esc(sub)}</p>${table}${tie}<p class=ds>${iWon&&!isDraw?'Winner bonus: +500 Warp. ':''}Returning to hub…</p>`;
 }
@@ -1031,7 +1047,7 @@ async function sendCloudFriendRequest(){const el=$('netTarget'),tag=(el?el.value
 async function acceptCloudRequest(uid,slug,name,requestId){if(!AUTH.user||!fbDb)return;try{await fbDb.collection('users').doc(AUTH.user.uid).update({friends:firebase.firestore.FieldValue.arrayUnion(slug)});await fbDb.collection('users').doc(uid).update({friends:firebase.firestore.FieldValue.arrayUnion(NET.id||loadId())});await fbDb.collection('users').doc(AUTH.user.uid).collection('requests').doc(requestId).delete();NET.friends[slug]={name:name||slug.replace('SLUG-',''),status:'OFFLINE',added:Date.now(),cloud:true};netSaveFriends();netSys('Friend added: '+(name||slug));try{netConnect(slug)}catch(e){}netRender();}catch(e){netSys('Could not accept request: '+(e.code||e.message||'check Firestore rules'));}}
 async function declineCloudRequest(uid,requestId){if(!AUTH.user||!fbDb)return;try{await fbDb.collection('users').doc(AUTH.user.uid).collection('requests').doc(requestId).delete();netSys('Friend request declined.')}catch(e){netSys('Could not decline request: '+(e.code||e.message||''))}}
 function cloudChatId(uidA,uidB){return [uidA,uidB].sort().join('_')}
-function watchCloudDm(slug){if(!fbDb||!AUTH.user||AUTH.guest||!cloudUidBySlug[slug]||cloudDmUnsubs[slug])return;const ownerUid=AUTH.user.uid,friendUid=cloudUidBySlug[slug],chat=cloudChatId(ownerUid,friendUid);cloudDmUnsubs[slug]=fbDb.collection('chats').doc(chat).collection('messages').orderBy('createdAt').limitToLast(60).onSnapshot(snap=>{if(!AUTH.user||AUTH.guest||AUTH.user.uid!==ownerUid||cloudUidBySlug[slug]!==friendUid)return;snap.docChanges().forEach(ch=>{if(ch.type!=='added'||cloudDmSeen.has(ch.doc.id))return;cloudDmSeen.add(ch.doc.id);const d=ch.doc.data()||{};if(d.fromUid===AUTH.user.uid)return;if(d.kind==='match_invite'){onCloudInvite(slug,d.target);return}NET.msgs.push({from:slug,to:NET.id,msg:String(d.text||'').slice(0,200),t:Date.now()});if(NET.msgs.length>200)NET.msgs.shift();});netRender();},e=>console.warn('Cloud DM listener failed:',e));}
+function watchCloudDm(slug){if(!fbDb||!AUTH.user||AUTH.guest||!cloudUidBySlug[slug]||cloudDmUnsubs[slug])return;const ownerUid=AUTH.user.uid,friendUid=cloudUidBySlug[slug],chat=cloudChatId(ownerUid,friendUid);cloudDmUnsubs[slug]=fbDb.collection('chats').doc(chat).collection('messages').orderBy('createdAt').limitToLast(60).onSnapshot(snap=>{if(!AUTH.user||AUTH.guest||AUTH.user.uid!==ownerUid||cloudUidBySlug[slug]!==friendUid)return;snap.docChanges().forEach(ch=>{if(ch.type!=='added'||cloudDmSeen.has(ch.doc.id))return;cloudDmSeen.add(ch.doc.id);const d=ch.doc.data()||{};if(d.fromUid===AUTH.user.uid)return;if(d.kind==='match_invite'){onCloudInvite(slug,d.target);return}NET.msgs.push({from:slug,to:NET.id,msg:String(d.text||'').slice(0,200),t:Date.now()});if(window.showV05Toast)window.showV05Toast(NET.friends[slug]?.name||slug,String(d.text||'').slice(0,200),slug);if(NET.msgs.length>200)NET.msgs.shift();});netRender();},e=>console.warn('Cloud DM listener failed:',e));}
 async function cloudSendDm(slug,payload){if(!fbDb||!AUTH.user||AUTH.guest)return false;if(!cloudUidBySlug[slug]){try{const q=await fbDb.collection('users').where('slugId','==',slug).limit(1).get();if(q.empty)return false;cloudUidBySlug[slug]=q.docs[0].id;watchCloudDm(slug)}catch(e){return false}}try{const chat=cloudChatId(AUTH.user.uid,cloudUidBySlug[slug]);await fbDb.collection('chats').doc(chat).collection('messages').add({fromUid:AUTH.user.uid,fromSlug:NET.id||loadId(),toUid:cloudUidBySlug[slug],text:payload.text||'',kind:payload.kind||'text',target:payload.target||null,createdAt:firebase.firestore.FieldValue.serverTimestamp()});return true}catch(e){console.warn('Cloud DM send failed:',e);return false}}
 function onCloudInvite(slug,target){if(PVP.active)return;const ov=document.createElement('div');ov.className='modal';ov.innerHTML=`<div class=p style="max-width:420px"><h3>Cloud 1v1 invitation</h3><p>${esc(slug)} invited you to race to the Wave ${target} boss.</p><button onclick="acceptCloudInvite('${esc(slug)}',${target});this.closest('.modal').remove()">Connect and accept</button><button onclick="this.closest('.modal').remove()">Decline</button></div>`;document.body.appendChild(ov);SFX.warn()}
 function acceptCloudInvite(slug,target){if(PVP.active)return;NET.pendingCloudInvite={pid:slug,target:target===10?10:5};netConnect(slug)}
@@ -1092,7 +1108,7 @@ function dbgMoney5(){S.souls+=1000;fin()}
 function dbgWarpWave(){if(mode!=='play')return;const sel=$('dbgWave');if(!sel)return;const w=+sel.value;if(!(w>=1&&w<=10))return;E=[];B=[];EB=[];HZ=[];BM=[];TL=[];MS=[];G.q=[];G.w=w-1;nextWave();SFX.tab()}
 function buildDbg(){
   const p=$('dbgPanel');if(!p)return;
-  p.innerHTML=`<div class=row style="justify-content:space-between"><b style="color:var(--ac);letter-spacing:1px">DEV CONSOLE v0.4.5</b><button onclick="dbgToggle()">✕</button></div>
+  p.innerHTML=`<div class=row style="justify-content:space-between"><b style="color:var(--ac);letter-spacing:1px">DEV CONSOLE v0.5.1 HOTFIX</b><button onclick="dbgToggle()">✕</button></div>
     <h3>CHEATS</h3>
     <label><input type="checkbox" id="dbgGodCb" ${DBG.god?'checked':''} onchange="dbgGod(this.checked)"> God Mode</label>
     <div class=row>${bt('dbgKillAll()','Insta-Kill All',mode==='play'?1:0)}</div>
@@ -1127,7 +1143,288 @@ function tickDbgDiag(){
 }
 function hub(){const o=$('hubOverlay'),sc=o.scrollTop,rs5=[['Warp','🌀',S.warp,'Earned from kills and cleared waves.'],['Protons','⚛',S.pro,'Crate drops.'],['Cells','🔷',S.cell,'Reinforce duplicates.'],['Purified','💧',S.pur,'Weapon levels.'],['Keys','🗝',S.key,'Decrypt crates.'],['Fusion','🔮',S.fus,'Unlock Aether attunement.'],['Souls','👻',S.souls,'Awaken Spirit Slugs.']];o.className='ov on';$('topHUD').innerHTML='';
 const signBtn=AUTH.user?`<button onclick="authSignOut()">Sign out (${esc(AUTH.username||'')})</button>`:'<span class=ds>Guest mode</span>';
-o.innerHTML=`<div class=hd><svg class=logo viewBox='0 0 380 74'><defs><linearGradient id='lg' x1='0' x2='1'><stop offset='0' stop-color='#00ff88'/><stop offset='1' stop-color='#00ccff'/></linearGradient></defs><text x='190' y='46' text-anchor='middle' font-size='40' font-weight='800' font-family='Orbitron,sans-serif' fill='url(#lg)' stroke='#0a0814' stroke-width='7' paint-order='stroke' stroke-linejoin='round'>SLUGGER <tspan fill='#ff0055'>(NEO)</tspan></text><path class=dr d='M70 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/><path class=dr d='M190 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/><path class=dr d='M300 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/></svg><div class=rs>${rs5.map(r=>`<span class=tt data-tip="${r[3]}"><b>${r[1]} ${r[2]}</b> ${r[0]}</span>`).join('')}</div></div><nav>${TABS.map((t,i)=>`<button class="tab${i===tab?' on':''}" onclick="tb(${i})">${t}</button>`).join('')}</nav>${logs.length?`<div class="p log">${logs.join('<br>')}</div>`:''}<div class=tbc>${[t0,t1,t2,t3,t4][tab]()}</div><p>${signBtn} <button onclick="rs()">Reset save</button> <span class=ds>v0.4.5 Hotfix & Feature Completeness · F2 or ~ opens dev console</span></p>`;o.scrollTop=sc;if(tab===4){netRender();if(dmSelected)watchCloudDm(dmSelected)}}
+o.innerHTML=`<div class=hd><svg class=logo viewBox='0 0 380 74'><defs><linearGradient id='lg' x1='0' x2='1'><stop offset='0' stop-color='#00ff88'/><stop offset='1' stop-color='#00ccff'/></linearGradient></defs><text x='190' y='46' text-anchor='middle' font-size='40' font-weight='800' font-family='Orbitron,sans-serif' fill='url(#lg)' stroke='#0a0814' stroke-width='7' paint-order='stroke' stroke-linejoin='round'>SLUGGER <tspan fill='#ff0055'>(NEO)</tspan></text><path class=dr d='M70 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/><path class=dr d='M190 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/><path class=dr d='M300 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/></svg><div class=rs>${rs5.map(r=>`<span class=tt data-tip="${r[3]}"><b>${r[1]} ${r[2]}</b> ${r[0]}</span>`).join('')}</div></div>${PVP.active&&PVP.phase==='upgrade'?`<nav>${TABS.slice(0,4).map((t,i)=>`<button class="tab${i===tab?' on':''}" onclick="tb(${i})">${['Deploy','Unboxing / Crates','Skill Tree','Equipment & Sets'][i]}</button>`).join('')}</nav>`:PVP.active?'<nav><button class="tab on" disabled>Direct Messages</button></nav>':`<nav>${TABS.map((t,i)=>`<button class="tab${i===tab?' on':''}" onclick="tb(${i})">${t}</button>`).join('')}</nav>`}${PVP.active&&PVP.phase==='upgrade'?`<div class="v05-upgrade-status" style="margin:8px auto;padding:10px 14px;max-width:1100px;border:1px solid #00ccff66;border-radius:10px;background:#101a2a;color:#d5e8f7;text-align:center;font-family:Orbitron,sans-serif;font-size:12px">UPGRADE WINDOW · <b><span id="v05Timer">${Math.max(0,Math.ceil(((PVP.upgradeDeadline||Date.now())-Date.now())/1000))}</span>s</b> · <b>${PVP.upgradeReady?'✓ YOU READY':'YOU NOT READY'}</b> · <b>${PVP.peerUpgradeReady?'✓ OPPONENT READY':'WAITING FOR OPPONENT'}</b></div>`:''}${logs.length?`<div class="p log">${logs.join('<br>')}</div>`:''}<div class=tbc>${PVP.active&&PVP.phase==='upgrade'?[t0,t1,t2,t3][Math.max(0,Math.min(3,tab))]():PVP.active?t4():[t0,t1,t2,t3,t4][tab]()}</div><p>${PVP.active?(PVP.phase==='upgrade'?'':'<button onclick="returnToV05PvpMenu()">Return to 1v1</button>'):`${signBtn} <button onclick="rs()">Reset save</button>`} <span class=ds>v0.5.1 Hotfix · Isolated PvP Campaign · F2 or ~ opens dev console</span></p>`;o.scrollTop=sc;if(tab===4){netRender();if(dmSelected)watchCloudDm(dmSelected)}}
+/* ========================= SLUGGER (NEO) v0.5.1 HOTFIX =========================
+   Session-isolated 1v1 campaign, permadeath spectator, shared 60s upgrade
+   stage, graceful exits, emoji taunts, DM toasts, and local-only impact feel.
+   All UI, styles, game logic and networking remain in this HTML document.
+*/
+(function installV05(){
+  const V05_REWARDS={winner:{warp:500,pro:10},participant:{warp:100,pro:2},draw:{warp:50,pro:1}};
+  const blankCrates=()=>({wood:0,iron:0,solar:0,vortex:0,aether:0});
+  const clone=x=>JSON.parse(JSON.stringify(x));
+  const clampCheckpoint=(w,target)=>cl(Math.floor(Number(w)||1),1,target===5?5:8);
+  const commonCheckpoints=()=>Array.from(new Set([...(PVP.myCheckpoints||[1]),...(PVP.opponentCheckpoints||[1])].filter(x=>(PVP.myCheckpoints||[1]).includes(x)&&(PVP.opponentCheckpoints||[1]).includes(x)&&x<=PVP.target))).sort((a,b)=>a-b);
+  const safeCommon=()=>{const c=commonCheckpoints();return c.length?c:[1]};
+  function beginPvpSaveSession(){
+    if(activeSaveMode==='pvp'&&save_1v1){S=save_1v1;return;}
+    if(activeSaveMode!=='pvp'&&ub&&ub.ph===1){const opening=ub;opening.res=roll(opening.t);opening.ph=2;save();SFX.open();}
+    save_sp=normaliseSave(S);
+    // UI-only crate reveal state must not appear in the isolated PvP hub.
+    ub=null;dm=false;tab=0;
+    // Strict isolation: every 1v1 session begins from the game's baseline, never from save_sp.
+    save_1v1=normaliseSave(DEF());
+    save_1v1.cp=[1];save_1v1.rec={};save_1v1.hi=0;
+    activeSaveMode='pvp';S=save_1v1;
+    try{sessionStorage.setItem(V05_SESSION_KEY,JSON.stringify(save_1v1))}catch(e){}
+    PVP.myCheckpoints=(S.cp||[1]).slice();PVP.opponentCheckpoints=[1];PVP.startWave=1;PVP.bankedGuestWarp=0;PVP.bankedGuestSouls=0;PVP.roundBanked=false;PVP.rewardApplied=false;PVP.continueReady=false;PVP.upgradeReady=false;PVP.noReward=false;
+  }
+  function discardPvpSaveSession(){
+    if(activeSaveMode==='pvp')save_sp=save_sp||S;
+    S=save_sp||S;activeSaveMode='sp';save_1v1=null;
+    try{sessionStorage.removeItem(V05_SESSION_KEY)}catch(e){}
+  }
+  function bankPvpRoundProgress(){
+    if(!PVP.active||!save_1v1||!G||PVP.roundBanked)return;
+    const session=S;
+    if(PVP.role==='host'){
+      const earned=Math.max(0,(Number(G.warp)||0)-(Number(G.startWarp)||0));
+      S.warp=Math.max(0,Number(S.warp)||0)+earned;
+      S.souls=Math.max(0,Number(S.souls)||0)+Math.max(0,Number(G.souls)||0);
+      S.cr=S.cr||blankCrates();for(const k of Object.keys(G.cr||{}))S.cr[k]=(Number(S.cr[k])||0)+(Number(G.cr[k])||0);
+    }else{
+      const gs=PVP.stats&&PVP.stats.guest||{};
+      const earned=Math.max(0,(Number(gs.warp)||0)-(Number(PVP.bankedGuestWarp)||0));
+      const souls=Math.max(0,(Number(gs.souls)||0)-(Number(PVP.bankedGuestSouls)||0));
+      S.warp=Math.max(0,Number(S.warp)||0)+earned;
+      S.souls=Math.max(0,Number(S.souls)||0)+souls;
+      PVP.bankedGuestWarp=Number(gs.warp)||0;PVP.bankedGuestSouls=Number(gs.souls)||0;
+      S.cr=S.cr||blankCrates();for(const k of Object.keys(G.cr||{}))S.cr[k]=(Number(S.cr[k])||0)+(Number(G.cr[k])||0);
+    }
+    G.warp=0;G.startWarp=0;G.souls=0;G.cr=blankCrates();G.runBanked=true;PVP.roundBanked=true;
+    save();
+  }
+  function unlockSessionCheckpoint(wave,role){
+    const cp=wave>=4?wave-2:0;if(cp<2||cp>8||!save_1v1)return;
+    if(role==='host'&&!S.cp.includes(cp))S.cp.push(cp);
+    if(role==='guest'&&!S.cp.includes(cp))S.cp.push(cp);
+    S.cp.sort((a,b)=>a-b);PVP.myCheckpoints=(S.cp||[1]).slice();
+  }
+  function applyPermanentPvpReward(winner,reason){
+    if(PVP.rewardApplied)return;PVP.rewardApplied=true;
+    if(PVP.noReward||reason==='menu-exit')return discardPvpSaveSession();
+    // Only this explicit reward is transferred. 1v1 balances, crate loot,
+    // inventory and temporary upgrades are intentionally discarded.
+    let reward=winner==='draw'?V05_REWARDS.draw:(winner===PVP.role?V05_REWARDS.winner:V05_REWARDS.participant);
+    save_sp=normaliseSave(save_sp||DEF());save_sp.warp=(Number(save_sp.warp)||0)+reward.warp;save_sp.pro=(Number(save_sp.pro)||0)+reward.pro;
+    S=save_sp;activeSaveMode='sp';save_1v1=null;try{sessionStorage.removeItem(V05_SESSION_KEY)}catch(e){}save();
+  }
+  function showV05Toast(sender,message,slug){
+    let layer=$('v05ToastLayer');if(!layer){layer=document.createElement('div');layer.id='v05ToastLayer';document.body.appendChild(layer)}
+    const toast=document.createElement('div');toast.className='v05-toast';toast.textContent=`✉ ${String(sender||'Friend').slice(0,28)}: ${String(message||'').slice(0,140)}`;
+    const pvpCombat=PVP.active&&['playing','reconnecting','countdown','sync','finished'].includes(PVP.phase);
+    const inCombat=pvpCombat||(!PVP.active&&mode==='play');
+    const spectatorRestricted=!!(PVP.active&&PVP.playerDead);
+    toast.style.pointerEvents=inCombat||spectatorRestricted?'none':'auto';
+    if(!inCombat&&!spectatorRestricted&&slug){toast.title='Open direct message';toast.addEventListener('click',()=>{if(PVP.active&&(!['lobby','roundSummary','upgrade','waveSelect'].includes(PVP.phase)||PVP.playerDead))return;tab=4;dmSelected=slug;if(PVP.active){const round=$('v05RoundOverlay');if(round)round.className='v05-modal';}hub();const input=$('netMsg');if(input)input.focus();toast.remove()})}
+    layer.appendChild(toast);setTimeout(()=>{if(toast.isConnected)toast.classList.add('fade')},5200);setTimeout(()=>toast.remove(),6000);
+    while(layer.children.length>4)layer.firstElementChild.remove();
+  }
+  function ensureV05Ui(){
+    if(!$('v05ToastLayer')){const d=document.createElement('div');d.id='v05ToastLayer';document.body.appendChild(d)}
+    if(!$('v05QuitBtn')){const b=document.createElement('button');b.id='v05QuitBtn';b.textContent='Quit 1v1';b.onclick=pvpQuit;b.style.display='none';document.body.appendChild(b)}
+    if(!$('v05SpectatorDM')){const d=document.createElement('div');d.id='v05SpectatorDM';d.innerHTML='<b>MESSAGE SURVIVOR</b><div class="v05-chatrow"><input id="v05SpectatorInput" maxlength="200" placeholder="Send a message…"><button onclick="pvpSendSpectatorDM()">Send</button></div>';document.body.appendChild(d)}
+    if(!$('v05RoundOverlay')){const d=document.createElement('div');d.id='v05RoundOverlay';document.body.appendChild(d)}
+  }
+  function renderPvpRoundSummary(){
+    ensureV05Ui();const o=$('v05RoundOverlay');o.className='v05-modal on';
+    const st=PVP.stats||{},h=st.host||{},g=st.guest||{},elapsed=Math.max(0,Date.now()-(PVP.startTime||Date.now()));
+    const fmt=n=>Math.floor(Math.max(0,Number(n)||0));
+    o.innerHTML=`<section class="v05-panel"><div class="v05-kicker">RUN OVER · BOTH PLAYERS DOWN</div><h2>Run summary · Wave ${Math.max(1,Number(PVP.roundWave)||G?.w||1)}</h2><p class="ds">Both players are down. Review the run stats, then both players must continue before upgrades open. Nobody respawns during this run.</p><div class="v05-stats"><div>Damage <b>${fmt(h.damage)}</b> : <b>${fmt(g.damage)}</b></div><div>Kills <b>${fmt(h.kills)}</b> : <b>${fmt(g.kills)}</b></div><div>Crates <b>${fmt(h.crates)}</b> : <b>${fmt(g.crates)}</b></div><div>Time <b>${Math.floor(elapsed/60000)}:${String(Math.floor(elapsed/1000)%60).padStart(2,'0')}</b></div></div><p class="ds">Session currencies and loot have been banked to your temporary 1v1 save.</p><button class="pvpLobbyBtn" onclick="pvpRoundContinue()">${PVP.continueReady?'Waiting for opponent…':'Continue'}</button><button class="pvpLobbyBtn v05-danger" onclick="pvpQuit()">Quit / End Game</button><p class="ds">Both players must continue before the 60-second upgrade stage begins.</p></section>`;
+  }
+  function renderPvpUpgradeHub(){
+    ensureV05Ui();const o=$('hubOverlay'),oldScroll=o.scrollTop,round=$('v05RoundOverlay');if(round)round.className='v05-modal';mode='hub';
+    if(!Number.isInteger(Number(PVP.upgradeTab))||Number(PVP.upgradeTab)<0||Number(PVP.upgradeTab)>3)PVP.upgradeTab=0;tab=PVP.upgradeTab;
+    const remaining=Math.max(0,Math.ceil(((PVP.upgradeDeadline||Date.now())-Date.now())/1000));
+    const resources=[['Warp','🌀',S.warp,'Earned from kills and cleared waves.'],['Protons','⚛',S.pro,'Crate drops.'],['Cells','🔷',S.cell,'Reinforce duplicates.'],['Purified','💧',S.pur,'Weapon levels.'],['Keys','🗝',S.key,'Decrypt crates.'],['Fusion','🔮',S.fus,'Unlock Aether attunement.'],['Souls','👻',S.souls,'Awaken Spirit Slugs.']];
+    const myStatus=PVP.upgradeReady?'YOU READY':'NOT READY',peerStatus=PVP.peerUpgradeReady?'OPPONENT READY':'WAITING FOR OPPONENT';let body='';
+    if(tab===0){body=t0().replace(/onclick="dep\((\d+)\)"/g,'disabled onclick="pvpDeployNotice($1)"').replace(/>Deploy here<\/button>/g,'>Select after Ready<\/button>');}
+    else if(tab===1)body=t1().replace(/\boc\(/g,'pvpOpenCrate(').replace(/\bbc\(/g,'pvpBuyCrate(').replace(/\bcf\(/g,'pvpCraft(');
+    else if(tab===2)body=t2().replace(/\bupg\(/g,'pvpUpgrade(').replace(/\bunl\(/g,'pvpUnlock(');
+    else body=t3().replace(/\beq\(/g,'pvpEquip(').replace(/\bue\(/g,'pvpUnequip(').replace(/\brf\(/g,'pvpReinforce(').replace(/\buw\(/g,'pvpWeaponUpgrade(').replace(/\baw\(/g,'pvpAwaken(');
+    if(PVP.upgradeReady)body=body.replace(/<button(?=[^>]*onclick=)/g,'<button disabled');
+    o.className='ov on';$('topHUD').innerHTML=`<div class="pvpBanner">⚔ 1v1 UPGRADE HUB · <b id="v05ReadyStatus">${myStatus} · ${peerStatus}</b> · TIME LEFT <b id="v05Timer">${remaining}</b>s · ${remaining===0?'WAITING FOR BOTH READY':''}</div>`;
+    o.innerHTML=`<div class=hd><svg class=logo viewBox='0 0 380 74'><defs><linearGradient id='lg' x1='0' x2='1'><stop offset='0' stop-color='#00ff88'/><stop offset='1' stop-color='#00ccff'/></linearGradient></defs><text x='190' y='46' text-anchor='middle' font-size='40' font-weight='800' font-family='Orbitron,sans-serif' fill='url(#lg)' stroke='#0a0814' stroke-width='7' paint-order='stroke' stroke-linejoin='round'>SLUGGER <tspan fill='#ff0055'>(NEO)</tspan></text><path class=dr d='M70 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/><path class=dr d='M190 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/><path class=dr d='M300 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/></svg><div class=rs>${resources.map(r=>`<span class=tt data-tip="${r[3]}"><b>${r[1]} ${Math.floor(Number(r[2])||0)}</b> ${r[0]}</span>`).join('')}</div></div><nav>${['Deploy','Unboxing / Crates','Skill Tree','Equipment & Sets'].map((t,i)=>`<button class="tab${i===tab?' on':''}" onclick="pvpUpgradeTab(${i})">${t}</button>`).join('')}</nav><div class=tbc>${body}</div><p><button onclick="pvpToggleReady()" class="pvpLobbyBtn" ${PVP.upgradeReady?'disabled':''}>${PVP.upgradeReady?'✓ Ready — '+(PVP.peerUpgradeReady?'both ready':'waiting for opponent'):'Ready for next run'}</button> <button onclick="pvpQuit()" class="pvpLobbyBtn v05-danger">Quit / End Game</button> <span class=ds>Temporary 1v1 balances are isolated from Singleplayer. Ready locks further purchases on your side.</span></p>`;o.scrollTop=oldScroll;
+  }
+  function renderPvpWaveSelect(){
+    ensureV05Ui();const hubUi=$('hubOverlay');if(hubUi)hubUi.className='ov';$('topHUD').innerHTML='';const o=$('v05RoundOverlay');o.className='v05-modal on';const maxCheckpoint=PVP.target===5?5:8;const valid=safeCommon().filter(c=>Number.isInteger(c)&&c>=1&&c<=maxCheckpoint).sort((a,b)=>a-b);if(!valid.length)valid.push(1);const selected=Number(PVP.nextSelectedWave),chosen=valid.includes(selected)?selected:valid[valid.length-1];if(PVP.role==='host')PVP.nextSelectedWave=chosen;const options=valid.map(w=>`<option value="${w}" ${w===chosen?'selected':''}>Wave ${w}: ${esc(WV[w-1]?.[0]||'Campaign')}</option>`).join('');
+    o.innerHTML=`<section class="v05-panel"><div class="v05-kicker">NEXT CAMPAIGN STAGE</div><h2>Wave selection</h2><p class="ds">The host chooses from checkpoints unlocked in both players' 1v1 session saves. The selected wave is used for both players, and both return alive when the run launches.</p>${PVP.role==='host'?`<label for="v05WaveSelect">Shared checkpoint</label><select id="v05WaveSelect" class="nin" onchange="PVP.nextSelectedWave=Number(this.value)">${options}</select><button class="pvpLobbyBtn" onclick="pvpStartSelectedWave()">Deploy wave ${chosen}</button>`:`<h3>Host is choosing the next stage…</h3><p class="ds">Shared checkpoints: ${valid.map(w=>'Wave '+w).join(', ')}</p>`}<button class="pvpLobbyBtn v05-danger" onclick="pvpQuit()">Quit / End Game</button></section>`;
+  }
+  function ensurePvpUpgradeTicker(){
+    if(PVP.upgradeTickTimer||!PVP.active||PVP.role!=='host'||PVP.phase!=='upgrade')return;
+    PVP.upgradeTickTimer=setInterval(()=>{if(!PVP.active||PVP.phase!=='upgrade'){clearInterval(PVP.upgradeTickTimer);PVP.upgradeTickTimer=null;return}const remaining=Math.max(0,Math.ceil((PVP.upgradeDeadline-Date.now())/1000));netSend(PVP.opponent,{type:'pvp_upgrade_tick',matchId:PVP.matchId,remaining,ready:PVP.upgradeReady,opponentReady:PVP.peerUpgradeReady});const el=$('v05Timer');if(el)el.textContent=remaining;if(PVP.upgradeReady&&PVP.peerUpgradeReady)finishPvpUpgradeStage();},250);
+  }
+  function startPvpUpgradeStage(){
+    if(!PVP.active||PVP.role!=='host'||PVP.finished||PVP.phase!=='roundSummary')return;
+    PVP.phase='upgrade';PVP.upgradeDeadline=Date.now()+60000;PVP.upgradeReady=false;PVP.peerUpgradeReady=false;renderPvpUpgradeHub();
+    netSend(PVP.opponent,{type:'pvp_upgrade_start',matchId:PVP.matchId,duration:60000,stats:PVP.stats,checkpoints:PVP.myCheckpoints});
+    if(PVP.upgradeTickTimer){clearInterval(PVP.upgradeTickTimer);PVP.upgradeTickTimer=null;}ensurePvpUpgradeTicker();
+  }
+  function finishPvpUpgradeStage(){if(!PVP.active||PVP.role!=='host'||PVP.phase!=='upgrade')return;if(PVP.upgradeTickTimer){clearInterval(PVP.upgradeTickTimer);PVP.upgradeTickTimer=null;}PVP.phase='waveSelect';PVP.opponentCheckpoints=PVP.opponentCheckpoints||[1];PVP.nextSelectedWave=Math.max(...safeCommon().filter(w=>w<=(PVP.target===5?5:8)),1);renderPvpWaveSelect();netSend(PVP.opponent,{type:'pvp_wave_select',matchId:PVP.matchId,checkpoints:PVP.myCheckpoints,opponentCheckpoints:PVP.opponentCheckpoints,nextWave:PVP.nextSelectedWave});}
+  function pvpRoundContinue(){if(!PVP.active||PVP.phase!=='roundSummary'||PVP.continueReady)return;PVP.continueReady=true;renderPvpRoundSummary();netSend(PVP.opponent,{type:'pvp_round_continue',matchId:PVP.matchId,checkpoints:S.cp||[1],dead:!!PVP.playerDead});if(PVP.role==='host'&&PVP.peerContinueReady)startPvpUpgradeStage();}
+  function pvpToggleReady(){if(!PVP.active||PVP.phase!=='upgrade'||PVP.upgradeReady)return;if(ub&&ub.ph===1){showV05Toast('Upgrade hub','Wait for the crate reveal to finish before Ready.',null);return;}PVP.myLoadout=makePvpLoadout();PVP.upgradeReady=true;renderPvpUpgradeHub();netSend(PVP.opponent,{type:'pvp_upgrade_ready',matchId:PVP.matchId,checkpoints:S.cp||[1],loadout:PVP.myLoadout});if(PVP.role==='host'&&PVP.peerUpgradeReady)finishPvpUpgradeStage();}
+  function pvpUpgrade(k,base){if(!PVP.active||PVP.phase!=='upgrade'||PVP.upgradeReady)return;const row=UP.find(x=>x[0]===k),lvl=Number(S.up[k])||0;if(!row||lvl>=row[2])return;const cost=UCOST(k,base);if(S.warp<cost)return;S.warp-=cost;S.up[k]=lvl+1;ST=calc();save();SFX.buy();renderPvpUpgradeHub();}
+  function pvpCanEditHub(){return PVP.active&&PVP.phase==='upgrade'&&!PVP.upgradeReady;}
+  function applyPvpOpponentLoadout(raw){const loadout=acceptPvpLoadout(raw);if(!loadout)return;PVP.opponentLoadout=loadout;PVP.oppShotDamageMax=Math.min(400,loadout.damage*3.3);PVP.oppShotCooldown=loadout.cooldown;PVP.oppPellets=loadout.pellets;PVP.oppMh=loadout.hp;PVP.oppTk=loadout.tk;PVP.oppDr=loadout.dr;PVP.oppMag=loadout.mag;PVP.oppHazardImmune=loadout.hazardImmune;}
+  function pvpUpgradeTab(i){if(!PVP.active||PVP.phase!=='upgrade'||PVP.upgradeReady)return;PVP.upgradeTab=Math.max(0,Math.min(3,Number(i)||0));tab=PVP.upgradeTab;dm=false;SFX.tab();renderPvpUpgradeHub();}
+  function pvpDeployNotice(){showV05Toast('Deploy','Both players must be Ready before the host can choose a shared checkpoint.',null);}
+  function pvpOpenCrate(t){if(!pvpCanEditHub()||!LT[t])return;oc(t);}
+  function pvpBuyCrate(t){if(!pvpCanEditHub()||!BP[t]||S.warp<BP[t])return;bc(t);}
+  function pvpCraft(i){if(!pvpCanEditHub())return;cf(Number(i));}
+  function pvpUnlock(el){if(!pvpCanEditHub()||!EL6.includes(el)||S.att.includes(el))return;unl(el);}
+  function pvpUnequip(t){if(!pvpCanEditHub()||!SN[t])return;ue(t);}
+  function pvpReinforce(k){if(!pvpCanEditHub()||!S.inv[k])return;rf(k);}
+  function pvpWeaponUpgrade(k){if(!pvpCanEditHub()||!S.inv[k]||IT[k]?.t!=='w')return;uw(k);}
+  function pvpAwaken(k){if(!pvpCanEditHub()||!S.inv[k]||IT[k]?.t!=='p')return;aw(k);}
+  const _hubBeforePvpUpgrade=hub;hub=function(){if(PVP.active&&PVP.phase==='upgrade'){renderPvpUpgradeHub();return;}_hubBeforePvpUpgrade();};
+  function pvpEquip(k){if(!PVP.active||PVP.phase!=='upgrade'||PVP.upgradeReady||!IT[k]||!S.inv[k])return;S.eq[IT[k].t]=k;ST=calc();save();SFX.click();renderPvpUpgradeHub();}
+  function pvpDecrypt(t){if(!PVP.active||PVP.phase!=='upgrade'||PVP.upgradeReady||!LT[t]||(Number(S.cr[t])||0)<1||S.key<LT[t].k)return;S.cr[t]--;S.key-=LT[t].k;const results=roll(t);save();SFX.open();renderPvpUpgradeHub();showV05Toast('Decryption',results.join(' · ')||'No bonus loot this time.',null);}
+  function pvpCraftKey(){if(!PVP.active||PVP.phase!=='upgrade'||PVP.upgradeReady||S.pro<2||S.warp<45)return;S.pro-=2;S.warp-=45;S.key++;save();SFX.buy();renderPvpUpgradeHub();}
+  function pvpStartSelectedWave(){if(!PVP.active||PVP.role!=='host'||PVP.phase!=='waveSelect')return;const choices=safeCommon().filter(c=>Number.isInteger(c)&&c>=1&&c<=(PVP.target===5?5:8));if(!choices.length)choices.push(1);const el=$('v05WaveSelect');let w=Number(el?.value);if(!Number.isInteger(w)||!choices.includes(w))w=choices[choices.length-1];PVP.nextSelectedWave=w;netSend(PVP.opponent,{type:'pvp_start_wave',matchId:PVP.matchId,wave:w,checkpoints:PVP.myCheckpoints,opponentCheckpoints:PVP.opponentCheckpoints,hostDead:!!PVP.playerDead});PVPStartWaveLocal(w);}
+  function PVPStartWaveLocal(w){if(!PVP.active||PVP.finished||!G)return;const shared=safeCommon().filter(c=>Number.isInteger(c)&&c>=1&&c<=(PVP.target===5?5:8));if(!shared.length)shared.push(1);w=Number(w);if(!Number.isInteger(w)||!shared.includes(w))w=shared[shared.length-1];PVP.startWave=cl(w,1,PVP.target===5?5:10);PVP.phase='playing';PVP.continueReady=false;PVP.peerContinueReady=false;PVP.upgradeReady=false;PVP.peerUpgradeReady=false;PVP.playerDead=false;PVP.oppDead=false;PVP.oppAlive=true;PVP.oppInitialised=false;PVP.oppLastInputAt=0;PVP.lastGuestHpPacket=0;PVP.oppMh=cl(Number(PVP.opponentLoadout?.hp)||Number(PVP.oppMh)||100,50,2000);PVP.oppHp=PVP.oppMh;P.x=PVP.role==='host'?W*.42:W*.58;P.y=H/2;P.vx=P.vy=0;P.rx=P.rv=0;P.sp=0;P.cd=0;P.inv=1;P.hp=100;PVP.oppX=PVP.role==='host'?W*.58:W*.42;PVP.oppY=H/2;PVP.oppXT=PVP.oppX;PVP.oppYT=H/2;PVP.oppDrone=null;PVP.oppDroneTarget=null;PVP.hostDrone=null;PVP.hostDroneTarget=null;PVP.hostDroneHitAt=0;PVP.guestDroneHitAt=0;for(const k of Object.keys(K))K[k]=0;md=false;PVP.hostBulletsSnap=[];PVP.hostParticlesSnap=[];PVP.hostMortarsSnap=[];PVP.hostHolesSnap=[];PVP.hostSlimeSnap=[];PVP.hostStorm={t:0,stt:0,owner:'host'};PVP.receivedShots=new Set();PVP.oppVolleyMap=new Map();PVP.oppFireLastAt=0;PVP.oppAng=0;PVP.oppAngTarget=0;PVP.oppTaunt=null;P.taunt=null;PVP.guestSpecialReadyAt=0;pendingGuestCrates.clear();G.bossSpawned=false;G.w=PVP.startWave-1;G.st='inter';G.tmr=.45;G.q=[];E=[];B=[];EB=[];CR=[];PT=[];SL=[];HZ=[];TL=[];BM=[];MS=[];HO=[];G.spi=(eqI('p')&&S.aw[S.eq.p])?{cd:0,x:0,y:0}:null;G.storm=0;G.stt=0;G.stormOwner='host';G.fr=0;G.dead=0;G.tot=0;G.runBanked=false;PVP.roundBanked=false;G.warp=Math.max(0,Number(S.rec[PVP.startWave])||0);G.startWarp=G.warp;G.cr=blankCrates();G.souls=0;ST=calc();P.hp=ST.mhp;P.at=S.att.includes(P.at)?P.at:'neutral';mode='play';$('hubOverlay').className='ov';$('topHUD').innerHTML='';$('v05RoundOverlay').className='v05-modal';$('pauseOverlay').className='ov';save();}
+  function pvpQuit(){if(!PVP.active){hub();return;}PVP.noReward=false;const inRun=['playing','reconnecting'].includes(PVP.phase);netSend(PVP.opponent,{type:'pvp_quit',matchId:PVP.matchId,inRun,quitRole:PVP.role});if(PVP.role==='host'){endPvp('guest','forfeit',{quit:true,quitRole:'host'});}else{showV05Toast('System','Quit request sent; ending 1v1 session.',null);}}
+  function returnToV05PvpMenu(){
+    const h=$('hubOverlay');if(h)h.className='ov';if(!PVP.active)return;
+    if(PVP.phase==='roundSummary')renderPvpRoundSummary();
+    else if(PVP.phase==='upgrade')renderPvpUpgradeHub();
+    else if(PVP.phase==='waveSelect')renderPvpWaveSelect();
+    else if(PVP.phase==='lobby')showPvpLobby();
+    else if(PVP.phase==='countdown'||PVP.phase==='sync'){const c=$('pvpCountdownOverlay');if(c)c.style.display='flex';}
+  }
+  function pvpSendSpectatorDM(){if(!PVP.active||!PVP.playerDead||!PVP.opponent||PVP.oppDead||PVP.oppAlive===false)return;const el=$('v05SpectatorInput'),msg=(el?.value||'').trim().slice(0,200);if(!msg)return;netSend(PVP.opponent,{type:'pvp_spectator_dm',matchId:PVP.matchId,text:msg,from:AUTH.username||NET.id});if(el)el.value='';NET.msgs.push({from:'Spectator DM',to:NET.id,msg,t:Date.now(),sys:1});showV05Toast('You → survivor',msg,null);}
+  function drawV05Taunt(x,y,taunt){if(!taunt||!taunt.emoji||Number(taunt.until)<Date.now())return;const age=1-(taunt.until-Date.now())/2200;cx.save();cx.globalAlpha=Math.max(0,1-age);cx.font='26px sans-serif';cx.textAlign='center';cx.lineWidth=4;cx.strokeStyle='#0a0814';cx.fillStyle='#fff';const by=y-45-age*20;cx.beginPath();cx.roundRect(x-23,by-24,46,34,10);cx.fill();cx.stroke();cx.beginPath();cx.moveTo(x-5,by+10);cx.lineTo(x+2,by+10);cx.lineTo(x-1,by+18);cx.fill();cx.fillText(taunt.emoji,x,by+1);cx.restore();}
+  function fireV05Taunt(key){if(!PVP.active||PVP.phase!=='playing'||PVP.playerDead)return;const map={'7':'😂','8':'😈','9':'💀','0':'🔥'},emoji=map[key];if(!emoji)return;P.taunt={emoji,until:Date.now()+2200};SFX.click();if(PVP.opponent)netSend(PVP.opponent,{type:'pvp_taunt',matchId:PVP.matchId,emoji,until:Date.now()+2200});}
+
+  // Session state is activated before either player sees a PvP lobby.
+  const _enterPvpLobby=enterPvpLobby;
+  enterPvpLobby=function(role,pid,target){beginPvpSaveSession();const result=_enterPvpLobby(role,pid,target);PVP.myCheckpoints=(S.cp||[1]).slice();PVP.opponentCheckpoints=[1];PVP.opponentCheckpointKnown=false;PVP.startWave=1;PVP.rewardApplied=false;netSend(pid,{type:'pvp_v05_session',checkpoints:PVP.myCheckpoints,target:PVP.target});return result;};
+  const _showPvpLobby=showPvpLobby;
+  showPvpLobby=function(){cleanupPvpLobbyUi();const choices=safeCommon();const o=document.createElement('div');o.id='pvpLobbyOverlay';o.className='modal';o.innerHTML=`<div class="p" style="max-width:460px;text-align:center"><h3>1v1 Campaign Lobby</h3><p class=ds>Target boss: Wave ${PVP.target}. Temporary session save active.</p>${PVP.role==='host'?`<label for="v05LobbyStart">Starting checkpoint (unlocked by both)</label><select class=nin id="v05LobbyStart" onchange="PVP.startWave=Number(this.value)">${choices.map(w=>`<option value="${w}" ${w===(PVP.startWave||1)?'selected':''}>Wave ${w}: ${esc(WV[w-1]?.[0]||'Campaign')}</option>`).join('')}</select>`:`<p class=ds>Host chooses a start checkpoint from the intersection of both session saves.</p>`}<div class=pvpLobbyRow><span>You</span><span id=pvpYouStatus>⏳ Not ready</span></div><div class=pvpLobbyRow><span>Opponent</span><span id=pvpOppStatus>⏳ Not ready</span></div><button id=pvpReadyBtn class=pvpLobbyBtn onclick="pvpClickReady()">Ready</button><button onclick="pvpQuit()" class="pvpLobbyBtn v05-danger">Quit / End Game</button></div>`;document.body.appendChild(o);updatePvpLobbyUi();};
+  const _updateLobbyUiV05=updatePvpLobbyUi;updatePvpLobbyUi=function(){_updateLobbyUiV05();const b=$('pvpReadyBtn');if(b&&PVP.active&&PVP.role==='host'&&!PVP.opponentCheckpointKnown){b.disabled=true;b.textContent='Syncing checkpoints…';}};
+  pvpClickReady=function(){if(PVP.phase!=='lobby'||(PVP.role==='host'&&!PVP.opponentCheckpointKnown))return;PVP.myLoadout=makePvpLoadout();PVP.myCheckpoints=(S.cp||[1]).slice();if(PVP.role==='host'){PVP.hostReady=true;PVP.startWave=Number($('v05LobbyStart')?.value||PVP.startWave||1)}else PVP.guestReady=true;netSend(PVP.opponent,{type:'pvp_ready',loadout:PVP.myLoadout,checkpoints:PVP.myCheckpoints});updatePvpLobbyUi();tryStartCountdown();};
+  tryStartCountdown=function(){if(PVP.phase!=='lobby'||PVP.role!=='host'||!PVP.hostReady||!PVP.guestReady)return;const choices=safeCommon();if(!choices.includes(Number(PVP.startWave)))PVP.startWave=choices[0];PVP.phase='sync';PVP.matchId=`${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;PVP.seed=(Math.random()*0xffffffff)>>>0;PVP.countdownStart=0;PVP.syncStartedAt=Date.now();PVP.initAck=false;PVP.stats={host:{damage:0,kills:0,crates:0,souls:0,warp:0,combo:0,bestCombo:0,lastKillAt:0},guest:{damage:0,kills:0,crates:0,souls:0,warp:0,combo:0,bestCombo:0,lastKillAt:0}};PVP.receivedShots=new Set();PVP.cleanupRound=false;cleanupPvpLobbyUi();showPvpCountdown();netBroadcast({type:'status',mode:'game'});netSend(PVP.opponent,{type:'pvp_init',matchId:PVP.matchId,target:PVP.target,startWave:PVP.startWave,checkpoints:PVP.myCheckpoints,seed:PVP.seed,waves:[5,10],settings:{enemyHp:1.5,spawnScale:1.35},hostStatus:'ready',guestStatus:'ready'});const o=$('pvpCountdownOverlay');if(o)o.textContent='SYNC';};
+  const _deploy=deploy;
+  deploy=function(cp){const use=PVP.active?cl(Number(PVP.startWave)||Number(cp)||1,1,PVP.target===5?5:8):cp;_deploy(use);if(PVP.active&&save_1v1){G.warp=Math.max(0,Number(S.rec[use])||0);G.startWarp=G.warp;G.cr=blankCrates();G.souls=0;G.runBanked=false;PVP.roundBanked=false;PVP.stats=PVP.stats||{};PVP.myCheckpoints=(S.cp||[1]).slice();}};
+  const _nextWave=nextWave;
+  nextWave=function(){if(PVP.active&&PVP.role==='host'&&(PVP.finished||PVP.phase!=='playing'))return;PVP.roundBanked=false;_nextWave();};
+  const _clearWave=clearWave;
+  clearWave=function(){if(PVP.active){if(PVP.role!=='host'||PVP.phase!=='playing'||PVP.finished)return;}else{return _clearWave();}const wave=G.w;G.lastClearedWave=Math.max(Number(G.lastClearedWave)||0,wave);const bonus=wave*25;if(!PVP.playerDead){G.warp+=bonus;PVP.stats.host.warp=(PVP.stats.host.warp||0)+bonus;}if(PVP.oppAlive)PVP.stats.guest.warp=(PVP.stats.guest.warp||0)+bonus;/* Shared run checkpoint: both session saves unlock the cleared stage, even if one player is spectating. */unlockSessionCheckpoint(wave,'host');unlockSessionCheckpoint(wave,'guest');netSend(PVP.opponent,{type:'pvp_checkpoint_unlock',matchId:PVP.matchId,wave,record:Number(PVP.stats.guest.warp)||0});if(!PVP.playerDead)S.rec[wave]=Math.max(Number(S.rec[wave])||0,Number(G.warp)||0);SFX.pick();if(wave>=PVP.target){return;}addCrate(R(100,W-100),R(100,H-100),CT[wave-1],0);G.st='inter';G.tmr=2.5;netSend(PVP.opponent,{type:'pvp_intermission_tick',matchId:PVP.matchId,wave,remaining:G.tmr,nextWave:wave+1,name:WV[wave]?.[0]||'Campaign'});save();};
+  // A dead player cannot leave owner-tagged specials or projectiles dealing damage.
+  function clearV05DeadAttacks(deadRole){if(!PVP.active)return;if(PVP.role==='host'){if(deadRole==='host'){B=B.filter(b=>b._guest===true);HO=HO.filter(h=>h.owner==='guest');SL=[];if(G&&G.stormOwner==='host'){G.storm=0;G.stt=0;}if(G)G.spi=null;P.taunt=null;}else{B=B.filter(b=>!b._guest);HO=HO.filter(h=>h.owner==='host');if(G&&G.stormOwner==='guest'){G.storm=0;G.stt=0;}PVP.oppDrone=null;PVP.oppDroneTarget=null;PVP.oppTaunt=null;}}else{if(deadRole==='guest'){B=[];HO=HO.filter(h=>h.owner==='host');if(G&&G.stormOwner==='guest'){G.storm=0;G.stt=0;}if(G)G.spi=null;P.taunt=null;}else{HO=HO.filter(h=>h.owner==='guest');SL=[];if(G&&G.stormOwner==='host'){G.storm=0;G.stt=0;}PVP.hostDrone=null;PVP.hostDroneTarget=null;PVP.oppTaunt=null;PVP.hostBulletsSnap=[];}}}
+  // Keep a corpse inert and spectate until the campaign boss falls or both are dead.
+  hurtPlayerDeath=function(){P.hp=0;if(PVP.active&&PVP.phase==='playing'&&!PVP.finished&&!PVP.playerDead){PVP.playerDead=true;P.vx=P.vy=0;P.sp=0;md=false;clearV05DeadAttacks(PVP.role);for(const k of Object.keys(K))K[k]=0;netSend(PVP.opponent,{type:'pvp_player_died',role:PVP.role,matchId:PVP.matchId});if(PVP.role==='host'){if(PVP.oppDead||PVP.oppAlive===false){showBothDeadSummary();}else{netSend(PVP.opponent,{type:'pvp_spectate',matchId:PVP.matchId,hostDead:true});netSys('You died. Spectating the surviving player.');}}else{netSys('You died. Spectating the surviving player.');if(PVP.oppDead||PVP.oppAlive===false)netSend(PVP.opponent,{type:'pvp_both_dead',matchId:PVP.matchId});}return;}if(PVP.active&&PVP.phase==='playing'){if(PVP.playerDead&&(PVP.oppDead||PVP.oppAlive===false)&&PVP.role==='host')showBothDeadSummary();return;}endRun(false);};
+  function showBothDeadSummary(){if(!PVP.active||PVP.role!=='host'||PVP.phase!=='playing')return;PVP.oppDead=true;PVP.oppAlive=false;PVP.roundWave=G?.w||1;bankPvpRoundProgress();PVP.phase='roundSummary';PVP.continueReady=false;PVP.peerContinueReady=false;mode='pause';PVP.roundStartedAt=Date.now();renderPvpRoundSummary();netSend(PVP.opponent,{type:'pvp_round_summary',matchId:PVP.matchId,wave:PVP.roundWave,stats:PVP.stats,hostDead:true,guestDead:true,checkpoints:PVP.myCheckpoints,remaining:0});}
+  damagePvpGuest=function(amount,reason='hazard'){if(!PVP.active||PVP.role!=='host'||PVP.phase!=='playing'||!PVP.oppAlive||PVP.finished)return;const raw=Math.max(0,Number(amount)||0),dmg=raw*(1-cl(Number(PVP.oppDr)||0,0,.75)*1)*(cl(Number(PVP.oppTk)||1,.5,2));if(!dmg)return;const now=Date.now();if(String(reason).startsWith('player-')){if(now<(PVP.oppInvUntil||0))return;PVP.oppInvUntil=now+300;PVP.stats.host.damage=(PVP.stats.host.damage||0)+dmg;}PVP.oppHp=Math.max(0,PVP.oppHp-dmg);if(PVP.oppHp<=0){PVP.oppAlive=false;PVP.oppDead=true;netSend(PVP.opponent,{type:'pvp_guest_hp',matchId:PVP.matchId,hp:0,dmg,reason});netSend(PVP.opponent,{type:'pvp_you_died',matchId:PVP.matchId});if(PVP.playerDead){netSend(PVP.opponent,{type:'pvp_both_dead',matchId:PVP.matchId});showBothDeadSummary();}}else if(now-(PVP.lastGuestHpPacket||0)>=50){PVP.lastGuestHpPacket=now;netSend(PVP.opponent,{type:'pvp_guest_hp',matchId:PVP.matchId,hp:PVP.oppHp,dmg,reason});}};
+
+  const _cleanupPvp=cleanupPvp;
+  cleanupPvp=function(){if(PVP.upgradeTickTimer){clearInterval(PVP.upgradeTickTimer);PVP.upgradeTickTimer=null;}const o=$('v05RoundOverlay');if(o)o.className='v05-modal';const quit=$('v05QuitBtn');if(quit)quit.style.display='none';const spec=$('v05SpectatorDM');if(spec)spec.style.display='none';if(activeSaveMode==='pvp'&&save_1v1)discardPvpSaveSession();_cleanupPvp();};
+  // Match conclusion is host-authoritative; results are immutable and acknowledged.
+  endPvp=function(winner,reason,details={}){if(!PVP.active||PVP.finished)return;if(PVP.role==='guest'&&!['disconnect','forfeit','menu-exit'].includes(reason))return;if(PVP.pendingResultTimer){clearTimeout(PVP.pendingResultTimer);PVP.pendingResultTimer=null;}PVP.pendingResult=null;if(reason==='boss'||reason==='both-dead'||reason==='forfeit')bankPvpRoundProgress();PVP.finished=true;PVP.winner=winner;PVP.reason=reason;PVP.phase='finished';PVP.resultAt=Date.now();PVP.resultBanked=false;mode='pause';$('pauseOverlay').className='ov';const elapsed=Math.max(0,Date.now()-(PVP.startTime||Date.now()));const pkt=Object.freeze({type:'pvp_end',matchId:PVP.matchId,winner,reason,details:clone(details||{}),stats:clone(PVP.stats||{}),elapsed,reachedWave:G?G.w:1,lastClearedWave:G?Number(G.lastClearedWave)||0:0,finishedAt:PVP.resultAt,noReward:!!PVP.noReward});PVP.resultPacket=pkt;PVP.resultAcked=false;if(PVP.role==='host'&&PVP.opponent){netSend(PVP.opponent,pkt);if(PVP.resultResendTimer)clearInterval(PVP.resultResendTimer);PVP.resultResendTimer=setInterval(()=>{if(!PVP.active||!PVP.finished||PVP.resultAcked||!PVP.resultPacket){clearInterval(PVP.resultResendTimer);PVP.resultResendTimer=null;return;}netSend(PVP.opponent,PVP.resultPacket)},500);}showPvpEnd(winner===PVP.role,reason,winner==='draw',details,PVP.stats,elapsed);const panel=$('pvpEndOverlay');if(panel&&!PVP.noReward){const msg=document.createElement('p');msg.className='ds';msg.textContent=winner==='draw'?'Draw reward: +50 Warp, +1 Proton.':winner===PVP.role?'Winner reward: +500 Warp, +10 Protons.':'Participation reward: +100 Warp, +2 Protons.';panel.appendChild(msg);}if(PVP.resultTimer)clearTimeout(PVP.resultTimer);PVP.resultTimer=setTimeout(()=>{if(!PVP.resultBanked){PVP.resultBanked=true;applyPermanentPvpReward(winner,reason);}cleanupPvp();mode='hub';tab=2;showV05Toast('System',(reason==='menu-exit'||reason==='forfeit')?'Game Ended':'1v1 session complete',null);hub();},6500);};
+
+  // New packets are intercepted before legacy PvP handlers; all other packets
+  // continue through the v0.4.5 implementation unchanged.
+  const _netData=netData;
+  netData=function(pid,d){
+    if(!d||typeof d!=='object')return;
+    if(d.type==='pvp_wave_start'&&PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId&&activeSaveMode==='pvp'){const w=cl(Number(d.wave)||1,1,10);S.rec[w]=Math.max(Number(S.rec[w])||0,Number(S.warp)||0);save();}
+    if(d.type==='pvp_cancel'&&PVP.active&&pid===PVP.opponent&&['lobby','sync','countdown'].includes(PVP.phase)){PVP.noReward=true;showV05Toast('System','Game Ended',null);cleanupPvp();mode='hub';hub();return;}
+    if(d.type==='pvp_v05_session'&&PVP.active&&PVP.phase==='lobby'&&pid===PVP.opponent){PVP.opponentCheckpointKnown=true;PVP.opponentCheckpoints=Array.isArray(d.checkpoints)?d.checkpoints.filter(n=>Number.isInteger(n)&&n>=1&&n<=8):[1];if(PVP.role==='host'){const choices=safeCommon();if(!choices.includes(Number(PVP.startWave)))PVP.startWave=choices[0];showPvpLobby();}else updatePvpLobbyUi();return;}
+    if(d.type==='pvp_ready'&&PVP.active&&pid===PVP.opponent){PVP.opponentCheckpointKnown=true;PVP.opponentCheckpoints=Array.isArray(d.checkpoints)?d.checkpoints.filter(n=>Number.isInteger(n)&&n>=1&&n<=8):[1];if(PVP.role==='host'&&PVP.phase==='lobby'&&!PVP.hostReady){const choices=safeCommon();if(!choices.includes(Number(PVP.startWave)))PVP.startWave=choices[0];showPvpLobby();}}
+    if(d.type==='pvp_init'&&PVP.active&&PVP.role==='guest'&&pid===PVP.opponent){PVP.startWave=cl(Number(d.startWave)||1,1,d.target===5?5:8);PVP.opponentCheckpoints=Array.isArray(d.checkpoints)?d.checkpoints:[1];}
+    if(d.type==='pvp_end_ack'){if(PVP.active&&PVP.role==='host'&&pid===PVP.opponent&&d.matchId===PVP.matchId&&PVP.finished){PVP.resultAcked=true;if(PVP.resultResendTimer){clearInterval(PVP.resultResendTimer);PVP.resultResendTimer=null;}return;} }
+    if(d.type==='pvp_end'&&PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId){netSend(pid,{type:'pvp_end_ack',matchId:PVP.matchId,receivedAt:Date.now()});if(PVP.finished)return;if(d.reason==='forfeit'||d.details?.quit){PVP.playerDead=true;PVP.oppDead=true;PVP.oppAlive=false;PVP.oppHp=0;P.hp=0;P.vx=P.vy=0;P.sp=0;md=false;for(const k of Object.keys(K))K[k]=0;}PVP.stats=d.stats||PVP.stats;PVP.winner=d.winner;PVP.reason=d.reason;PVP.noReward=!!d.noReward;PVP.finished=true;PVP.phase='finished';mode='pause';$('pauseOverlay').className='ov';if(G){G.lastClearedWave=cl(Number(d.lastClearedWave)||G.lastClearedWave||0,0,10);}if(d.noReward)PVP.noReward=true;showPvpEnd(d.winner===PVP.role,d.reason,d.winner==='draw',d.details||{},PVP.stats,d.elapsed||0);const panel=$('pvpEndOverlay');if(panel&&!PVP.noReward){const msg=document.createElement('p');msg.className='ds';msg.textContent=d.winner==='draw'?'Draw reward: +50 Warp, +1 Proton.':d.winner===PVP.role?'Winner reward: +500 Warp, +10 Protons.':'Participation reward: +100 Warp, +2 Protons.';panel.appendChild(msg);}if(PVP.resultTimer)clearTimeout(PVP.resultTimer);PVP.resultTimer=setTimeout(()=>{if(!PVP.resultBanked){PVP.resultBanked=true;applyPermanentPvpReward(d.winner,d.reason);}cleanupPvp();mode='hub';tab=2;showV05Toast('System',(d.reason==='menu-exit'||d.reason==='forfeit')?'Game Ended':'1v1 session complete',null);hub();},6500);return;}
+    if(d.type==='pvp_both_dead'&&PVP.active&&PVP.role==='host'&&pid===PVP.opponent&&d.matchId===PVP.matchId&&PVP.playerDead&&(PVP.oppHp<=0||PVP.oppAlive===false)){showBothDeadSummary();return;}
+    if(d.type==='pvp_player_died'&&PVP.active&&PVP.role==='host'&&pid===PVP.opponent&&d.matchId===PVP.matchId){if(PVP.oppHp<=0||PVP.oppAlive===false){PVP.oppDead=true;PVP.oppAlive=false;clearV05DeadAttacks('guest');if(PVP.playerDead)showBothDeadSummary();else netSend(pid,{type:'pvp_spectate',matchId:PVP.matchId,guestDead:true});}return;}
+    if(d.type==='pvp_round_summary'&&PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId){PVP.stats=d.stats||PVP.stats;PVP.roundWave=Number(d.wave)||G?.w||1;PVP.phase='roundSummary';if(d.hostDead){PVP.oppDead=true;PVP.oppAlive=false;}if(d.guestDead){PVP.playerDead=true;P.hp=0;P.vx=P.vy=0;}PVP.peerContinueReady=false;PVP.continueReady=false;if(G){/* Reached wave is not necessarily a cleared wave; preserve authoritative lastClearedWave. */bankPvpRoundProgress();}PVP.myCheckpoints=(S.cp||[1]).slice();netSend(pid,{type:'pvp_round_ack',matchId:PVP.matchId,checkpoints:PVP.myCheckpoints,dead:!!PVP.playerDead});mode='pause';renderPvpRoundSummary();return;}
+    if(d.type==='pvp_round_ack'&&PVP.active&&PVP.role==='host'&&pid===PVP.opponent&&d.matchId===PVP.matchId){PVP.opponentCheckpoints=Array.isArray(d.checkpoints)?d.checkpoints:[1];if(d.dead)PVP.oppDead=true;return;}
+    if(d.type==='pvp_round_continue'&&PVP.active&&pid===PVP.opponent&&d.matchId===PVP.matchId){PVP.opponentCheckpoints=Array.isArray(d.checkpoints)?d.checkpoints:[1];if(PVP.role==='host'){PVP.peerContinueReady=true;if(PVP.continueReady)startPvpUpgradeStage();}else{PVP.peerContinueReady=true;}return;}
+    if(d.type==='pvp_upgrade_start'&&PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId){PVP.phase='upgrade';PVP.upgradeDeadline=Date.now()+cl(Number(d.duration)||60000,1000,60000);PVP.intermissionRemaining=60;PVP.peerHostTimer=60;PVP.upgradeReady=false;PVP.peerUpgradeReady=false;if(G)bankPvpRoundProgress();renderPvpUpgradeHub();return;}
+    if(d.type==='pvp_upgrade_tick'&&PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId){PVP.intermissionRemaining=Math.max(0,Number(d.remaining)||0);PVP.peerUpgradeReady=!!d.ready;PVP.peerHostTimer=Number(d.remaining)||0;const timer=$('v05Timer');if(timer)timer.textContent=PVP.intermissionRemaining;const status=$('v05ReadyStatus');if(status)status.textContent=(PVP.upgradeReady?'YOU READY':'NOT READY')+' · '+(PVP.peerUpgradeReady?'OPPONENT READY':'WAITING FOR OPPONENT');return;}
+    if(d.type==='pvp_upgrade_ready'&&PVP.active&&PVP.role==='host'&&pid===PVP.opponent&&d.matchId===PVP.matchId){PVP.peerUpgradeReady=true;PVP.opponentCheckpoints=Array.isArray(d.checkpoints)?d.checkpoints:[1];if(d.loadout)applyPvpOpponentLoadout(d.loadout);if(PVP.upgradeReady)finishPvpUpgradeStage();return;}
+    if(d.type==='pvp_upgrade_ready'&&PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId){PVP.peerUpgradeReady=true;if(d.loadout)applyPvpOpponentLoadout(d.loadout);return;}
+    if(d.type==='pvp_wave_select'&&PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId){PVP.phase='waveSelect';PVP.opponentCheckpoints=Array.isArray(d.checkpoints)?d.checkpoints:[1];PVP.myCheckpoints=(S.cp||[1]).slice();PVP.nextSelectedWave=Number(d.nextWave)||((G?.w||0)+1);renderPvpWaveSelect();return;}
+    if(d.type==='pvp_start_wave'&&PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId){if(Array.isArray(d.checkpoints))PVP.opponentCheckpoints=d.checkpoints.filter(n=>Number.isInteger(n)&&n>=1&&n<=8);if(Array.isArray(d.opponentCheckpoints))PVP.myCheckpoints=(S.cp||[1]).slice();PVP.nextSelectedWave=Number(d.wave)||1;PVPStartWaveLocal(PVP.nextSelectedWave);return;}
+    if(d.type==='pvp_checkpoint_unlock'&&PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId){unlockSessionCheckpoint(Number(d.wave)||0,'guest');save();return;}
+    if(d.type==='pvp_taunt'&&PVP.active&&pid===PVP.opponent&&d.matchId===PVP.matchId&&PVP.oppAlive!==false&&['😂','😈','💀','🔥'].includes(d.emoji)){PVP.oppTaunt={emoji:d.emoji,until:Date.now()+2200};return;}
+    if(d.type==='pvp_spectator_dm'&&PVP.active&&pid===PVP.opponent&&d.matchId===PVP.matchId&&!PVP.playerDead&&(PVP.oppDead||PVP.oppAlive===false)){showV05Toast(String(d.from||'Spectator'),String(d.text||'').slice(0,200),null);PVP.spectatorMessages=PVP.spectatorMessages||[];PVP.spectatorMessages.push({from:d.from||'Spectator',text:String(d.text||'').slice(0,200),at:Date.now()});return;}
+    if(d.type==='pvp_spectate'&&PVP.active&&pid===PVP.opponent&&d.matchId===PVP.matchId){if(d.hostDead){PVP.oppDead=true;PVP.oppAlive=false;}return;}
+    if(d.type==='pvp_quit'&&PVP.active&&pid===PVP.opponent&&d.matchId===PVP.matchId){if(PVP.role==='host'){PVP.noReward=false;endPvp('host','forfeit',{quit:true,quitRole:'guest'});}else if(!PVP.finished){PVP.noReward=false;showV05Toast('System','Host ended the 1v1 session.',null);}return;}
+    if(d.type==='pvp_game_ended'&&PVP.active&&pid===PVP.opponent&&d.matchId===PVP.matchId){PVP.noReward=true;showV05Toast('System','Game Ended',null);cleanupPvp();mode='hub';hub();return;}
+    if(d.type==='pvp_resume'&&PVP.active&&pid===PVP.opponent&&d.matchId===PVP.matchId&&PVP.phase==='reconnecting'){_netData(pid,d);restoreV05PvpPhase();return;}
+    _netData(pid,d);
+  };
+
+  const _netChat=netChat;
+  netChat=function(pid,msg){if(PVP.active)return;_netChat(pid,msg);const name=NET.friends[pid]?.name||pid;showV05Toast(name,msg,pid);};
+  // Cloud DM listener has its own append path; add the same toast there.
+  const oldDmNeedle="NET.msgs.push({from:slug,to:NET.id,msg:String(d.text||'').slice(0,200),t:Date.now()});if(NET.msgs.length>200)NET.msgs.shift();";
+  const newDmNeedle="NET.msgs.push({from:slug,to:NET.id,msg:String(d.text||'').slice(0,200),t:Date.now()});showV05Toast(NET.friends[slug]?.name||slug,String(d.text||'').slice(0,200),slug);if(NET.msgs.length>200)NET.msgs.shift();";
+  // Replace the matching body text in the original function source is not possible at runtime;
+  // a source-level replacement is applied by the build script below.
+
+  const _pvpResume=pvpResumeConnection;
+  function restoreV05PvpPhase(){if(!PVP.active)return;if(PVP.phase==='playing'){mode='play';const o=$('hubOverlay');if(o)o.className='ov';const r=$('v05RoundOverlay');if(r)r.className='v05-modal';}else if(PVP.phase==='roundSummary'){mode='pause';renderPvpRoundSummary();}else if(PVP.phase==='upgrade'){mode='hub';renderPvpUpgradeHub();if(PVP.role==='host')ensurePvpUpgradeTicker();}else if(PVP.phase==='waveSelect'){mode='hub';renderPvpWaveSelect();}else if(PVP.phase==='lobby'){mode='hub';showPvpLobby();}else if(PVP.phase==='sync'||PVP.phase==='countdown'){mode='pause';const c=$('pvpCountdownOverlay');if(c)c.style.display='flex';}}
+  pvpResumeConnection=function(pid){_pvpResume(pid);if(PVP.active){restoreV05PvpPhase();if(PVP.phase==='playing'){const b=$('v05QuitBtn');if(b)b.style.display='block';}}};
+  // Draw-layer additions: camera tracking is local-only so network coordinates remain untouched.
+  const _draw=draw;
+  draw=function(){ensureV05Ui();const b=$('v05QuitBtn'),spec=$('v05SpectatorDM');if(b)b.style.display=PVP.active&&!PVP.finished&&['playing','reconnecting','roundSummary','upgrade','waveSelect'].includes(PVP.phase)?'block':'none';if(spec)spec.style.display=PVP.active&&PVP.playerDead&&PVP.oppAlive!==false&&!PVP.finished&&['playing','roundSummary','upgrade','waveSelect'].includes(PVP.phase)?'block':'none';
+    // The existing renderer owns its context; camera offsets are reset immediately after this render.
+    _draw();
+    if(PVP.active){const worldPos=(x,y)=>PVP.playerDead?{x:W/2+x-(Number.isFinite(PVP.oppX)?PVP.oppX:P.x),y:H/2+y-(Number.isFinite(PVP.oppY)?PVP.oppY:P.y)}:{x,y};if(!PVP.playerDead){const q=worldPos(P.x,P.y);drawV05Taunt(q.x,q.y,P.taunt);}if(!PVP.oppDead){const q=worldPos(PVP.oppX,PVP.oppY);drawV05Taunt(q.x,q.y,PVP.oppTaunt);}if(PVP.role==='guest'&&PVP.hostDrone){const q=worldPos(PVP.hostDrone.x,PVP.hostDrone.y);cx.save();cx.translate(q.x,q.y);cx.fillStyle='#9dffd0';cx.strokeStyle='#0a0814';cx.lineWidth=2;cx.beginPath();cx.ellipse(0,0,9,6,0,0,7);cx.fill();cx.stroke();cx.restore();}if(PVP.role==='host'&&PVP.oppDrone){const q=worldPos(PVP.oppDrone.x,PVP.oppDrone.y);cx.save();cx.translate(q.x,q.y);cx.fillStyle='#9dffd0';cx.strokeStyle='#0a0814';cx.lineWidth=2;cx.beginPath();cx.ellipse(0,0,9,6,0,0,7);cx.fill();cx.stroke();cx.restore();}}
+  };
+  // Wrap upd to continue interpolation even when the local player is dead; no gameplay inputs run for corpses.
+  const _upd=upd;
+  upd=function(dt){if(PVP.active&&PVP.playerDead){md=false;P.vx=P.vy=0;P.sp=0;for(const k of ['w','a','s','d','arrowup','arrowleft','arrowright','arrowdown',' '])K[k]=0;} _upd(dt);if(PVP.active&&PVP.role==='guest'){PVP.oppAng=Number.isFinite(PVP.oppAng)?PVP.oppAng:0;PVP.oppAngTarget=Number.isFinite(PVP.oppAngTarget)?PVP.oppAngTarget:0;PVP.oppAng+=(angleDelta(PVP.oppAng,PVP.oppAngTarget))*.28;const target=PVP.oppDroneTarget;if(target){PVP.hostDrone=PVP.hostDrone||{...target};PVP.hostDrone.x+=(target.x-PVP.hostDrone.x)*.35;PVP.hostDrone.y+=(target.y-PVP.hostDrone.y)*.35;}}else if(PVP.active&&PVP.role==='host'){PVP.oppAng=Number.isFinite(PVP.oppAng)?PVP.oppAng:0;PVP.oppAngTarget=Number.isFinite(PVP.oppAngTarget)?PVP.oppAngTarget:0;PVP.oppAng+=(angleDelta(PVP.oppAng,PVP.oppAngTarget))*.28;const target=PVP.oppDroneTarget;if(target){PVP.oppDrone=PVP.oppDrone||{...target};PVP.oppDrone.x+=(target.x-PVP.oppDrone.x)*.35;PVP.oppDrone.y+=(target.y-PVP.oppDrone.y)*.35;}}};
+  function angleDelta(a,b){return Math.atan2(Math.sin(b-a),Math.cos(b-a));}
+  // Network payload additions. Input and snapshot functions remain authoritative on the host.
+  const _fire=fire;
+  fire=function(){if(PVP.active&&PVP.playerDead)return;_fire();};
+  const _special=special;
+  special=function(){if(PVP.active&&PVP.playerDead)return;_special();};
+  const _pvpTickCountdown=pvpTickCountdown;
+  pvpTickCountdown=function(){_pvpTickCountdown();if(PVP.phase==='upgrade'&&PVP.role==='guest'){const el=$('v05Timer');if(el)el.textContent=Math.max(0,Number(PVP.intermissionRemaining)||Math.ceil(((PVP.upgradeDeadline||Date.now())-Date.now())/1000));}};
+  // Enforce menu exit protocol for the legacy Cancel button as well.
+  pvpCancelLobby=function(){pvpQuit();};
+  // Keep set-bonus equipment and crate rewards in the currently active save through existing save().
+  // UI handlers are exposed to inline buttons as globals in this classic script.
+  Object.assign(window,{pvpRoundContinue,pvpToggleReady,pvpDeployNotice,pvpUpgrade,pvpEquip,pvpDecrypt,pvpOpenCrate,pvpBuyCrate,pvpCraft,pvpUnlock,pvpUnequip,pvpReinforce,pvpWeaponUpgrade,pvpAwaken,pvpCraftKey,pvpStartSelectedWave,pvpQuit,pvpSendSpectatorDM,pvpUpgradeTab,showV05Toast,returnToV05PvpMenu});
+  // Host input handler already checks role and position. Add heading/drone interpolation inputs.
+  const _netDataFinal=netData;
+  netData=function(pid,d){if(d&&d.type==='pvp_input'&&PVP.active&&PVP.role==='host'&&pid===PVP.opponent&&d.matchId===PVP.matchId){PVP.oppAngTarget=Number.isFinite(Number(d.ang))?Number(d.ang):PVP.oppAngTarget||0;if(d.drone&&Number.isFinite(Number(d.drone.x))&&Number.isFinite(Number(d.drone.y)))PVP.oppDroneTarget={x:cl(Number(d.drone.x),0,W),y:cl(Number(d.drone.y),0,H)};}
+    if(d&&d.type==='pvp_snapshot'&&PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId){if(Number.isFinite(Number(d.hostHeading)))PVP.oppAngTarget=Number(d.hostHeading);if(d.hostDrone&&Number.isFinite(Number(d.hostDrone.x))&&Number.isFinite(Number(d.hostDrone.y)))PVP.hostDroneTarget={x:cl(Number(d.hostDrone.x),0,W),y:cl(Number(d.hostDrone.y),0,H)};if(d.hostTaunt&&d.hostTaunt.until>Date.now())PVP.oppTaunt={emoji:d.hostTaunt.emoji,until:d.hostTaunt.until};if(d.guestTaunt&&d.guestTaunt.until>Date.now())P.taunt={emoji:d.guestTaunt.emoji,until:d.guestTaunt.until};}
+    if(d&&d.type==='pvp_spectator_dm'&&PVP.active&&PVP.playerDead&&PVP.phase==='playing'){}
+    if(d&&(d.type==='pvp_you_died'||d.type==='pvp_guest_hp')&&PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId){_netDataFinal(pid,d);if(PVP.playerDead)clearV05DeadAttacks('guest');if(PVP.playerDead&&(PVP.oppDead||PVP.oppAlive===false))netSend(pid,{type:'pvp_both_dead',matchId:PVP.matchId});return;}
+    _netDataFinal(pid,d);if(d&&d.type==='pvp_snapshot'&&PVP.active&&PVP.role==='guest'&&pid===PVP.opponent&&d.matchId===PVP.matchId){if(PVP.playerDead)clearV05DeadAttacks('guest');if(d.hostAlive===false)clearV05DeadAttacks('host');if(d.hostAlive===false||!d.hostDrone){PVP.hostDrone=null;PVP.hostDroneTarget=null;}}};
+  // Snapshot and input payload fields are patched directly in this source before parsing.
+
+  // Guard legacy result paths: ordinary player deaths never conclude the session.
+  const _endPvpDeathGuard=endPvp;
+  endPvp=function(winner,reason,details={}){
+    if(PVP.active&&!PVP.finished&&['player-death','opponent-death','both-dead'].includes(reason)){
+      if(PVP.role==='host'&&PVP.phase==='playing'&&PVP.playerDead&&(PVP.oppDead||PVP.oppAlive===false))showBothDeadSummary();
+      return;
+    }
+    return _endPvpDeathGuard(winner,reason,details);
+  };
+  const _queuePvpResultDeathGuard=queuePvpResult;
+  queuePvpResult=function(winner,reason,details={}){
+    if(PVP.active&&!PVP.finished&&reason!=='boss'){
+      if(PVP.role==='host'&&PVP.phase==='playing'&&PVP.playerDead&&(PVP.oppDead||PVP.oppAlive===false))showBothDeadSummary();
+      return;
+    }
+    return _queuePvpResultDeathGuard(winner,reason,details);
+  };
+
+  // Number-key taunts run alongside, never replacing, movement/attunement handlers.
+  addEventListener('keydown',e=>{const tag=document.activeElement&&document.activeElement.tagName;if(tag==='INPUT'||tag==='TEXTAREA')return;const k=e.key;if(['7','8','9','0'].includes(k)){if(PVP.active&&PVP.phase==='playing'){e.preventDefault();fireV05Taunt(k);}}});
+
+  // Keep the local hit-stop visual-only: simulation and network snapshots continue advancing.
+  const _loopDraw=draw;
+  const _oldRafLoop=loop;
+  loop=function(t){const dt=Math.min(.05,(t-last)/1000)||0;last=t;T+=dt;DBG.frames++;if(t-DBG.lastFpsT>500){DBG.fps=DBG.frames*1000/(t-DBG.lastFpsT);DBG.dt=dt*1000;DBG.frames=0;DBG.lastFpsT=t;}if(DBG.open){DBG.diagT+=dt;if(DBG.diagT>.25){DBG.diagT=0;tickDbgDiag();}}pvpTickCountdown();pvpTickReconnect();setMus(mode==='hub'?'hub':mode==='pause'?mus:E.some(e=>e.ty==='b')?'boss':'combat');if(mode==='play'){upd(dt);hh-=dt;if(hh<=0){hh=.1;hud();}}if(HS>0&&mode==='play'){HS--;/* one rendered frame skipped; simulation and network keep advancing */}else draw();requestAnimationFrame(loop);};
+  ensureV05Ui();
+})();
+
 const mp=e=>{const r=cv.getBoundingClientRect();mx=(e.clientX-r.left)*W/r.width;my=(e.clientY-r.top)*H/r.height};
 addEventListener('mousemove',mp);
 cv.addEventListener('mousedown',e=>{au();mp(e);if(e.button===0)md=true;if(e.button===2)special()});
