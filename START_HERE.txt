@@ -1,0 +1,14 @@
+Slugger NEO — publish-only TURN setup kit
+
+GOAL
+After the initial setup, ordinary Slugger game releases should require only publishing the new game HTML. The Cloudflare Worker URL is stored in a constant in index.html; no turn-config.json is needed, and the Metered API key remains in a Cloudflare Worker Secret.
+
+ONE-TIME SETUP
+1. Deploy cloudflare-worker/worker.js.
+2. Set Worker variables METERED_DOMAIN and ALLOWED_ORIGINS; add METERED_CREDENTIAL_API_KEY as a Worker Secret. Follow cloudflare-worker/README.txt.
+3. Copy the Worker endpoint URL ending in /ice-servers.
+4. Open github-pages/index.html and replace the placeholder URL on the TURN_CREDENTIALS_ENDPOINT line once.
+5. Upload the contents of github-pages/ to your GitHub Pages publish root.
+
+AFTER THAT
+For normal game updates, just publish the new index.html and preserve the TURN_CREDENTIALS_ENDPOINT constant. No separate turn-config.json editing. You only update the Worker Secret if you intentionally rotate/revoke the Metered credential or it is compromised.

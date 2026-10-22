@@ -1,0 +1,132 @@
+SLUGGER NEO — BEGINNER STEP-BY-STEP TURN SETUP
+================================================
+
+What this does
+--------------
+The game is hosted on GitHub Pages (public files). Cloudflare Worker is a small online helper which keeps your Metered API key out of the game HTML and fetches the ICE server list when the game starts. You do this setup once. After that, routine game updates should only require publishing the new index.html while preserving TURN_CREDENTIALS_ENDPOINT.
+
+You need these accounts:
+- The GitHub account/repository that already hosts Slugger NEO.
+- The Metered account where you created the TURN service.
+- A Cloudflare account (the free Workers plan may be enough for a small project; check current limits before heavy use).
+
+PART 1 — DOWNLOAD AND EXTRACT THE KIT
+-------------------------------------
+1. Download slugger_neo_publish_only_turn_setup.zip.
+2. On Windows, right-click the ZIP and choose "Extract All...".
+3. Inside the extracted folder, keep these two folders together:
+   - cloudflare-worker
+   - github-pages
+4. Do not upload the cloudflare-worker folder to GitHub Pages. It is deployed to Cloudflare separately.
+
+PART 2 — MAKE A NEW METERED CREDENTIAL
+--------------------------------------
+A TURN password was shared in chat earlier. Treat that credential as exposed.
+1. Sign in to Metered.
+2. Open TURN Server, then Credentials.
+3. Delete/disable the exposed credential.
+4. Create a replacement credential and wait up to 2 minutes for it to propagate.
+5. Open that new credential's details and find its credential-scoped "Show API Key". Copy that API key somewhere private temporarily.
+6. In Metered's Developers area, copy the exact app domain, usually shaped like YOURAPP.metered.live.
+   Important: use the app hostname shown by Metered, not the TURN relay host like turn.au.relay.metered.ca.
+7. Do not share the API key, username, or password in chat. The Worker needs the credential-scoped API key; it fetches the temporary TURN username/password itself.
+
+PART 3 — CREATE THE CLOUDFLARE WORKER
+-------------------------------------
+1. Sign in at https://dash.cloudflare.com/.
+2. Open "Workers & Pages".
+3. Choose "Create application" / "Create" and then "Create Worker" (the exact wording may vary slightly).
+4. Name it exactly: slugger-turn-ice
+5. Click Deploy/Create Worker.
+6. After it is created, open it and choose "Edit code".
+7. On your computer, open cloudflare-worker/worker.js in Notepad (right-click > Open with > Notepad) or a code editor.
+8. Select all the text in worker.js and copy it.
+9. Back in Cloudflare's editor, select all the starter code, paste the worker.js code, then click "Save and deploy" / "Deploy".
+
+PART 4 — SET THE WORKER VARIABLES AND SECRET
+--------------------------------------------
+In Cloudflare, open the slugger-turn-ice Worker, then Settings > Variables and Secrets. Add these exact names.
+
+A) Plain-text variable:
+Name: METERED_DOMAIN
+Value: paste the exact Metered app hostname copied in Part 2, e.g. yourapp.metered.live
+Do not include https:// or a path.
+
+B) Plain-text variable:
+Name: ALLOWED_ORIGINS
+Value: your GitHub Pages site ORIGIN only. See the examples below.
+- If the game URL is https://MYNAME.github.io/slugger/ then enter: https://MYNAME.github.io
+- If the game URL is https://MYNAME.github.io/ then enter: https://MYNAME.github.io
+- If you use a custom domain like https://slugger.example.com/game/ then enter: https://slugger.example.com
+Do not include /slugger/ or /game/ paths, and do not add a trailing slash. Replace the examples with your own actual hostname. If you use both GitHub Pages and a custom domain, put both origins separated by a comma.
+
+C) Secret (not a normal variable):
+Name: METERED_CREDENTIAL_API_KEY
+Value: paste the credential-scoped API key from Part 2.
+Be sure to choose type "Secret" so its value is stored privately. Do NOT use Metered's account-wide Secret Key.
+
+4. Save/deploy the variable and secret changes if Cloudflare asks you to.
+
+PART 5 — COPY THE WORKER URL
+----------------------------
+1. In the Worker overview, copy its public workers.dev URL. It should look like:
+   https://slugger-turn-ice.YOUR-CLOUDFLARE-SUBDOMAIN.workers.dev
+2. Add this exact path to the end: /ice-servers
+   Full format:
+   https://slugger-turn-ice.YOUR-CLOUDFLARE-SUBDOMAIN.workers.dev/ice-servers
+3. Keep this URL; it is public and is not a secret.
+
+IMPORTANT TESTING NOTE:
+Opening /ice-servers directly in a new browser tab may show "Origin is not allowed" because the Worker expects a request from your allowed game website. That is normal for this Worker. Test it through the game after Part 7 instead.
+
+PART 6 — SET THE URL IN THE GAME ONCE
+------------------------------------
+1. On your computer, open github-pages/index.html in Notepad or a code editor.
+2. Use Ctrl+F and search for: TURN_CREDENTIALS_ENDPOINT
+3. You should find a line similar to:
+   const TURN_CREDENTIALS_ENDPOINT='https://SET-YOUR-CLOUDFLARE-WORKER-SUBDOMAIN.workers.dev/ice-servers';
+4. Replace only the URL between the quotes with the full URL copied in Part 5. Keep the single quotes and the semicolon. Example shape:
+   const TURN_CREDENTIALS_ENDPOINT='https://slugger-turn-ice.YOUR-CLOUDFLARE-SUBDOMAIN.workers.dev/ice-servers';
+5. Save the file. Do not put the Metered API key or TURN password in this line.
+
+PART 7 — PUBLISH TO GITHUB PAGES
+--------------------------------
+Use the SAME repository and publish folder that already hosts your game.
+
+If GitHub Pages publishes from the repository root:
+1. Open the repository on github.com and click the Code tab.
+2. Upload the CONTENTS of the github-pages folder, not the parent folder itself.
+3. Replace the existing index.html with the edited one from Part 6.
+4. Also upload manifest.webmanifest and the icons folder if they are missing or have changed. Keep the folder name exactly "icons".
+5. Commit the changes (GitHub's upload page has a "Commit changes" button).
+
+If GitHub Pages publishes from a /docs folder or a separate branch:
+- Put the same files in that configured publish location instead. To check: repository > Settings > Pages > Build and deployment.
+
+GitHub Pages builds/deploys after the commit. Check Settings > Pages or the Actions tab until deployment completes, then reload the published game. It may help to hard-refresh or close/reopen the Home Screen app so the new HTML is loaded.
+
+PART 8 — CONFIRM IT WORKS
+-------------------------
+1. Open the published game from its normal HTTPS GitHub Pages URL.
+2. Open Friends & network and the Connection status & diagnostics panel.
+3. The logs should say that the TURN/ICE server list loaded successfully. If it says endpoint not configured, the URL placeholder was not replaced or the old HTML is still being served.
+4. Try a connection in AUTO mode. Confirm that the PeerJS signalling connection is online AND the data channel connects. Those are separate stages.
+5. The diagnostic may identify DIRECT P2P ACTIVE or TURN RELAY ACTIVE when the browser exposes the selected route.
+
+COMMON ERRORS
+-------------
+- HTTP 403 / "Origin is not allowed": ALLOWED_ORIGINS doesn't exactly match the origin of your live game. Use scheme + hostname only, no path, no trailing slash.
+- HTTP 503 / "TURN provider is not configured": METERED_DOMAIN or the secret is missing or misspelled.
+- HTTP 502 / provider error: confirm you used the credential-scoped API key for the NEW credential and wait up to two minutes after creating it.
+- "Endpoint not configured": TURN_CREDENTIALS_ENDPOINT in index.html still contains the placeholder or GitHub Pages hasn't deployed the latest file.
+- Signalling works but peers don't connect: the relay may still be blocked by the school/VPN network, the Metered credential may be invalid, or the two clients may have incompatible settings. Check the full diagnostic log.
+
+AFTER THE ONE-TIME SETUP
+------------------------
+Routine game update:
+1. Obtain the new index.html.
+2. Preserve the exact TURN_CREDENTIALS_ENDPOINT URL in that file.
+3. Replace/publish index.html on GitHub Pages.
+You do not edit turn-config.json (there is no such file), re-enter the Metered API key, or redeploy the Worker for routine game releases. If you send the configured index.html for future updates, explicitly ask that TURN_CREDENTIALS_ENDPOINT be preserved exactly.
+
+If you change your GitHub Pages hostname, update ALLOWED_ORIGINS in Cloudflare. If you intentionally replace/revoke the Metered credential, update the Worker Secret. Keep monitoring your Metered quota: CORS controls browser access but is not strong authentication against non-browser clients.

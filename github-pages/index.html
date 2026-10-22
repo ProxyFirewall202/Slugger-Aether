@@ -709,25 +709,16 @@ const FK='slugger_neo_friends_v1',PK='slugger_neo_peerid';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function genId(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];const id='SLUG-'+s;try{localStorage.setItem(PK,id)}catch(e){}return id}
 function loadId(){try{const v=localStorage.getItem(PK);if(v&&/^SLUG-[A-Z0-9]{4}$/.test(v))return v}catch(e){}return genId()}
-/* Automatic ICE/TURN configuration.
-   Replace these two placeholders once with your Metered app domain and the API key
-   shown at TURN Server -> Credentials -> Get credential -> Show API Key.
-   This key is scoped to ONE TURN credential; never put Metered's account Secret Key here.
-   WebRTC uses direct host/STUN routes when viable and automatically falls back to TURN relay
-   candidates if direct candidate pairs cannot connect. No in-game configuration menu is needed. */
-const TURN_AUTO_CONFIG={
-  domain:'slugger.metered.live',
-  apiKey:'48c401e8589d8266cb38fe86e79724dcc94c'
-};
-const TURN_CFG_STORE='slugger_neo_turn_config_v1';
-function isUsableTurnConfig(c){return !!(c&&/^[a-z0-9.-]+\.metered\.live$/i.test(String(c.domain||''))&&String(c.apiKey||'').trim()&&!/^(PASTE_|YOUR_|REPLACE_)/i.test(String(c.apiKey||''))&&!/^YOUR_APP\./i.test(String(c.domain||'')))}
-function loadTurnConfig(){
-  if(isUsableTurnConfig(TURN_AUTO_CONFIG))return{domain:TURN_AUTO_CONFIG.domain.trim(),apiKey:TURN_AUTO_CONFIG.apiKey.trim()};
-  // Backward compatibility: honor settings already saved by an older v0.5.1 build.
-  try{const saved=JSON.parse(localStorage.getItem(TURN_CFG_STORE)||'{}');if(isUsableTurnConfig(saved))return{domain:String(saved.domain).trim(),apiKey:String(saved.apiKey).trim()}}catch(e){}
-  return{domain:'',apiKey:''};
+/* TURN configuration is served by your permanently deployed Cloudflare Worker.
+   Set this endpoint ONCE after deploying the Worker, then keep it unchanged in future game releases.
+   Metered API key stays server-side as a Cloudflare Worker Secret. Do not put it in this HTML.
+   Browser clients must receive temporary TURN username/password data for WebRTC; the API key is not sent. */
+const TURN_CREDENTIALS_ENDPOINT='https://slugger-turn-ice.tholloway540.workers.dev/ice-servers';
+function isTurnEndpointConfigured(){
+  const value=String(TURN_CREDENTIALS_ENDPOINT||'').trim();
+  return /^https:\/\//i.test(value)&&/\/ice-servers(?:[?#].*)?$/i.test(value)&&!/(SET-YOUR|YOUR-WORKER|YOUR-SUBDOMAIN|REPLACE-ME)/i.test(value);
 }
-let TURN_CFG=loadTurnConfig(),NET_INIT_SEQ=0;
+let NET_INIT_SEQ=0,NET_RESTART_TIMER=null;
 const NET_MODE_STORE='slugger_neo_connection_mode_v1';
 const NET_MODE_ORDER=['auto','direct','relay'];
 const NET_MODE_INFO={
@@ -757,10 +748,29 @@ function netCycleConnectionMode(){
   for(const pid of Object.keys(NET.pendingConnections)){const p=NET.pendingConnections[pid];if(p?.timer)clearTimeout(p.timer);delete NET.pendingConnections[pid];try{if(p?.conn&&!p.conn.open)p.conn.close()}catch(e){}}
   for(const pid of Object.keys(NET.conns)){const c=NET.conns[pid];delete NET.conns[pid];if(NET.friends[pid])NET.friends[pid].status='OFFLINE';try{if(c)c.close()}catch(e){}}
   NET.routeReported={};NET_MODE_RESTARTING=true;NET_MODE_RESTART_RETRIES=0;
-  netDiag('Connection mode changed to '+netModeInfo().label+'. Restarting PeerJS with the new ICE policy; reconnect to friends after signalling returns.','warn');
-  netRender();netInit(false);
+  netSchedulePeerRestart(2300,'Connection mode changed to '+netModeInfo().label+'. Retiring the old PeerJS session before reclaiming your Friend ID; reconnect to friends after signalling returns.');
 }
 const NET={peer:null,id:null,conns:{},friends:{},msgs:[],ready:false,err:null,bytesSent:0,bytesRecv:0,pktsSent:0,pktsRecv:0,ping:0,turnStatus:'Preparing ICE configuration…',diag:[],connectionStatus:'Waiting for the signalling service…',connectionLevel:'info',pendingConnections:{},routeReported:{}};
+// PeerJS emits "disconnected" during destroy(), before setting peer.destroyed=true.
+// Detach NET.peer BEFORE destroying it, otherwise the old disconnected handler can
+// call reconnect() on the instance being retired and race the new instance for the same ID.
+function netSchedulePeerRestart(delayMs,message){
+  if(NET_RESTART_TIMER){clearTimeout(NET_RESTART_TIMER);NET_RESTART_TIMER=null;}
+  const oldPeer=NET.peer;
+  NET.peer=null; // IMPORTANT: make old event handlers inert before destroy emits "disconnected".
+  NET_INIT_SEQ++;
+  NET.ready=false;NET.err=null;
+  NET.turnStatus='Waiting for PeerJS to release your Friend ID…';
+  if(oldPeer){try{oldPeer.destroy()}catch(e){netDiag('Error while retiring previous PeerJS instance: '+String(e.message||e),'warn')}}
+  const scheduledSeq=NET_INIT_SEQ;
+  netDiag(message+' Waiting '+Math.ceil(Math.max(1500,Number(delayMs)||2300)/1000)+'s before restarting signalling.','warn');
+  NET_RESTART_TIMER=setTimeout(()=>{
+    if(NET_INIT_SEQ!==scheduledSeq)return;
+    NET_RESTART_TIMER=null;
+    netInit(false);
+  },Math.max(1500,Number(delayMs)||2300));
+  netRender();
+}
 function netDiag(message,level='info'){
   const safe=String(message||'').replace(/(?:apiKey=)[^\s&]+/ig,'apiKey=[redacted]').slice(0,260);
   NET.diag.push({t:Date.now(),message:safe,level});if(NET.diag.length>18)NET.diag.splice(0,NET.diag.length-18);
@@ -779,12 +789,11 @@ function netRenderDiag(){
 function netClearPending(pid){const a=NET.pendingConnections[pid];if(a&&a.timer)clearTimeout(a.timer);delete NET.pendingConnections[pid]}
 function netFailPending(pid,conn,message){const a=NET.pendingConnections[pid];if(a){if(a.timer)clearTimeout(a.timer);delete NET.pendingConnections[pid]}if(conn&&!conn.open){try{conn.close()}catch(e){}}netDiag(message,'error');netSys(message);netRender()}
 async function fetchMeteredIceServers(){
-  if(!TURN_CFG.domain||!TURN_CFG.apiKey)return null;
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),6500);
+  if(!isTurnEndpointConfigured())return null;
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);
   try{
-    const url='https://'+TURN_CFG.domain+'/api/v1/turn/credentials?apiKey='+encodeURIComponent(TURN_CFG.apiKey);
-    const response=await fetch(url,{cache:'no-store',signal:controller.signal});
-    if(!response.ok)throw new Error('Metered returned HTTP '+response.status);
+    const response=await fetch(TURN_CREDENTIALS_ENDPOINT,{cache:'no-store',credentials:'omit',signal:controller.signal,headers:{'Accept':'application/json'}});
+    if(!response.ok)throw new Error('TURN configuration endpoint returned HTTP '+response.status);
     const servers=await response.json();
     const hasTurn=Array.isArray(servers)&&servers.some(server=>{const urls=Array.isArray(server?.urls)?server.urls:[server?.urls];return urls.some(u=>typeof u==='string'&&/^turns?:/i.test(u))});
     if(!hasTurn)throw new Error('Metered response contained no TURN servers');
@@ -800,21 +809,22 @@ function pvpResumeConnection(pid){if(!PVP.active||pid!==PVP.opponent||PVP.phase!
 function pvpTickReconnect(){if(PVP.phase!=='reconnecting'||!PVP.reconnectDeadline)return;const left=Math.max(0,Math.ceil((PVP.reconnectDeadline-Date.now())/1000)),el=$('pvpReconnectTimer');if(el)el.textContent=left;if(left<=0){PVP.reconnectDeadline=0;if(PVP.role==='host'){endPvp('host','disconnect',{reason:'reconnect-timeout',graceMs:15000});}else{PVP.noReward=false;endPvp('guest','disconnect',{reason:'host-reconnect-timeout',graceMs:15000,opponentRole:'host'});}}}
 function sendPvpStatus(){const modeName=PVP.active?'game':mode==='hub'?'hub':mode==='pause'?'pause':'play';netBroadcast({type:'status',mode:modeName,at:P.at||'neutral',t:Date.now()});}
 async function netInit(newId){
+  if(NET_RESTART_TIMER){clearTimeout(NET_RESTART_TIMER);NET_RESTART_TIMER=null;}
   const initSeq=++NET_INIT_SEQ;
   NET.err=null;NET.ready=false;NET.turnStatus='Loading network configuration for '+netModeInfo().label+' mode…';
-  if(NET.peer){try{NET.peer.destroy()}catch(e){}NET.peer=null}
+  if(NET.peer){const previousPeer=NET.peer;NET.peer=null;try{previousPeer.destroy()}catch(e){}}
   if(typeof Peer==='undefined'){NET.err='PeerJS not loaded';netDiag('PeerJS library did not load. Check whether this network blocks the CDN.','error');netRender();return}
   if(newId)NET.id=genId();else if(!NET.id)NET.id=loadId();
   let peerOptions={debug:2},iceServers=null;
-  if(TURN_CFG.domain&&TURN_CFG.apiKey){
-    NET.turnStatus='Loading Metered ICE servers for '+netModeInfo().label+' mode…';netDiag('Loading ICE server configuration for '+netModeInfo().label+' mode.');netRender();
+  if(isTurnEndpointConfigured()){
+    NET.turnStatus='Loading ICE servers from the configured Worker for '+netModeInfo().label+' mode…';netDiag('Loading ICE server configuration from the configured Worker for '+netModeInfo().label+' mode.');netRender();
     try{
       iceServers=await fetchMeteredIceServers();if(initSeq!==NET_INIT_SEQ)return;
-      if(iceServers){NET.turnStatus='Metered ICE servers loaded.';netDiag('Metered ICE server list loaded successfully.','success')}
-    }catch(e){if(initSeq!==NET_INIT_SEQ)return;const reason=e.name==='AbortError'?'request timed out':String(e.message||e).slice(0,100);NET.turnStatus='Metered TURN unavailable; applying '+netModeInfo().label+' policy.';netDiag('TURN credential fetch failed ('+reason+'). Applying the selected connection mode anyway.','warn');console.warn('Slugger TURN setup unavailable:',reason)}
+      if(iceServers){NET.turnStatus='TURN servers loaded through the Worker.';netDiag('TURN ICE server list loaded successfully through the Worker.','success')}
+    }catch(e){if(initSeq!==NET_INIT_SEQ)return;const reason=e.name==='AbortError'?'request timed out':String(e.message||e).slice(0,100);NET.turnStatus='TURN configuration unavailable; applying '+netModeInfo().label+' policy.';netDiag('TURN Worker fetch failed ('+reason+'). Applying the selected connection mode anyway.','warn');console.warn('Slugger TURN setup unavailable:',reason)}
   }else{
-    NET.turnStatus='No Metered TURN credentials are configured.';
-    netDiag('Metered TURN configuration is not present in code or saved browser settings.','warn');
+    NET.turnStatus='TURN Worker endpoint is not configured.';
+    netDiag('TURN_CREDENTIALS_ENDPOINT has not been set to your deployed Worker URL. Direct connectivity may still work, but custom TURN fallback is not active.','warn');
   }
   if(initSeq!==NET_INIT_SEQ)return;
   const modeAtStart=NET_CONNECTION_MODE;
@@ -840,11 +850,10 @@ async function netInit(newId){
     if(NET.peer!==peer)return;
     if(e.type==='unavailable-id'){
       if(NET_MODE_RESTARTING&&NET_MODE_RESTART_RETRIES<3){
-        const retry=++NET_MODE_RESTART_RETRIES,wait=1200+retry*900,seq=initSeq;
-        netDiag('Friend ID is still being released after changing modes; retrying the same ID in '+Math.ceil(wait/1000)+'s ('+retry+'/3).','warn');
-        setTimeout(()=>{if(NET.peer===peer&&NET_MODE_RESTARTING&&NET_INIT_SEQ===seq)netInit(false)},wait);return;
+        const retry=++NET_MODE_RESTART_RETRIES,wait=4000+retry*2000;
+        netSchedulePeerRestart(wait,'PeerJS reports that your Friend ID is still reserved after the mode change; retry '+retry+'/3 scheduled for the same ID.');return;
       }
-      if(NET_MODE_RESTARTING){NET_MODE_RESTARTING=false;NET.err='Friend ID temporarily unavailable';NET.ready=false;netDiag('Could not reacquire the same Friend ID after switching modes. Wait a few seconds, then switch mode again to retry; the game has kept your saved ID.','error');netRender();return;}
+      if(NET_MODE_RESTARTING){NET_MODE_RESTARTING=false;NET.err='Friend ID temporarily unavailable';NET.ready=false;if(NET.peer===peer)NET.peer=null;netDiag('Could not reacquire the same Friend ID after three delayed retries. The saved ID is unchanged; wait a little longer and switch mode once to retry.','error');netRender();return;}
       NET.id=null;try{localStorage.removeItem(PK)}catch(x){}netDiag('Friend ID was already in use; generating a new ID.','warn');netInit(true);return;
     }
     const type=String(e.type||'error'),msg=String(e.message||'');
@@ -1277,7 +1286,7 @@ function t4(){
       <div class=ds style="margin-top:6px">${friendCount} P2P connected / ${Object.keys(NET.friends).length} saved</div><div class=ds>Cloud friend requests require an authenticated account.</div>
     </div>
   </div>
-  <div class=p style="margin-top:8px"><h3>Connection mode</h3><div class=row style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>Current mode: <b id=netModeCurrent>${esc(netModeInfo().label)}</b></span><button id=netModeBtn onclick="netCycleConnectionMode()">${esc(netModeInfo().button)}</button></div><p id=netModeExplain class=ds style="margin:4px 0">${esc(netModeInfo().help)}</p><p class=ds style="margin:4px 0 0">Cycle: Auto → Direct only → TURN relay only. A mode change restarts networking and closes existing peer connections. Mode changes are blocked during an active 1v1.</p></div>
+  <div class=p style="margin-top:8px"><h3>Connection mode</h3><div class=row style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>Current mode: <b id=netModeCurrent>${esc(netModeInfo().label)}</b></span><button id=netModeBtn onclick="netCycleConnectionMode()">${esc(netModeInfo().button)}</button></div><p id=netModeExplain class=ds style="margin:4px 0">${esc(netModeInfo().help)}</p><p class=ds style="margin:4px 0 0">Cycle: Auto → Direct only → TURN relay only. A mode change closes data connections, retires the old PeerJS session, and waits for the Friend ID to be released before reconnecting. Reconnect to friends after signalling returns. Mode changes are blocked during an active 1v1.</p></div>
   <div class=p style="margin-top:8px"><h3>Connection status & diagnostics</h3><div id=netConnectionStatus class="netConnCurrent ${esc(NET.connectionLevel)}">${esc(NET.connectionStatus)}</div><div id=netConnDiag class=netDiag>${NET.diag.slice(-9).map(d=>`<div class="netDiagLine ${esc(d.level)}"><span class=time>${new Date(d.t).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>${esc(d.message)}</div>`).join('')||'<div class=ds>No network events yet.</div>'}</div><p class=ds style="margin:5px 0 0">“Signalling connected” means your Friend ID is online. “Direct P2P” or “TURN relay” is reported separately after the peer-to-peer data channel opens.</p></div>
   <div class=g>
     <div class="p dmSidebar"><h3>Friends</h3><div id=netFriendsList>${friendListHtml()}</div><h3 style="margin-top:10px">Incoming cloud requests</h3>${(NET.cloudRequests||[]).map(r=>`<div class=fr><span class=nm>${esc(r.fromName||r.fromSlug||r.id)}</span><button onclick="acceptCloudRequest('${esc(r.fromUid||r.id)}','${esc(r.fromSlug||'SLUG-????')}','${esc(r.fromName||'Player')}','${esc(r.id)}')">Accept</button><button onclick="declineCloudRequest('${esc(r.fromUid||r.id)}','${esc(r.id)}')">Decline</button></div>`).join('')||'<p class=ds>No pending requests.</p>'}</div>
