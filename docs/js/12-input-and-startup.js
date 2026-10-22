@@ -1,11 +1,12 @@
-/* Slugger NEO v0.5.3 — Desktop input handlers and final boot/init sequence. Base loop is declared in module 04 for hoisting compatibility.
+/* Slugger NEO v0.5.3.1 — Desktop input handlers and final boot/init sequence. Base loop is declared in module 04 for hoisting compatibility.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
 const mp=e=>{const r=cv.getBoundingClientRect();mx=(e.clientX-r.left)*W/r.width;my=(e.clientY-r.top)*H/r.height};
 addEventListener('mousemove',mp);
-cv.addEventListener('mousedown',e=>{au();mp(e);if(e.button===0)md=true;if(e.button===2)special()});
-addEventListener('mouseup',()=>md=false);
+window.__sluggerDesktopFireHeld=false;
+cv.addEventListener('mousedown',e=>{au();mp(e);if(e.button===0){window.__sluggerDesktopFireHeld=true;md=true}if(e.button===2)special()});
+addEventListener('mouseup',()=>{window.__sluggerDesktopFireHeld=false;if(!window.__sluggerMobileFireHeld)md=false});
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('keydown',e=>{
   if(e.key==='F2'||e.key==='`'||e.key==='~'){e.preventDefault();dbgToggle();return}
@@ -19,7 +20,7 @@ addEventListener('keydown',e=>{
   if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k)&&mode!=='hub')e.preventDefault()
 });
 addEventListener('keyup',e=>{K[e.key.toLowerCase()]=0});
-addEventListener('blur',()=>{md=false;for(const k in K)K[k]=0;if(typeof sluggerResetJoystick==='function')sluggerResetJoystick();if(typeof sluggerReleaseShoot==='function')sluggerReleaseShoot()});
+addEventListener('blur',()=>{window.__sluggerDesktopFireHeld=false;md=false;for(const k in K)K[k]=0;if(typeof sluggerResetJoystick==='function')sluggerResetJoystick();if(typeof sluggerReleaseShoot==='function')sluggerReleaseShoot()});
 
 $('hubOverlay').addEventListener('mouseover',e=>{const b=e.target.closest&&e.target.closest('button');if(b&&!b.disabled)SFX.hov()});
 addEventListener('pointerdown',()=>au());

@@ -11,8 +11,8 @@ ONE-TIME SETUP
    - ALLOWED_ORIGINS = your GitHub Pages origin, e.g. https://yourusername.github.io (origin only, no path). Add your custom domain origin too if needed, comma-separated.
 4. Add a Worker Secret named `METERED_CREDENTIAL_API_KEY` using the API key for your active Metered TURN credential. Do not use the account-wide Metered Secret Key.
 5. Deploy the Worker, then copy its exact endpoint URL ending in `/ice-servers`, Your current endpoint is `https://slugger-turn-ice.tholloway540.workers.dev/ice-servers`.
-6. In `docs/js/06-turn-peer-lifecycle.js`, the `TURN_CREDENTIALS_ENDPOINT` constant is already set to the current deployed endpoint. This is the one-time URL wiring step. Keep that URL stable and preserve the constant in future game builds.
-7. Put the `docs/` folder at the repository top level and set GitHub Pages to branch `main` / folder `/docs`. The folder intentionally contains NO turn-config.json; the endpoint is defined directly in index.html.
+6. In `docs/js/06-turn-peer-lifecycle.js`, the `TURN_CREDENTIALS_ENDPOINT` constant is already set to the current deployed endpoint in `docs/js/06-turn-peer-lifecycle.js`. This is the one-time URL wiring step. Keep that URL stable and preserve the constant in future game builds.
+7. Put the `docs/` folder at the repository top level and set GitHub Pages to branch `main` / folder `/docs`. The folder intentionally contains NO turn-config.json; the endpoint constant lives in docs/js/06-turn-peer-lifecycle.js.
 
 AFTER SETUP
 For routine modular game-code updates: publish the changed files from the new `docs/` package, including any changed JS/CSS files. No separate config JSON is required. Keep the Worker URL constant in `docs/js/06-turn-peer-lifecycle.js` unchanged in future versions. The Metered API key stays in Cloudflare and does not need to be re-entered for ordinary game updates.

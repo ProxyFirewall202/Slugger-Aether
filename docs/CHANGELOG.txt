@@ -1,5 +1,14 @@
 SLUGGER NEO CHANGELOG
 
+v0.5.3.1 — Mobile controls hotfix
+- Hide touch controls on desktop-primary pointer devices, including touchscreen PCs whose primary pointer is a mouse.
+- Hide touch controls on hub, wave selection, pause, run summary, authentication and non-playing PvP screens.
+- Keep mobile firing active even if a compatibility mouseup event fires while a touch is held.
+- Separate desktop mouse-fire state from the mobile touch-fire latch.
+- Align projectile spawn positions with the visible weapon muzzle to correct the apparent gun/shot offset.
+- Slightly reduce mobile control sizes for more usable screen space.
+- Preserve TURN Worker endpoint, mode-switch logic, saves, PvP behavior and PWA assets.
+
 v0.5.3 — Mobile controls
 - Added automatic touch-first device detection.
 - Added analog virtual joystick movement.

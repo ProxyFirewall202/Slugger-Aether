@@ -1,4 +1,4 @@
-/* Slugger NEO v0.5.3 — World data, player/equipment stats, enemy AI, wave simulation, combat, hazards, and snapshots.
+/* Slugger NEO v0.5.3.1 — World data, player/equipment stats, enemy AI, wave simulation, combat, hazards, and snapshots.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -152,10 +152,10 @@ function hurtPlayerDeath(){
 function hurt(d,x,y,melee){if(mode!=='play'||P.inv>0||DBG.god||PVP.playerDead)return;const s=eqI('s');
 if(s&&!melee){const a=Math.atan2(y-P.y,x-P.x)-P.ang-s.side;if(Math.abs(Math.atan2(Math.sin(a),Math.cos(a)))<1.1){burst(x,y,'#fff',6,120);SFX.hit();return}}
 const dm=d*(1-ST.dr)*ST.tk;P.hp-=dm;if(ST.ad)P.ammo+=Math.ceil(dm/2);P.inv=.5;SFX.hurt();burst(P.x,P.y,'#ff3355',10,170);if(P.hp<=0)hurtPlayerDeath()}
-function fire(){if(PVP.playerDead)return;const w=ST.w,k=w.k||1,volleyId=PVP.active&&PVP.role==='guest'?`${PVP.matchId||'match'}-v${++bulletUidCounter}`:null;let dm=ST.dmg;if(ST.fi&&P.at==='fire')dm*=1.1;if(ST.vd&&P.at==='vortex')dm*=1.2;const cr=Math.random()<.08;if(w.pi)SHK=Math.max(SHK,3);P.cd=ST.cd;P.rx=-9;SFX.shoot();if(ST.ad&&P.ammo>0){P.ammo--;dm*=1.6}
+function fire(){if(PVP.playerDead)return;const w=ST.w,k=w.k||1,gunLen=w.pi?24:w.k?15:w.r<.15?21:17,volleyId=PVP.active&&PVP.role==='guest'?`${PVP.matchId||'match'}-v${++bulletUidCounter}`:null;let dm=ST.dmg;if(ST.fi&&P.at==='fire')dm*=1.1;if(ST.vd&&P.at==='vortex')dm*=1.2;const cr=Math.random()<.08;if(w.pi)SHK=Math.max(SHK,3);P.cd=ST.cd;P.rx=-9;SFX.shoot();if(ST.ad&&P.ammo>0){P.ammo--;dm*=1.6}
 for(let i=0;i<k;i++){const a=P.ang+(k>1?(i-(k-1)/2)*(w.sp||.2):0)+R(-.03,.03),shotId=PVP.active&&PVP.role==='guest'?`${PVP.matchId||'match'}-${++bulletUidCounter}`:null,shotDamage=dm*(cr?1.8:1);
-B.push({uid:shotId||++bulletUidCounter,x:P.x+Math.cos(P.ang)*18,y:P.y+Math.sin(P.ang)*18,vx:Math.cos(a)*620,vy:Math.sin(a)*620,d:shotDamage,cr,iceSet:!!(ST.ic&&P.at==='ice'),el:P.at,l:1.1,pi:w.pi||1,r:w.pi?7:4,h:[]});
-if(PVP.active&&PVP.role==='guest'&&PVP.opponent&&PVP.phase==='playing'){netSend(PVP.opponent,{type:'pvp_fire',shotId,volleyId,matchId:PVP.matchId,x:P.x,y:P.y,ang:a,el:P.at,dmg:shotDamage,iceSet:!!(ST.ic&&P.at==='ice'),pi:w.pi||1,r:w.pi?7:4})}}}
+const muzzleRx=P.rx+(P.rv-.15*P.rx)*.82,muzzleDist=Math.max(12,20+muzzleRx+gunLen),bx=P.x+Math.cos(P.ang)*muzzleDist,by=P.y+Math.sin(P.ang)*muzzleDist;B.push({uid:shotId||++bulletUidCounter,x:bx,y:by,vx:Math.cos(a)*620,vy:Math.sin(a)*620,d:shotDamage,cr,iceSet:!!(ST.ic&&P.at==='ice'),el:P.at,l:1.1,pi:w.pi||1,r:w.pi?7:4,h:[]});
+if(PVP.active&&PVP.role==='guest'&&PVP.opponent&&PVP.phase==='playing'){netSend(PVP.opponent,{type:'pvp_fire',shotId,volleyId,matchId:PVP.matchId,x:bx,y:by,ang:a,el:P.at,dmg:shotDamage,iceSet:!!(ST.ic&&P.at==='ice'),pi:w.pi||1,r:w.pi?7:4})}}}
 function special(){
   if(mode!=='play'||P.sp>0||PVP.playerDead)return;
   SFX.sp();SHK=Math.max(SHK,8);
@@ -189,7 +189,7 @@ function upd(dt){
   if(P.y<P.r){P.y=P.r;P.vy=Math.abs(P.vy)*.5}if(P.y>H-P.r){P.y=H-P.r;P.vy=-Math.abs(P.vy)*.5}
   if(Math.hypot(P.vx,P.vy)>30)P.fa=Math.atan2(P.vy,P.vx);
   if(window.__sluggerMobileFireHeld&&typeof window.__sluggerMobileAimAtTarget==='function')window.__sluggerMobileAimAtTarget();P.ang=Math.atan2(my-P.y,mx-P.x);P.cd-=dt;P.sp=Math.max(0,P.sp-dt);P.inv-=dt;
-  if(md&&P.cd<=0&&!isSpectator)fire();
+  if((md||window.__sluggerMobileFireHeld)&&P.cd<=0&&!isSpectator)fire();
   P.rv=(P.rv-.15*P.rx)*.82;P.rx+=P.rv;
   if(!isSpectator&&Math.hypot(P.vx,P.vy)>120&&Math.random()<.4)PT.push({x:P.x-Math.cos(P.fa)*18,y:P.y-Math.sin(P.fa)*18,vx:Math.random()*50-25,vy:Math.random()*50-25,l:.5,c:'#7dff3c',sh:0,a:0});
   if(G.spi&&!isSpectator){const s=eqI('p'),a=T*1.7;G.spi.x=P.x+Math.cos(a)*50;G.spi.y=P.y+Math.sin(a)*50;G.spi.cd-=dt;const t=G.spi.cd<=0&&nearest(G.spi.x,G.spi.y,420);if(t){G.spi.cd=s.r;const an=Math.atan2(t.y-G.spi.y,t.x-G.spi.x);B.push({uid:++bulletUidCounter,x:G.spi.x,y:G.spi.y,vx:Math.cos(an)*560,vy:Math.sin(an)*560,d:ST.dmg*s.k*rk(S.eq.p),el:P.at,l:1,pi:s.pi||1,r:3,h:[]})}if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&Math.hypot(G.spi.x-PVP.oppX,G.spi.y-PVP.oppY)<18)damagePvpGuest(12*dt,'player-drone')}if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&!PVP.playerDead&&PVP.oppDrone&&Math.hypot(PVP.oppDrone.x-P.x,PVP.oppDrone.y-P.y)<18&&Date.now()>(PVP.guestDroneHitAt||0)){PVP.guestDroneHitAt=Date.now()+300;const dd=Math.max(2,(PVP.opponentLoadout?.damage||10)*.25);PVP.stats.guest.damage=(PVP.stats.guest.damage||0)+dd;hurt(dd,P.x,P.y,true);}

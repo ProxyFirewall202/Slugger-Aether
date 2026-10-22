@@ -1,15 +1,17 @@
-SLUGGER NEO v0.5.3 — START HERE
+SLUGGER NEO v0.5.3.1 — START HERE
 
-WHAT'S NEW
-- Automatic touch-device detection. During gameplay on phones/tablets, controls appear: left movement joystick, hold SHOOT with auto-aim, SPECIAL, and previous/next element buttons.
-- Responsive mobile layout and iOS safe-area treatment; keyboard/mouse controls remain supported on PCs.
+WHAT'S FIXED
+- Mobile touch controls are hidden on desktop-primary environments and on all menus/overlays.
+- Mobile hold-to-shoot remains active across compatibility mouse events and releases when the touch ends.
+- Projectile origin now matches the visible weapon muzzle to remove the gun/shot offset.
+- Mobile touch targets are slightly smaller.
 
 PUBLISH
 1. Extract this release package.
 2. Upload the whole contents of docs/ into your repository's existing top-level docs/ folder, replacing files where prompted. Keep css/, icons/, js/, manifest.webmanifest, and index.html together.
 3. Leave cloudflare-worker/ outside docs/; it must not be served as public game content.
 4. In Settings > Pages, choose branch main and folder /docs.
-5. Wait for deployment, then hard-reload the game.
+5. Wait for deployment, then hard-reload the game. The CSS/JS paths include a v0.5.3.1 query parameter to reduce stale-cache issues.
 
 IMPORTANT
 - Keep all 12 script files in docs/js/ and preserve their filenames.

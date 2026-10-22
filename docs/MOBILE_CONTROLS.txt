@@ -1,11 +1,11 @@
-SLUGGER NEO v0.5.3 — MOBILE CONTROLS
+SLUGGER NEO v0.5.3.1 — MOBILE CONTROLS
 
 DEVICE DETECTION
-Touch controls are enabled automatically when the browser reports a coarse pointer or touch points. They are shown during active gameplay only, not in the hub, menus, pause screen, or spectator mode. A control toggle lets the player hide/show them; preference is saved in that browser.
+Controls are enabled on Android/iPhone/iPad devices, iPadOS devices that report a desktop-style user agent, or a narrow touch-capable viewport. A full-size Windows/macOS desktop does not enable the overlay merely because the browser reports touch points or a coarse pointer. Controls are shown only during active gameplay, not in the hub, menus, pause screen, authentication, PvP intermission/summary/upgrade screens, or spectator mode.
 
 CONTROLS
 - MOVE (left circle): drag/hold the nub in the direction you want to travel. Movement strength scales with joystick distance. Lift your finger to stop joystick input.
-- SHOOT (large green button): hold to fire. The game auto-aims toward the nearest live enemy, switching targets as enemies are defeated. When no enemy is alive, PvP may target the opponent; otherwise aim follows the last facing direction. Lift your finger to stop shooting.
+- SHOOT (large green button): hold to fire. The game auto-aims toward the nearest live enemy, switching targets as enemies are defeated. When no enemy is alive, PvP may target the opponent; otherwise aim follows the last facing direction. Lift your finger to stop shooting. Mobile firing uses its own held state so synthetic mouse events do not cancel it.
 - SPECIAL (purple button): tap once to activate the currently equipped special. The target assist selects the nearest live enemy for specials with a target location. Cooldowns and current gameplay rules still apply.
 - ‹ and ›: cycle backward/forward through unlocked elements. The current element name is shown between them.
 - Hide controls / Show controls: hides or restores the touch overlay. Preference is saved in that browser.
@@ -14,7 +14,7 @@ PC COMPATIBILITY
 Keyboard/mouse handlers remain enabled. Use WASD or arrow keys to move, mouse to aim, left mouse button to shoot, right mouse button or Space for Special, number keys 1–6 to select an element, and Q/E to cycle elements.
 
 MOBILE LAYOUT
-The original game scene remains at its existing aspect ratio, with canvas sizing responsive to the available screen dimensions. In portrait orientation the game scene is smaller with letterboxing; landscape provides a larger play area. The controls sit over the bottom corners and use iOS safe-area spacing.
+The original game scene remains at its existing aspect ratio, with canvas sizing responsive to the available screen dimensions. In portrait orientation the game scene is smaller with letterboxing; landscape provides a larger play area. Controls sit over the bottom corners and use iOS safe-area spacing. The touch targets were slightly reduced in v0.5.3.1 to free more screen space.
 
 TESTING NOTES
-The touch handlers have been tested with a simulated browser viewport in portrait, landscape, and desktop sizes. That does not replace testing on real iOS Safari/PWA devices or a real two-client PvP session.
+Syntax and targeted simulated-browser checks should be performed for touch-first, desktop, and overlay visibility. They do not replace testing on a real iPhone and PC or a real two-client PvP session.
