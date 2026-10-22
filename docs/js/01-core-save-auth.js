@@ -1,4 +1,4 @@
-/* Slugger NEO v0.5.2 — Core constants, save normalisation/merging, authentication, and cloud persistence.
+/* Slugger NEO v0.5.3 — Core constants, save normalisation/merging, authentication, and cloud persistence.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */

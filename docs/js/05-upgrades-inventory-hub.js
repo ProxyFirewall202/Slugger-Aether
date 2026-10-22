@@ -1,4 +1,4 @@
-/* Slugger NEO v0.5.2 — Upgrade tables, crates, inventory, equipment, crafting, and hub tab renderers.
+/* Slugger NEO v0.5.3 — Upgrade tables, crates, inventory, equipment, crafting, and hub tab renderers.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */

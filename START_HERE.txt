@@ -1,22 +1,20 @@
-SLUGGER NEO v0.5.2 — START HERE
+SLUGGER NEO v0.5.3 — START HERE
 
-1. Upload the whole docs/ folder to the top level of your GitHub repository (or replace the files inside your existing docs/ folder).
-2. In Settings > Pages, select branch main and folder /docs.
-3. Keep cloudflare-worker/ outside docs/; it must not be served as public game content.
-4. Wait for GitHub Pages deployment, then hard-reload the game.
+WHAT'S NEW
+- Automatic touch-device detection. During gameplay on phones/tablets, controls appear: left movement joystick, hold SHOOT with auto-aim, SPECIAL, and previous/next element buttons.
+- Responsive mobile layout and iOS safe-area treatment; keyboard/mouse controls remain supported on PCs.
 
-NO REDESIGN
-The original CSS rules and existing game logic are split into manageable files. No intentional gameplay, balance, layout, or styling changes are part of v0.5.2; the version label is updated.
+PUBLISH
+1. Extract this release package.
+2. Upload the whole contents of docs/ into your repository's existing top-level docs/ folder, replacing files where prompted. Keep css/, icons/, js/, manifest.webmanifest, and index.html together.
+3. Leave cloudflare-worker/ outside docs/; it must not be served as public game content.
+4. In Settings > Pages, choose branch main and folder /docs.
+5. Wait for deployment, then hard-reload the game.
 
-MODULE STRUCTURE
-- docs/index.html: markup, PWA metadata and ordered script references
-- docs/css/styles.css: CSS
-- docs/js/01-...-11-...js: game systems by feature
-- docs/manifest.webmanifest and docs/icons/: PWA assets
+IMPORTANT
+- Keep all 12 script files in docs/js/ and preserve their filenames.
+- Do not add async/defer or reorder script tags in index.html.
+- Preserve TURN_CREDENTIALS_ENDPOINT in js/06-turn-peer-lifecycle.js. Your Cloudflare Worker and Metered setup do not need changes for this game update.
+- For routine game updates, publish the full updated docs/ contents, not just index.html when JS/CSS changed.
 
-When publishing a modular release, publish the updated docs/ contents—not just index.html when JS or CSS files also changed. Preserve TURN_CREDENTIALS_ENDPOINT in docs/js/06-turn-peer-lifecycle.js.
-
-SCRIPT ORDER
-The 11 JavaScript files are synchronous classic scripts; do not add async/defer or reorder them.
-
-More detailed instructions: BEGINNER_GUIDE.txt
+More detail: BEGINNER_GUIDE.txt. Module map: docs/MODULE_MAP.txt.

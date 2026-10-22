@@ -1,0 +1,14 @@
+SLUGGER NEO CHANGELOG
+
+v0.5.3 — Mobile controls
+- Added automatic touch-first device detection.
+- Added analog virtual joystick movement.
+- Added hold-to-shoot using nearest-target auto-aim.
+- Added Special and previous/next unlocked-element buttons.
+- Added a persisted Hide/Show controls toggle.
+- Added responsive viewport sizing, touch hit targets and iOS safe-area spacing.
+- Preserved PC keyboard/mouse controls and existing TURN Worker endpoint.
+- No intentional changes to PvP rules, save data, or core gameplay balance.
+
+v0.5.2 — Modular baseline
+- Split the prior single-file game into ordered CSS and JavaScript files to improve maintainability.

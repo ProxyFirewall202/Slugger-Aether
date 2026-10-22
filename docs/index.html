@@ -9,7 +9,7 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
-<title>Slugger (NEO) v0.5.2 · Modular internal refactor</title>
+<title>Slugger (NEO) v0.5.3 · Mobile controls</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -21,7 +21,7 @@
 <div id="authModal" class="modal2">
   <div class="authBox">
     <h1>SLUGGER (NEO)</h1>
-    <p style="text-align:center;color:#a9c4d8;font-size:11px;margin:0 0 12px">v0.5.2 — Isolated 1v1 Campaign</p>
+    <p style="text-align:center;color:#a9c4d8;font-size:11px;margin:0 0 12px">v0.5.3 — Mobile controls and isolated 1v1</p>
     <div class="authTabs" id="authTabs">
       <button class="tab on" id="authTabLogin" onclick="authTab('login')">Login</button>
       <button class="tab" id="authTabRegister" onclick="authTab('register')">Create Account</button>
@@ -37,7 +37,27 @@
   </div>
 </div>
 <div id="pvpEndOverlay"></div>
-<!-- v0.5.2 modular game scripts: preserve this order; do not add async/defer. -->
+
+<!-- Touch controls are automatically enabled on touch-first devices during gameplay. -->
+<div id="mobileControls" aria-label="Touch controls">
+  <button type="button" id="mobileControlsToggle" class="mc-toggle" aria-pressed="true">Hide controls</button>
+  <div id="mobileJoystickZone" class="mc-joystick" role="application" aria-label="Movement joystick">
+    <span class="mc-stick-label">MOVE</span>
+    <span id="mobileJoystickNub" class="mc-joystick-nub"></span>
+  </div>
+  <div id="mobileActions" class="mc-actions" aria-label="Combat controls">
+    <div class="mc-elements">
+      <button type="button" id="mobileElementPrev" aria-label="Previous unlocked element">‹</button>
+      <span id="mobileCurrentElement">NEUTRAL</span>
+      <button type="button" id="mobileElementNext" aria-label="Next unlocked element">›</button>
+    </div>
+    <div class="mc-primary">
+      <button type="button" id="mobileSpecial" class="mc-special"><span>SPECIAL</span><small>Tap</small></button>
+      <button type="button" id="mobileShoot" class="mc-shoot"><span>SHOOT</span><small>Hold</small></button>
+    </div>
+  </div>
+</div>
+<!-- v0.5.3 modular game scripts: preserve this order; do not add async/defer. Touch controls initialize before final startup. -->
 <script src="./js/01-core-save-auth.js"></script>
 <script src="./js/02-art-assets-audio.js"></script>
 <script src="./js/03-world-combat-simulation.js"></script>
@@ -48,4 +68,5 @@
 <script src="./js/08-pvp-lobby-cloud-social.js"></script>
 <script src="./js/09-social-ui-debug-hub.js"></script>
 <script src="./js/10-pvp-hotfix-overrides.js"></script>
-<script src="./js/11-input-and-startup.js"></script></body></html>
+<script src="./js/11-mobile-touch-controls.js"></script>
+<script src="./js/12-input-and-startup.js"></script></body></html>

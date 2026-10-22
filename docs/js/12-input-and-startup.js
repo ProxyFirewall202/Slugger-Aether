@@ -1,4 +1,4 @@
-/* Slugger NEO v0.5.2 — Input handlers and final boot/init sequence. Base loop is declared in module 04 for hoisting compatibility.
+/* Slugger NEO v0.5.3 — Desktop input handlers and final boot/init sequence. Base loop is declared in module 04 for hoisting compatibility.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -19,7 +19,8 @@ addEventListener('keydown',e=>{
   if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k)&&mode!=='hub')e.preventDefault()
 });
 addEventListener('keyup',e=>{K[e.key.toLowerCase()]=0});
-addEventListener('blur',()=>{md=false;for(const k in K)K[k]=0});
+addEventListener('blur',()=>{md=false;for(const k in K)K[k]=0;if(typeof sluggerResetJoystick==='function')sluggerResetJoystick();if(typeof sluggerReleaseShoot==='function')sluggerReleaseShoot()});
+
 $('hubOverlay').addEventListener('mouseover',e=>{const b=e.target.closest&&e.target.closest('button');if(b&&!b.disabled)SFX.hov()});
 addEventListener('pointerdown',()=>au());
 setInterval(musTick,90);

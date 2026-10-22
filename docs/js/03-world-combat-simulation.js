@@ -1,4 +1,4 @@
-/* Slugger NEO v0.5.2 — World data, player/equipment stats, enemy AI, wave simulation, combat, hazards, and snapshots.
+/* Slugger NEO v0.5.3 — World data, player/equipment stats, enemy AI, wave simulation, combat, hazards, and snapshots.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -181,14 +181,14 @@ function upd(dt){
   const isSpectator=PVP.active&&PVP.playerDead;
   if(PVP.active&&PVP.role==='guest'){let slow=1;for(const h of HZ){if(h.w>0)continue;if(Math.hypot(h.x-P.x,h.y-P.y)<h.r+P.r&&h.ty!=='fire'&&h.ty!=='acid')slow=Math.min(slow,.6)}P.sm=slow;}else if(!Number.isFinite(P.sm)||P.sm<=0)P.sm=1;
   if(!isSpectator){
-    const ax=(K.d||K.arrowright?1:0)-(K.a||K.arrowleft?1:0),ay=(K.s||K.arrowdown?1:0)-(K.w||K.arrowup?1:0),l=Math.hypot(ax,ay)||1,fr=.88,f=Math.pow(fr,dt*60),A=2896*(1+.15*S.up.thr)*ST.spd*P.sm,VM=354*(1+.12*S.up.thr)*ST.spd*P.sm;
-    P.vx=(P.vx+ax/l*A*dt)*f;P.vy=(P.vy+ay/l*A*dt)*f;{const q=Math.hypot(P.vx,P.vy);if(q>VM){P.vx*=VM/q;P.vy*=VM/q}}
+    const ix=(K.d||K.arrowright?1:0)-(K.a||K.arrowleft?1:0)+(Number(window.__sluggerTouchAxisX)||0),iy=(K.s||K.arrowdown?1:0)-(K.w||K.arrowup?1:0)+(Number(window.__sluggerTouchAxisY)||0),inputLen=Math.hypot(ix,iy)||1,inputStrength=Math.min(1,Math.hypot(ix,iy)),ax=ix/inputLen*inputStrength,ay=iy/inputLen*inputStrength,fr=.88,f=Math.pow(fr,dt*60),A=2896*(1+.15*S.up.thr)*ST.spd*P.sm,VM=354*(1+.12*S.up.thr)*ST.spd*P.sm;
+    P.vx=(P.vx+ax*A*dt)*f;P.vy=(P.vy+ay*A*dt)*f;{const q=Math.hypot(P.vx,P.vy);if(q>VM){P.vx*=VM/q;P.vy*=VM/q}}
   }else{P.vx=0;P.vy=0}
   P.x+=P.vx*dt;P.y+=P.vy*dt;
   if(P.x<P.r){P.x=P.r;P.vx=Math.abs(P.vx)*.5}if(P.x>W-P.r){P.x=W-P.r;P.vx=-Math.abs(P.vx)*.5}
   if(P.y<P.r){P.y=P.r;P.vy=Math.abs(P.vy)*.5}if(P.y>H-P.r){P.y=H-P.r;P.vy=-Math.abs(P.vy)*.5}
   if(Math.hypot(P.vx,P.vy)>30)P.fa=Math.atan2(P.vy,P.vx);
-  P.ang=Math.atan2(my-P.y,mx-P.x);P.cd-=dt;P.sp=Math.max(0,P.sp-dt);P.inv-=dt;
+  if(window.__sluggerMobileFireHeld&&typeof window.__sluggerMobileAimAtTarget==='function')window.__sluggerMobileAimAtTarget();P.ang=Math.atan2(my-P.y,mx-P.x);P.cd-=dt;P.sp=Math.max(0,P.sp-dt);P.inv-=dt;
   if(md&&P.cd<=0&&!isSpectator)fire();
   P.rv=(P.rv-.15*P.rx)*.82;P.rx+=P.rv;
   if(!isSpectator&&Math.hypot(P.vx,P.vy)>120&&Math.random()<.4)PT.push({x:P.x-Math.cos(P.fa)*18,y:P.y-Math.sin(P.fa)*18,vx:Math.random()*50-25,vy:Math.random()*50-25,l:.5,c:'#7dff3c',sh:0,a:0});
@@ -288,4 +288,4 @@ function upd(dt){
     }
   }
 }
-function timeoutPvp(){ /* v0.5.2: no timer-based match conclusions. */ }
+function timeoutPvp(){ /* v0.5.3: no timer-based match conclusions. */ }

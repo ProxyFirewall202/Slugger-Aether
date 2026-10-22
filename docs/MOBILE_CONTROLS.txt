@@ -1,0 +1,20 @@
+SLUGGER NEO v0.5.3 — MOBILE CONTROLS
+
+DEVICE DETECTION
+Touch controls are enabled automatically when the browser reports a coarse pointer or touch points. They are shown during active gameplay only, not in the hub, menus, pause screen, or spectator mode. A control toggle lets the player hide/show them; preference is saved in that browser.
+
+CONTROLS
+- MOVE (left circle): drag/hold the nub in the direction you want to travel. Movement strength scales with joystick distance. Lift your finger to stop joystick input.
+- SHOOT (large green button): hold to fire. The game auto-aims toward the nearest live enemy, switching targets as enemies are defeated. When no enemy is alive, PvP may target the opponent; otherwise aim follows the last facing direction. Lift your finger to stop shooting.
+- SPECIAL (purple button): tap once to activate the currently equipped special. The target assist selects the nearest live enemy for specials with a target location. Cooldowns and current gameplay rules still apply.
+- ‹ and ›: cycle backward/forward through unlocked elements. The current element name is shown between them.
+- Hide controls / Show controls: hides or restores the touch overlay. Preference is saved in that browser.
+
+PC COMPATIBILITY
+Keyboard/mouse handlers remain enabled. Use WASD or arrow keys to move, mouse to aim, left mouse button to shoot, right mouse button or Space for Special, number keys 1–6 to select an element, and Q/E to cycle elements.
+
+MOBILE LAYOUT
+The original game scene remains at its existing aspect ratio, with canvas sizing responsive to the available screen dimensions. In portrait orientation the game scene is smaller with letterboxing; landscape provides a larger play area. The controls sit over the bottom corners and use iOS safe-area spacing.
+
+TESTING NOTES
+The touch handlers have been tested with a simulated browser viewport in portrait, landscape, and desktop sizes. That does not replace testing on real iOS Safari/PWA devices or a real two-client PvP session.
