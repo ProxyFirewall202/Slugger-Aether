@@ -12,11 +12,11 @@ You need these accounts:
 
 PART 1 — DOWNLOAD AND EXTRACT THE KIT
 -------------------------------------
-1. Download slugger_neo_publish_only_turn_setup.zip.
+1. Download slugger_neo_publish_only_turn_setup_docs.zip.
 2. On Windows, right-click the ZIP and choose "Extract All...".
-3. Inside the extracted folder, keep these two folders together:
+3. Inside the extracted folder, keep these folders together:
    - cloudflare-worker
-   - github-pages
+   - docs
 4. Do not upload the cloudflare-worker folder to GitHub Pages. It is deployed to Cloudflare separately.
 
 PART 2 — MAKE A NEW METERED CREDENTIAL
@@ -79,31 +79,31 @@ PART 5 — COPY THE WORKER URL
 IMPORTANT TESTING NOTE:
 Opening /ice-servers directly in a new browser tab may show "Origin is not allowed" because the Worker expects a request from your allowed game website. That is normal for this Worker. Test it through the game after Part 7 instead.
 
-PART 6 — SET THE URL IN THE GAME ONCE
-------------------------------------
-1. On your computer, open github-pages/index.html in Notepad or a code editor.
-2. Use Ctrl+F and search for: TURN_CREDENTIALS_ENDPOINT
-3. You should find a line similar to:
-   const TURN_CREDENTIALS_ENDPOINT='https://SET-YOUR-CLOUDFLARE-WORKER-SUBDOMAIN.workers.dev/ice-servers';
-4. Replace only the URL between the quotes with the full URL copied in Part 5. Keep the single quotes and the semicolon. Example shape:
-   const TURN_CREDENTIALS_ENDPOINT='https://slugger-turn-ice.YOUR-CLOUDFLARE-SUBDOMAIN.workers.dev/ice-servers';
-5. Save the file. Do not put the Metered API key or TURN password in this line.
+PART 6 — CHECK THE GAME URL (ALREADY CONFIGURED)
+-------------------------------------------------
+1. Open `docs/index.html` only if you need to inspect it.
+2. The `TURN_CREDENTIALS_ENDPOINT` line is already configured to your existing Worker:
+   const TURN_CREDENTIALS_ENDPOINT='https://slugger-turn-ice.tholloway540.workers.dev/ice-servers';
+3. You do not need to change that line for this deployment. Do not put your Metered API key or TURN password into the HTML.
+4. Keep this exact URL when publishing future game updates, unless you intentionally replace the Cloudflare Worker.
 
-PART 7 — PUBLISH TO GITHUB PAGES
---------------------------------
-Use the SAME repository and publish folder that already hosts your game.
+PART 7 — PUBLISH FROM THE /docs FOLDER
+--------------------------------------
+GitHub Pages can publish directly from the top-level `/docs` folder on `main`, which keeps your repository tidy. GitHub requires `docs/index.html` to be at the top level of that selected publishing folder. See the official guide: https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
 
-If GitHub Pages publishes from the repository root:
-1. Open the repository on github.com and click the Code tab.
-2. Upload the CONTENTS of the github-pages folder, not the parent folder itself.
-3. Replace the existing index.html with the edited one from Part 6.
-4. Also upload manifest.webmanifest and the icons folder if they are missing or have changed. Keep the folder name exactly "icons".
-5. Commit the changes (GitHub's upload page has a "Commit changes" button).
-
-If GitHub Pages publishes from a /docs folder or a separate branch:
-- Put the same files in that configured publish location instead. To check: repository > Settings > Pages > Build and deployment.
-
-GitHub Pages builds/deploys after the commit. Check Settings > Pages or the Actions tab until deployment completes, then reload the published game. It may help to hard-refresh or close/reopen the Home Screen app so the new HTML is loaded.
+1. Open the repository on GitHub and click the Code tab.
+2. Make sure the extracted kit's `docs` folder is at the TOP LEVEL of the repository. The structure must look like this:
+     docs/index.html
+     docs/manifest.webmanifest
+     docs/icons/...
+   Do not put it inside another `slugger_neo_publish_only_turn_kit` folder, and do not place the files directly at repository root.
+3. If GitHub's upload page does not accept the whole folder, create a temporary file by choosing Add file > Create new file and typing `docs/index.html` as the filename. Put a brief placeholder in it, commit it, and then open the created `docs` folder. Use Add file > Upload files to upload the actual files from the kit's `docs` folder, replacing the placeholder `index.html`.
+4. Also keep `cloudflare-worker/` at repository root only if you want a backup of the Worker source. It is not part of the public website because Pages is configured to publish only `/docs`; don't upload secrets.
+5. In the repository, open Settings > Pages.
+6. Under Build and deployment, select Source = Deploy from a branch.
+7. Select Branch = `main`, and in the folder dropdown select `/docs` (this option appears once the top-level docs folder exists on main).
+8. Click Save. Wait for deployment to complete; check Settings > Pages or Actions.
+9. Open your usual GitHub Pages URL. Moving the source folder to `/docs` does not normally change the published site's URL, because `/docs` is the source directory rather than a URL subpath.
 
 PART 8 — CONFIRM IT WORKS
 -------------------------
@@ -118,15 +118,15 @@ COMMON ERRORS
 - HTTP 403 / "Origin is not allowed": ALLOWED_ORIGINS doesn't exactly match the origin of your live game. Use scheme + hostname only, no path, no trailing slash.
 - HTTP 503 / "TURN provider is not configured": METERED_DOMAIN or the secret is missing or misspelled.
 - HTTP 502 / provider error: confirm you used the credential-scoped API key for the NEW credential and wait up to two minutes after creating it.
-- "Endpoint not configured": TURN_CREDENTIALS_ENDPOINT in index.html still contains the placeholder or GitHub Pages hasn't deployed the latest file.
+- "Endpoint not configured": TURN_CREDENTIALS_ENDPOINT in docs/index.html is wrong or GitHub Pages has not deployed the latest file.
 - Signalling works but peers don't connect: the relay may still be blocked by the school/VPN network, the Metered credential may be invalid, or the two clients may have incompatible settings. Check the full diagnostic log.
 
 AFTER THE ONE-TIME SETUP
 ------------------------
 Routine game update:
-1. Obtain the new index.html.
+1. Obtain the new game HTML.
 2. Preserve the exact TURN_CREDENTIALS_ENDPOINT URL in that file.
-3. Replace/publish index.html on GitHub Pages.
-You do not edit turn-config.json (there is no such file), re-enter the Metered API key, or redeploy the Worker for routine game releases. If you send the configured index.html for future updates, explicitly ask that TURN_CREDENTIALS_ENDPOINT be preserved exactly.
+3. Replace docs/index.html on GitHub Pages and commit the change.
+You do not edit turn-config.json (there is no such file), re-enter the Metered API key, or redeploy the Worker for routine game releases. If you send the configured docs/index.html for future updates, explicitly ask that TURN_CREDENTIALS_ENDPOINT be preserved exactly.
 
 If you change your GitHub Pages hostname, update ALLOWED_ORIGINS in Cloudflare. If you intentionally replace/revoke the Metered credential, update the Worker Secret. Keep monitoring your Metered quota: CORS controls browser access but is not strong authentication against non-browser clients.
