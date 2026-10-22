@@ -1,18 +1,20 @@
-Slugger NEO PWA — GitHub Pages /docs publish folder
+SLUGGER NEO v0.5.2 — GITHUB PAGES /docs SOURCE
 
-This folder is intended to be the /docs publishing source on the main branch.
-Files at this folder's top level:
-- index.html
-- manifest.webmanifest
-- icons/
+This folder is the website source for GitHub Pages. Put docs/ at the top level of your repository, then choose branch main /docs in Settings > Pages.
 
-The Worker endpoint is already configured in index.html:
+FILES
+- index.html: page structure, PWA metadata, dependency references and ordered JS loading
+- css/styles.css: extracted original CSS rules (unchanged)
+- js/: 11 ordered classic JavaScript files split by subsystem
+- manifest.webmanifest and icons/: PWA assets
+
+TURN
+The permanent Worker endpoint is already configured in js/06-turn-peer-lifecycle.js:
 https://slugger-turn-ice.tholloway540.workers.dev/ice-servers
+The Metered API key remains a Cloudflare Worker Secret and is not in the public site.
 
-INITIAL PUBLISH
-1. Put this entire docs/ folder at the top level of your GitHub repository.
-2. In repository Settings > Pages, choose Deploy from a branch, branch main, folder /docs, then Save.
-3. Wait for the deployment to complete.
+PUBLISHING UPDATES
+For a modular release, publish the updated docs/ contents (all changed JS/CSS assets as well as index.html). Do not publish only index.html if any linked JS/CSS files have changed. Preserve the TURN_CREDENTIALS_ENDPOINT constant in js/06-turn-peer-lifecycle.js. Ordinary game updates do not require changing Worker secrets.
 
-FUTURE UPDATES
-Publish the new game as docs/index.html and preserve the TURN_CREDENTIALS_ENDPOINT constant exactly. No turn-config.json exists and the Metered API key is not in this folder. Keep manifest.webmanifest and icons/ alongside index.html.
+LOAD ORDER
+index.html loads js/01 through js/11 synchronously as classic scripts. Do not add async/defer or reorder them; existing inline handlers and the shared global scope depend on this order.

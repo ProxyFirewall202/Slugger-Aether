@@ -1,24 +1,22 @@
-Slugger NEO — publish-only TURN setup kit (GitHub Pages /docs)
+SLUGGER NEO v0.5.2 — START HERE
 
-GOAL
-After the initial setup, ordinary Slugger game releases should require only publishing the updated game HTML. The Worker URL is already configured in docs/index.html:
-  https://slugger-turn-ice.tholloway540.workers.dev/ice-servers
-No turn-config.json is needed. The Metered API key remains in a Cloudflare Worker Secret.
+1. Upload the whole docs/ folder to the top level of your GitHub repository (or replace the files inside your existing docs/ folder).
+2. In Settings > Pages, select branch main and folder /docs.
+3. Keep cloudflare-worker/ outside docs/; it must not be served as public game content.
+4. Wait for GitHub Pages deployment, then hard-reload the game.
 
-WHAT'S IN THIS KIT
-- docs/                 Website files for GitHub Pages. This is the folder you select in Settings > Pages.
-- cloudflare-worker/    Worker source and instructions. Your Worker is already deployed, so you normally do not need to deploy it again.
-- BEGINNER_GUIDE.txt    Click-by-click setup and publishing instructions.
+NO REDESIGN
+The original CSS rules and existing game logic are split into manageable files. No intentional gameplay, balance, layout, or styling changes are part of v0.5.2; the version label is updated.
 
-PUBLISH USING /docs
-1. Extract this ZIP.
-2. In your GitHub repository, make sure the docs folder is at the repository's top level (not nested inside another folder). It must contain docs/index.html, docs/manifest.webmanifest and docs/icons/.
-3. If you upload using GitHub's web interface and cannot upload a folder directly, create a file named docs/index.html via Add file > Create new file and commit it. Then open the docs folder and upload the actual contents of this kit's docs/ folder, replacing the placeholder index.html.
-4. In repository Settings > Pages, select Branch = main and Folder = /docs, then click Save.
-5. Wait for the Pages deployment to complete and open your existing GitHub Pages URL.
+MODULE STRUCTURE
+- docs/index.html: markup, PWA metadata and ordered script references
+- docs/css/styles.css: CSS
+- docs/js/01-...-11-...js: game systems by feature
+- docs/manifest.webmanifest and docs/icons/: PWA assets
 
-CLOUDFLARE/METERED
-Your Worker URL is already embedded in docs/index.html. Do not replace it unless the Worker address changes. The Worker must already have METERED_DOMAIN and ALLOWED_ORIGINS variables configured, plus METERED_CREDENTIAL_API_KEY added as a Secret. See cloudflare-worker/README.txt and BEGINNER_GUIDE.txt if you need to revisit those settings.
+When publishing a modular release, publish the updated docs/ contents—not just index.html when JS or CSS files also changed. Preserve TURN_CREDENTIALS_ENDPOINT in docs/js/06-turn-peer-lifecycle.js.
 
-AFTER THAT
-For normal game updates, replace docs/index.html with the new game HTML while preserving the TURN_CREDENTIALS_ENDPOINT constant. Keep manifest.webmanifest and icons/ in docs/ (replace only if an update includes changed assets). Routine releases do not require editing the Worker Secret or any other configuration. The Secret only needs updating if you intentionally rotate/revoke the Metered credential or it is compromised.
+SCRIPT ORDER
+The 11 JavaScript files are synchronous classic scripts; do not add async/defer or reorder them.
+
+More detailed instructions: BEGINNER_GUIDE.txt

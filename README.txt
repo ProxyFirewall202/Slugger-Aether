@@ -1,8 +1,5 @@
-SLUGGER NEO — DOCS DEPLOYMENT PACKAGE
+SLUGGER NEO v0.5.2 — MODULAR DOCS PACKAGE
 
-Use this package if you want the GitHub Pages folder selector to show /docs.
-- docs/ is the website source. Put docs/ at the top level of your GitHub repository, then select main /docs in Settings > Pages.
-- cloudflare-worker/ contains the Worker source and documentation; it is not published because Pages will serve only docs/.
-- The game endpoint constant has already been set to the Worker URL you provided.
+Start with START_HERE.txt. The public GitHub Pages site is docs/. The cloudflare-worker/ folder contains server-side TURN endpoint code and setup documentation; do not upload it inside docs/.
 
-Start with START_HERE.txt, then follow BEGINNER_GUIDE.txt if you want detailed click-by-click instructions.
+Release v0.5.2 is an internal modular refactor: CSS and existing JavaScript were moved into separate files without intentional gameplay or styling changes.

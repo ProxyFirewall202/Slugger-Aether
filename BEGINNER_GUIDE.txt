@@ -1,9 +1,23 @@
+SLUGGER NEO v0.5.2 — BEGINNER GUIDE ADDENDUM
+
+WHAT CHANGED IN v0.5.2
+The single HTML source has been split into docs/index.html, docs/css/styles.css, and docs/js/01-...-11-...js. This is intended to be internal-only: gameplay, balance, UI layout and CSS rules are unchanged. Only the visible version string is updated to v0.5.2.
+
+PUBLISHING
+1. Upload the entire contents of docs/ to the top-level docs/ folder in your GitHub repository. Keep the names and subfolders as they are.
+2. In GitHub repository Settings > Pages choose main /docs.
+3. Never upload cloudflare-worker/ into docs/.
+4. Leave script tags in index.html in their existing order. Do not add async or defer.
+
+FUTURE AI UPDATES
+Give the AI the whole v0.5.2 package when possible, not just index.html. For ordinary releases, update the relevant module(s) and publish the contents of docs/. Keep js/06-turn-peer-lifecycle.js's TURN_CREDENTIALS_ENDPOINT constant unchanged.
+
 SLUGGER NEO — BEGINNER STEP-BY-STEP TURN SETUP
 ================================================
 
 What this does
 --------------
-The game is hosted on GitHub Pages (public files). Cloudflare Worker is a small online helper which keeps your Metered API key out of the game HTML and fetches the ICE server list when the game starts. You do this setup once. After that, routine game updates should only require publishing the new index.html while preserving TURN_CREDENTIALS_ENDPOINT.
+The game is hosted on GitHub Pages (public files). Cloudflare Worker is a small online helper which keeps your Metered API key out of the game HTML and fetches the ICE server list when the game starts. You do this setup once. After that, routine game updates require publishing the updated docs/ package (index.html plus any updated CSS/JS files). You do not edit Metered credentials or redeploy the Worker for ordinary game releases.
 
 You need these accounts:
 - The GitHub account/repository that already hosts Slugger NEO.
@@ -81,8 +95,8 @@ Opening /ice-servers directly in a new browser tab may show "Origin is not allow
 
 PART 6 — CHECK THE GAME URL (ALREADY CONFIGURED)
 -------------------------------------------------
-1. Open `docs/index.html` only if you need to inspect it.
-2. The `TURN_CREDENTIALS_ENDPOINT` line is already configured to your existing Worker:
+1. The Worker endpoint is defined in `docs/js/06-turn-peer-lifecycle.js`; `docs/index.html` loads the JavaScript files in order.
+2. The `TURN_CREDENTIALS_ENDPOINT` line is already configured in `docs/js/06-turn-peer-lifecycle.js` to your existing Worker:
    const TURN_CREDENTIALS_ENDPOINT='https://slugger-turn-ice.tholloway540.workers.dev/ice-servers';
 3. You do not need to change that line for this deployment. Do not put your Metered API key or TURN password into the HTML.
 4. Keep this exact URL when publishing future game updates, unless you intentionally replace the Cloudflare Worker.
@@ -109,7 +123,7 @@ PART 8 — CONFIRM IT WORKS
 -------------------------
 1. Open the published game from its normal HTTPS GitHub Pages URL.
 2. Open Friends & network and the Connection status & diagnostics panel.
-3. The logs should say that the TURN/ICE server list loaded successfully. If it says endpoint not configured, the URL placeholder was not replaced or the old HTML is still being served.
+3. The logs should say that the TURN/ICE server list loaded successfully. If it says endpoint not configured, the URL in `docs/js/06-turn-peer-lifecycle.js` is wrong or the old files are still being served.
 4. Try a connection in AUTO mode. Confirm that the PeerJS signalling connection is online AND the data channel connects. Those are separate stages.
 5. The diagnostic may identify DIRECT P2P ACTIVE or TURN RELAY ACTIVE when the browser exposes the selected route.
 
@@ -118,15 +132,16 @@ COMMON ERRORS
 - HTTP 403 / "Origin is not allowed": ALLOWED_ORIGINS doesn't exactly match the origin of your live game. Use scheme + hostname only, no path, no trailing slash.
 - HTTP 503 / "TURN provider is not configured": METERED_DOMAIN or the secret is missing or misspelled.
 - HTTP 502 / provider error: confirm you used the credential-scoped API key for the NEW credential and wait up to two minutes after creating it.
-- "Endpoint not configured": TURN_CREDENTIALS_ENDPOINT in docs/index.html is wrong or GitHub Pages has not deployed the latest file.
+- "Endpoint not configured": TURN_CREDENTIALS_ENDPOINT in docs/js/06-turn-peer-lifecycle.js is wrong or GitHub Pages has not deployed the latest files.
 - Signalling works but peers don't connect: the relay may still be blocked by the school/VPN network, the Metered credential may be invalid, or the two clients may have incompatible settings. Check the full diagnostic log.
 
 AFTER THE ONE-TIME SETUP
 ------------------------
 Routine game update:
-1. Obtain the new game HTML.
-2. Preserve the exact TURN_CREDENTIALS_ENDPOINT URL in that file.
-3. Replace docs/index.html on GitHub Pages and commit the change.
-You do not edit turn-config.json (there is no such file), re-enter the Metered API key, or redeploy the Worker for routine game releases. If you send the configured docs/index.html for future updates, explicitly ask that TURN_CREDENTIALS_ENDPOINT be preserved exactly.
+1. Obtain the full updated v0.5.x release package.
+2. Replace the corresponding files inside your repository's top-level `docs/` folder with the new release's `docs/` contents, keeping the folder structure intact.
+3. Preserve the exact `TURN_CREDENTIALS_ENDPOINT` URL in `docs/js/06-turn-peer-lifecycle.js`.
+4. Commit the changed files to `main`; GitHub Pages will deploy them from `/docs`.
+You do not edit turn-config.json (there is no such file), re-enter the Metered API key, or redeploy the Worker for routine game releases. When requesting future updates, provide the full modular package and ask that `TURN_CREDENTIALS_ENDPOINT` be preserved exactly.
 
 If you change your GitHub Pages hostname, update ALLOWED_ORIGINS in Cloudflare. If you intentionally replace/revoke the Metered credential, update the Worker Secret. Keep monitoring your Metered quota: CORS controls browser access but is not strong authentication against non-browser clients.

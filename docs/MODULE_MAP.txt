@@ -1,0 +1,44 @@
+SLUGGER NEO v0.5.2 MODULE MAP
+===========================
+
+index.html
+  Page markup, PWA metadata, external dependencies, script-loading order.
+
+css/styles.css
+  Extracted original stylesheet. No style rules intentionally changed.
+
+js/01-core-save-auth.js
+  Core values, save model, save migration/merge, auth and cloud save/profile persistence.
+
+js/02-art-assets-audio.js
+  SVG sprite generation/loading and sound/music synthesis.
+
+js/03-world-combat-simulation.js
+  Enemy data/AI, wave simulation, player combat, projectiles, hazards, damage and snapshots.
+
+js/04-rendering-hud-loop.js
+  Canvas render functions, HUD and base loop declaration. The loop declaration is deliberately placed before module 10 because the original single-file script relied on function hoisting before its PvP wrapper.
+
+js/05-upgrades-inventory-hub.js
+  Upgrade constants/actions, crates, crafting, equipment and hub tab rendering.
+
+js/06-turn-peer-lifecycle.js
+  Friend ID, TURN Worker URL/config fetch, mode selection, PeerJS startup/restart, diagnostics and route inspection.
+
+js/07-network-data-messages.js
+  Network packet receive/send, host snapshots, PvP synchronization, chat/direct-message helpers and invitations.
+
+js/08-pvp-lobby-cloud-social.js
+  PvP lobby/readiness/loadout functions and cloud friend, presence, request, chat and invite helpers.
+
+js/09-social-ui-debug-hub.js
+  Friends UI, connection diagnostics panel, developer console, main hub renderer.
+
+js/10-pvp-hotfix-overrides.js
+  The existing v0.5.1 PvP state-machine/override IIFE. Preserved together to avoid changing its closure and override order.
+
+js/11-input-and-startup.js
+  Input listeners, timers, service startup, auth overlay and requestAnimationFrame boot.
+
+WHY CLASSIC SCRIPTS
+The original code uses a shared global scope and inline HTML event handlers. The scripts are external classic scripts loaded synchronously in this exact order to preserve that arrangement. This is a conservative first refactor; converting to ES modules can be a later separate change with additional testing.

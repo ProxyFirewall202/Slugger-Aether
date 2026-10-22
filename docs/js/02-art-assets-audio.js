@@ -1,0 +1,40 @@
+/* Slugger NEO v0.5.2 — Generated SVG sprites, sprite loading, sound effects, and procedural music.
+ * Load order is controlled by index.html. These are classic scripts (not ES modules)
+ * so the existing shared global scope and inline UI handlers remain compatible.
+ */
+function boss(c,x){return `<g ${O}>${x}<circle cx='60' cy='66' r='42' fill='${c}'/><circle cx='60' cy='66' r='20' fill='#fff' fill-opacity='.35'/></g><circle cx='44' cy='58' r='9' fill='#fff' stroke='#0a0814' stroke-width='3'/><circle cx='76' cy='58' r='9' fill='#fff' stroke='#0a0814' stroke-width='3'/><circle cx='46' cy='60' r='4' fill='#0a0814'/><circle cx='78' cy='60' r='4' fill='#0a0814'/><path d='M36 46L54 52M84 46L66 52' stroke='#0a0814' stroke-width='5' stroke-linecap='round'/><path d='M44 84Q60 96 76 84' stroke='#0a0814' stroke-width='4' fill='none' stroke-linecap='round'/>`}
+const SV={
+aph:c=>sv(48,48,`<g ${O}><path d='M19 8Q13 0 9 4M29 8Q35 0 39 4M10 30L3 37M14 38L9 46M38 30L45 37M34 38L39 46' fill='none'/><ellipse cx='24' cy='30' rx='15' ry='12' fill='${c}'/><circle cx='24' cy='15' r='10' fill='${c}'/><circle cx='24' cy='35' r='7' fill='#fff' fill-opacity='.7'/></g><circle cx='19.5' cy='14' r='4' fill='#fff' stroke='#0a0814' stroke-width='2'/><circle cx='28.5' cy='14' r='4' fill='#fff' stroke='#0a0814' stroke-width='2'/><circle cx='20.5' cy='15' r='1.8' fill='#0a0814'/><circle cx='29.5' cy='15' r='1.8' fill='#0a0814'/>`),
+bee:c=>sv(56,48,`<g ${O}><ellipse cx='28' cy='38' rx='25' ry='8' fill='#3a3358'/><path d='M5 36Q5 8 28 8Q51 8 51 36Z' fill='${c}'/><path d='M28 8V36M17 12Q13 24 13 36M39 12Q43 24 43 36' fill='none'/><rect x='22' y='1' width='12' height='9' rx='3' fill='#6b6490'/></g><circle cx='19' cy='24' r='4.5' fill='#fff' stroke='#0a0814' stroke-width='2'/><circle cx='37' cy='24' r='4.5' fill='#fff' stroke='#0a0814' stroke-width='2'/><circle cx='20' cy='25' r='2' fill='#0a0814'/><circle cx='38' cy='25' r='2' fill='#0a0814'/>`),
+rea:c=>sv(120,120,boss(c,`<path d='M30 30L16 8L40 22M90 30L104 8L80 22' fill='${c}'/>`)),
+mon:c=>sv(120,120,boss(c,`<path d='M60 6L46 28H74ZM28 34L12 16L38 24ZM92 34L108 16L82 24Z' fill='#ffcc00'/>`)),
+crate:c=>sv(48,48,`<g ${O}><rect x='5' y='9' width='38' height='33' rx='5' fill='${c}'/><path d='M5 20H43M5 31H43' fill='none'/><rect x='19' y='22' width='10' height='11' rx='2' fill='#ffcc00'/></g>`)};
+const SP={},WH={},uri=s=>'data:image/svg+xml;utf8,'+encodeURIComponent(s);
+function spr(k,s,w,h){try{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=w*2;c.height=h*2;c.getContext('2d').drawImage(im,0,0,w*2,h*2);const d=document.createElement('canvas');d.width=w*2;d.height=h*2;const y=d.getContext('2d');y.drawImage(c,0,0);y.globalCompositeOperation='source-in';y.fillStyle='#fff';y.fillRect(0,0,w*2,h*2);SP[k]=c;WH[k]=d};im.src=uri(s)}catch(e){}}
+Object.keys(CC).forEach(t=>spr('cr'+t,SV.crate(CC[t]),48,48));
+let AC,MB,MU,NB,DL,LP,BR,mus='',mnext=0,mstep=0,msp=.125;
+function au(){if(AC){if(AC.state==='suspended')AC.resume();return AC}try{const a=new(window.AudioContext||window.webkitAudioContext)(),cp=a.createDynamicsCompressor();cp.threshold.value=-16;cp.ratio.value=6;const pn=a.createStereoPanner?a.createStereoPanner():a.createGain();MB=a.createGain();MB.gain.value=.9;MU=a.createGain();MU.gain.value=.5;MB.connect(cp);MU.connect(cp);cp.connect(pn);pn.connect(a.destination);NB=a.createBuffer(1,a.sampleRate,a.sampleRate);const d=NB.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;DL=a.createDelay(.5);DL.delayTime.value=.23;const fb=a.createGain();fb.gain.value=.38;DL.connect(fb);fb.connect(DL);DL.connect(MB);LP=a.createBiquadFilter();LP.frequency.value=650;LP.connect(MU);BR=a.createBiquadFilter();BR.frequency.value=2200;BR.connect(MU);AC=a;return a}catch(e){return null}}
+function osc(ty,f0,f1,d,v,at,dst){const a=au();if(!a)return;const o=a.createOscillator(),g=a.createGain(),n=at||a.currentTime;o.type=ty;o.frequency.setValueAtTime(f0,n);if(f1!==f0)o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),n+d);g.gain.setValueAtTime(.0001,n);g.gain.linearRampToValueAtTime(v,n+.006);g.gain.exponentialRampToValueAtTime(.0005,n+d);o.connect(g);g.connect(dst||MB);o.start(n);o.stop(n+d+.03)}
+function nz(ty,f0,f1,d,v,at,dst){const a=au();if(!a)return;const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain(),n=at||a.currentTime;s.buffer=NB;f.type=ty;f.frequency.setValueAtTime(f0,n);f.frequency.exponentialRampToValueAtTime(f1,n+d);g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.0005,n+d);s.connect(f);f.connect(g);g.connect(dst||MB);s.start(n);s.stop(n+d+.03)}
+const T0=()=>{const a=au();return a?a.currentTime:0};
+const SFX={shoot:()=>{osc('sawtooth',800,120,.08,.1);nz('highpass',3500,7000,.05,.09)},hit:()=>{nz('bandpass',1400,300,.07,.1);osc('sine',190,70,.08,.14)},hurt:()=>{osc('sine',160,45,.25,.35);nz('lowpass',1500,150,.2,.25)},boom:()=>{osc('sine',115,28,.55,.4);nz('lowpass',2000,100,.5,.32)},
+pick:()=>{const t=T0();[0,4,7,12].forEach((s,i)=>{const f=523*Math.pow(2,s/12);osc('sine',f,f,.6,.07,t+i*.07,DL);osc('triangle',f,f,.25,.05,t+i*.07)})},
+click:()=>{nz('lowpass',1800,350,.06,.09);osc('sine',210,110,.08,.12)},hov:()=>nz('bandpass',2600,2100,.03,.02),tab:()=>{nz('bandpass',500,2600,.2,.1);osc('sine',130,210,.18,.1)},
+buy:()=>{const t=T0();osc('sine',90,60,.3,.25);[0,7,12].forEach((s,i)=>{const f=392*Math.pow(2,s/12);osc('triangle',f,f,.5,.07,t+.05+i*.06,DL)})},
+sp:()=>{nz('lowpass',200,5000,.7,.22);osc('sawtooth',70,500,.7,.09);osc('sine',60,28,.9,.35)},swap:()=>{nz('bandpass',700,3200,.14,.12);osc('triangle',330,990,.12,.08)},shake:()=>{osc('sine',55,50,.9,.3);nz('lowpass',300,120,.9,.15)},open:()=>{SFX.boom();SFX.pick()}};
+const CH=[[0,3,7,10],[-4,0,3,7],[-2,2,5,9],[-5,-2,2,5]],mo=(ty,f0,f1,d,v,at,dst)=>osc(ty,f0,f1,d,v,at,dst||MU),mn=(ty,f0,f1,d,v,at)=>nz(ty,f0,f1,d,v,at,MU);
+function pad(t,ch,len){ch.forEach(n=>{const f=110*Math.pow(2,n/12);[-7,7].forEach(dt=>{const o=AC.createOscillator(),g=AC.createGain(),fl=AC.createBiquadFilter();o.type='sawtooth';o.frequency.value=f;o.detune.value=dt;fl.type='lowpass';fl.frequency.value=700;g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.045,t+len*.4);g.gain.linearRampToValueAtTime(.0001,t+len);o.connect(fl);fl.connect(g);g.connect(MU);o.start(t);o.stop(t+len+.05)})})}
+function mstepF(t,i){const b=i%16,bar=i>>4,cp=CH[bar%4][0],bs=Math.pow(2,cp/12)*(G&&G.fr?1.19:1);
+if(mus==='hub'){if(i%64===0){const c=CH[(i>>6)%4],len=msp*64,f=55*Math.pow(2,c[0]/12);pad(t,c,len);mo('sine',f,f*.97,len,.3,t)}return}
+const bo=mus==='boss';
+if(bo?(b===0||b===8||b===10):b%4===0){mo('sine',150,38,.3,.6,t);mn('lowpass',1200,100,.04,.25,t)}
+if(b===4||b===12)mn('bandpass',2000,800,.18,.3,t);
+if(bo?b%3===0:b%2===0)mn('highpass',7000,9000,.04,.07,t);
+if(bo){if([0,3,6,8,11,14].includes(b))mo('sawtooth',55*bs,50*bs,.26,.28,t,LP);if(b===0&&bar%2===0){mo('sine',1100,1700,msp*30,.045,t);mo('sine',1120,1720,msp*30,.045,t)}}
+else{if(b%2===0){const f=110*bs*Math.pow(2,[0,7,12,7,3,10,15,10][b/2]/12);mo('sawtooth',f,f,.2,.14,t,LP)}if(b%4===0)mo('sine',55*bs,55*bs,msp*3,.35,t);
+if(b===0&&bar%2===0)[0,3,7,5].forEach((n,k)=>{const f=220*bs*Math.pow(2,n/12),tt=t+k*msp*4;mo('sawtooth',f,f,msp*4,.07,tt,BR);mo('sawtooth',f*1.006,f*1.006,msp*4,.07,tt,BR)})}}
+function musTick(){const a=AC;if(!a||a.state!=='running'||!mus)return;msp=60/(mus==='hub'?70:mus==='boss'?150:Math.min(140,118+(G?G.w:1)*2))/4;if(!mnext||mnext<a.currentTime-.5)mnext=a.currentTime+.06;while(mnext<a.currentTime+.3){mstepF(mnext,mstep++);mnext+=msp}}
+const setMus=m=>{if(m!==mus){mus=m;mstep=0;mnext=0}};
+const K={},P={x:W/2,y:H/2,vx:0,vy:0,r:13,hp:100,ang:0,fa:0,cd:0,sp:0,spm:6,inv:0,sl:0};
+const SIM={x:W/2,y:H/2,ang:0,r:13,hp:100}; // virtual target for AI
+let mx=W/2,my=H/2,md=false,mode='hub',G=null,ST=null,last=0,hh=0,selCp=1,rsc=0,logs=[],E=[],B=[],EB=[],CR=[],PT=[],SL=[],HO=[];
