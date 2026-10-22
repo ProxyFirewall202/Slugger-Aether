@@ -9,7 +9,7 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
-<title>Slugger (NEO) v0.5.1 Hotfix</title>
+<title>Slugger (NEO) v0.5.1 Hotfix · ICE mode controls</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -51,6 +51,7 @@ nav{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}
 .nin{background:#05060f;color:var(--fg);border:1px solid var(--ln);border-radius:5px;padding:5px 7px;font:inherit;width:100%;box-sizing:border-box;margin:4px 0}
 .nin:focus{outline:1px solid var(--ac)}
 .idbox{background:#0008;border:1px dashed var(--ac);border-radius:6px;padding:8px;text-align:center;font-size:17px;letter-spacing:2px;color:var(--ac);margin:4px 0;user-select:all;word-break:break-all}
+.netDiag{background:#030712;border:1px solid #25345a;border-radius:6px;padding:6px 8px;max-height:120px;overflow:auto;font:10px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-word}.netDiagLine{padding:2px 0;border-bottom:1px solid #ffffff0c}.netDiagLine:last-child{border-bottom:0}.netDiagLine .time{color:#7e91b4;margin-right:6px}.netDiagLine.success{color:#7dff3c}.netDiagLine.warn{color:#ffcc66}.netDiagLine.error{color:#ff7892}.netConnCurrent{margin:4px 0 6px;padding:5px 7px;border-radius:5px;background:#06111c;border:1px solid #223454;color:#a9c4d8;font-size:11px}.netConnCurrent.success{color:#7dff3c;border-color:#1c744a}.netConnCurrent.warn{color:#ffcc66;border-color:#80612b}.netConnCurrent.error{color:#ff7892;border-color:#84334b}
 .fr{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #fff1;font-size:11px}
 .fr .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3}
 .bdg{font-size:9px;padding:1px 7px;border-radius:99px;border:1px solid;letter-spacing:1px;white-space:nowrap}
@@ -708,41 +709,212 @@ const FK='slugger_neo_friends_v1',PK='slugger_neo_peerid';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function genId(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];const id='SLUG-'+s;try{localStorage.setItem(PK,id)}catch(e){}return id}
 function loadId(){try{const v=localStorage.getItem(PK);if(v&&/^SLUG-[A-Z0-9]{4}$/.test(v))return v}catch(e){}return genId()}
-const NET={peer:null,id:null,conns:{},friends:{},msgs:[],ready:false,err:null,bytesSent:0,bytesRecv:0,pktsSent:0,pktsRecv:0,ping:0};
+/* Automatic ICE/TURN configuration.
+   Replace these two placeholders once with your Metered app domain and the API key
+   shown at TURN Server -> Credentials -> Get credential -> Show API Key.
+   This key is scoped to ONE TURN credential; never put Metered's account Secret Key here.
+   WebRTC uses direct host/STUN routes when viable and automatically falls back to TURN relay
+   candidates if direct candidate pairs cannot connect. No in-game configuration menu is needed. */
+const TURN_AUTO_CONFIG={
+  domain:'slugger.metered.live',
+  apiKey:'48c401e8589d8266cb38fe86e79724dcc94c'
+};
+const TURN_CFG_STORE='slugger_neo_turn_config_v1';
+function isUsableTurnConfig(c){return !!(c&&/^[a-z0-9.-]+\.metered\.live$/i.test(String(c.domain||''))&&String(c.apiKey||'').trim()&&!/^(PASTE_|YOUR_|REPLACE_)/i.test(String(c.apiKey||''))&&!/^YOUR_APP\./i.test(String(c.domain||'')))}
+function loadTurnConfig(){
+  if(isUsableTurnConfig(TURN_AUTO_CONFIG))return{domain:TURN_AUTO_CONFIG.domain.trim(),apiKey:TURN_AUTO_CONFIG.apiKey.trim()};
+  // Backward compatibility: honor settings already saved by an older v0.5.1 build.
+  try{const saved=JSON.parse(localStorage.getItem(TURN_CFG_STORE)||'{}');if(isUsableTurnConfig(saved))return{domain:String(saved.domain).trim(),apiKey:String(saved.apiKey).trim()}}catch(e){}
+  return{domain:'',apiKey:''};
+}
+let TURN_CFG=loadTurnConfig(),NET_INIT_SEQ=0;
+const NET_MODE_STORE='slugger_neo_connection_mode_v1';
+const NET_MODE_ORDER=['auto','direct','relay'];
+const NET_MODE_INFO={
+  auto:{label:'AUTO',button:'Switch to Direct only',help:'Automatic ICE: direct/STUN candidates are preferred when viable; TURN relay candidates are available as fallback.'},
+  direct:{label:'DIRECT ONLY',button:'Switch to TURN relay only',help:'Direct-only mode: STUN is allowed, TURN relay candidates are disabled. This is useful for testing a direct route.'},
+  relay:{label:'TURN RELAY ONLY',button:'Switch to Auto',help:'Relay-only mode: requires valid TURN credentials and forces ICE to use relay candidates. Higher latency is possible.'}
+};
+function loadConnectionMode(){try{const m=localStorage.getItem(NET_MODE_STORE);if(NET_MODE_ORDER.includes(m))return m}catch(e){}return 'auto'}
+let NET_CONNECTION_MODE=loadConnectionMode(),NET_MODE_RESTARTING=false,NET_MODE_RESTART_RETRIES=0;
+function netModeInfo(m=NET_CONNECTION_MODE){return NET_MODE_INFO[m]||NET_MODE_INFO.auto}
+function filterIceServers(servers,kind){
+  const re=kind==='turn'?/^turns?:/i:/^stuns?:/i;
+  const out=[];
+  for(const server of (Array.isArray(servers)?servers:[])){
+    const raw=Array.isArray(server?.urls)?server.urls:[server?.urls];
+    const urls=raw.filter(u=>typeof u==='string'&&re.test(u));
+    if(urls.length)out.push({...server,urls:Array.isArray(server.urls)?urls:urls[0]});
+  }
+  return out;
+}
+function netCycleConnectionMode(){
+  if(PVP.active){netDiag('Connection mode cannot be changed during an active 1v1. Finish the match first.','warn');return}
+  const live=Object.values(NET.conns).some(c=>c&&c.open),pending=Object.keys(NET.pendingConnections).length>0;
+  if((live||pending)&&!confirm('Switching connection mode restarts PeerJS and closes current data connections. Your Friend ID should stay the same, but you will need to press Connect again. Continue?'))return;
+  const idx=NET_MODE_ORDER.indexOf(NET_CONNECTION_MODE),next=NET_MODE_ORDER[(idx+1)%NET_MODE_ORDER.length];
+  NET_CONNECTION_MODE=next;try{localStorage.setItem(NET_MODE_STORE,next)}catch(e){}
+  for(const pid of Object.keys(NET.pendingConnections)){const p=NET.pendingConnections[pid];if(p?.timer)clearTimeout(p.timer);delete NET.pendingConnections[pid];try{if(p?.conn&&!p.conn.open)p.conn.close()}catch(e){}}
+  for(const pid of Object.keys(NET.conns)){const c=NET.conns[pid];delete NET.conns[pid];if(NET.friends[pid])NET.friends[pid].status='OFFLINE';try{if(c)c.close()}catch(e){}}
+  NET.routeReported={};NET_MODE_RESTARTING=true;NET_MODE_RESTART_RETRIES=0;
+  netDiag('Connection mode changed to '+netModeInfo().label+'. Restarting PeerJS with the new ICE policy; reconnect to friends after signalling returns.','warn');
+  netRender();netInit(false);
+}
+const NET={peer:null,id:null,conns:{},friends:{},msgs:[],ready:false,err:null,bytesSent:0,bytesRecv:0,pktsSent:0,pktsRecv:0,ping:0,turnStatus:'Preparing ICE configuration…',diag:[],connectionStatus:'Waiting for the signalling service…',connectionLevel:'info',pendingConnections:{},routeReported:{}};
+function netDiag(message,level='info'){
+  const safe=String(message||'').replace(/(?:apiKey=)[^\s&]+/ig,'apiKey=[redacted]').slice(0,260);
+  NET.diag.push({t:Date.now(),message:safe,level});if(NET.diag.length>18)NET.diag.splice(0,NET.diag.length-18);
+  NET.connectionStatus=safe;NET.connectionLevel=level;
+  try{const fn=level==='error'?'error':level==='warn'?'warn':'info';console[fn]('[Slugger network]',safe)}catch(e){}
+  netRenderDiag();
+}
+function netRenderDiag(){
+  const modeCurrent=$('netModeCurrent');if(modeCurrent)modeCurrent.textContent=netModeInfo().label;
+  const modeButton=$('netModeBtn');if(modeButton)modeButton.textContent=netModeInfo().button;
+  const modeExplain=$('netModeExplain');if(modeExplain)modeExplain.textContent=netModeInfo().help;
+  if(modeButton)modeButton.disabled=!!PVP.active;
+  const log=$('netConnDiag');if(log)log.innerHTML=NET.diag.slice(-9).map(d=>`<div class="netDiagLine ${esc(d.level)}"><span class=time>${new Date(d.t).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>${esc(d.message)}</div>`).join('')||'<div class=ds>No network events yet.</div>';
+  const current=$('netConnectionStatus');if(current){current.className='netConnCurrent '+esc(NET.connectionLevel);current.textContent=NET.connectionStatus||'Waiting for a connection attempt.'}
+}
+function netClearPending(pid){const a=NET.pendingConnections[pid];if(a&&a.timer)clearTimeout(a.timer);delete NET.pendingConnections[pid]}
+function netFailPending(pid,conn,message){const a=NET.pendingConnections[pid];if(a){if(a.timer)clearTimeout(a.timer);delete NET.pendingConnections[pid]}if(conn&&!conn.open){try{conn.close()}catch(e){}}netDiag(message,'error');netSys(message);netRender()}
+async function fetchMeteredIceServers(){
+  if(!TURN_CFG.domain||!TURN_CFG.apiKey)return null;
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),6500);
+  try{
+    const url='https://'+TURN_CFG.domain+'/api/v1/turn/credentials?apiKey='+encodeURIComponent(TURN_CFG.apiKey);
+    const response=await fetch(url,{cache:'no-store',signal:controller.signal});
+    if(!response.ok)throw new Error('Metered returned HTTP '+response.status);
+    const servers=await response.json();
+    const hasTurn=Array.isArray(servers)&&servers.some(server=>{const urls=Array.isArray(server?.urls)?server.urls:[server?.urls];return urls.some(u=>typeof u==='string'&&/^turns?:/i.test(u))});
+    if(!hasTurn)throw new Error('Metered response contained no TURN servers');
+    // Preserve the familiar public STUN path even if the Metered array changes.
+    const merged=[{urls:'stun:stun.l.google.com:19302'},...servers];
+    const seen=new Set();return merged.filter(server=>{const urls=Array.isArray(server.urls)?server.urls:[server.urls];const key=JSON.stringify({urls,username:server.username||'',credential:server.credential||''});if(seen.has(key))return false;seen.add(key);return true});
+  }finally{clearTimeout(timer)}
+}
 function netLoadFriends(){try{NET.friends=JSON.parse(localStorage.getItem(FK)||'{}')}catch(e){NET.friends={}}}
 function netSaveFriends(){try{localStorage.setItem(FK,JSON.stringify(NET.friends))}catch(e){}}
 function pvpBeginReconnect(pid){if(!PVP.active||pid!==PVP.opponent||PVP.finished||PVP.phase==='reconnecting')return;PVP.reconnectPhase=PVP.phase;PVP.phase='reconnecting';PVP.reconnectDeadline=Date.now()+15000;mode='pause';$('pauseOverlay').className='ov on';$('pauseOverlay').innerHTML=`<h2>Connection Lost</h2><p>Reconnecting to ${esc(pid)}…</p><h3 id="pvpReconnectTimer">15</h3><p class=ds>Reconnect from the Friends tab within 15 seconds to resume.</p><button onclick="netConnect('${esc(pid)}')">Reconnect now</button>`;}
 function pvpResumeConnection(pid){if(!PVP.active||pid!==PVP.opponent||PVP.phase!=='reconnecting')return;PVP.reconnectDeadline=0;PVP.phase=PVP.reconnectPhase||'playing';PVP.reconnectPhase=null;mode=PVP.phase==='playing'?'play':PVP.phase==='pause'?'pause':'hub';$('pauseOverlay').innerHTML=PVP.pauseHtml||'<h2>Paused</h2><button onclick="pz()">Resume (Esc)</button><button onclick="endRun(false)">Abandon run</button>';$('pauseOverlay').className=mode==='pause'?'ov on':'ov';netSend(pid,{type:'pvp_resume',matchId:PVP.matchId,phase:PVP.phase,seed:PVP.seed});netSys('Connection restored; match resumed.');}
 function pvpTickReconnect(){if(PVP.phase!=='reconnecting'||!PVP.reconnectDeadline)return;const left=Math.max(0,Math.ceil((PVP.reconnectDeadline-Date.now())/1000)),el=$('pvpReconnectTimer');if(el)el.textContent=left;if(left<=0){PVP.reconnectDeadline=0;if(PVP.role==='host'){endPvp('host','disconnect',{reason:'reconnect-timeout',graceMs:15000});}else{PVP.noReward=false;endPvp('guest','disconnect',{reason:'host-reconnect-timeout',graceMs:15000,opponentRole:'host'});}}}
 function sendPvpStatus(){const modeName=PVP.active?'game':mode==='hub'?'hub':mode==='pause'?'pause':'play';netBroadcast({type:'status',mode:modeName,at:P.at||'neutral',t:Date.now()});}
-function netInit(newId){
-  NET.err=null;if(NET.peer){try{NET.peer.destroy()}catch(e){}NET.peer=null}NET.ready=false;
-  if(typeof Peer==='undefined'){NET.err='PeerJS not loaded';netRender();return}
+async function netInit(newId){
+  const initSeq=++NET_INIT_SEQ;
+  NET.err=null;NET.ready=false;NET.turnStatus='Loading network configuration for '+netModeInfo().label+' mode…';
+  if(NET.peer){try{NET.peer.destroy()}catch(e){}NET.peer=null}
+  if(typeof Peer==='undefined'){NET.err='PeerJS not loaded';netDiag('PeerJS library did not load. Check whether this network blocks the CDN.','error');netRender();return}
   if(newId)NET.id=genId();else if(!NET.id)NET.id=loadId();
-  try{NET.peer=new Peer(NET.id,{debug:0})}catch(e){NET.err=e.message||'init error';netRender();return}
-  NET.peer.on('open',id=>{NET.id=id;NET.ready=true;NET.err=null;if(AUTH.user&&!AUTH.guest&&fbDb)fbDb.collection('users').doc(AUTH.user.uid).set({slugId:id},{merge:true}).catch(e=>console.warn('Slug ID profile update failed:',e));netRender()});
-  NET.peer.on('error',e=>{if(e.type==='unavailable-id'){NET.id=null;try{localStorage.removeItem(PK)}catch(x){}netInit(true);return}NET.err=(e.type||'error')+': '+(e.message||'');NET.ready=false;netRender()});
-  NET.peer.on('connection',c=>netAccept(c));
-  NET.peer.on('disconnected',()=>{if(NET.peer&&!NET.peer.destroyed)try{NET.peer.reconnect()}catch(e){}});
+  let peerOptions={debug:2},iceServers=null;
+  if(TURN_CFG.domain&&TURN_CFG.apiKey){
+    NET.turnStatus='Loading Metered ICE servers for '+netModeInfo().label+' mode…';netDiag('Loading ICE server configuration for '+netModeInfo().label+' mode.');netRender();
+    try{
+      iceServers=await fetchMeteredIceServers();if(initSeq!==NET_INIT_SEQ)return;
+      if(iceServers){NET.turnStatus='Metered ICE servers loaded.';netDiag('Metered ICE server list loaded successfully.','success')}
+    }catch(e){if(initSeq!==NET_INIT_SEQ)return;const reason=e.name==='AbortError'?'request timed out':String(e.message||e).slice(0,100);NET.turnStatus='Metered TURN unavailable; applying '+netModeInfo().label+' policy.';netDiag('TURN credential fetch failed ('+reason+'). Applying the selected connection mode anyway.','warn');console.warn('Slugger TURN setup unavailable:',reason)}
+  }else{
+    NET.turnStatus='No Metered TURN credentials are configured.';
+    netDiag('Metered TURN configuration is not present in code or saved browser settings.','warn');
+  }
+  if(initSeq!==NET_INIT_SEQ)return;
+  const modeAtStart=NET_CONNECTION_MODE;
+  const stunOnly=filterIceServers(iceServers||[], 'stun');
+  const turnOnly=filterIceServers(iceServers||[], 'turn');
+  if(modeAtStart==='auto'){
+    if(iceServers){peerOptions.config={iceServers,iceTransportPolicy:'all',sdpSemantics:'unified-plan'};NET.turnStatus='AUTO mode: direct preferred when viable; TURN relay candidates available.';netDiag('AUTO mode selected: all configured ICE candidates enabled; WebRTC normally prefers a viable direct path and can select TURN relay candidates.','success')}
+    else{NET.turnStatus='AUTO mode: PeerJS default ICE; Metered TURN not loaded.';netDiag('AUTO mode uses PeerJS default ICE because Metered TURN configuration is unavailable. Direct connectivity may work, but custom TURN fallback is not active.','warn')}
+  }else if(modeAtStart==='direct'){
+    const directServers=stunOnly.length?stunOnly:[{urls:'stun:stun.l.google.com:19302'}];
+    peerOptions.config={iceServers:directServers,iceTransportPolicy:'all',sdpSemantics:'unified-plan'};
+    NET.turnStatus='DIRECT ONLY mode: STUN allowed, TURN disabled.';netDiag('DIRECT ONLY mode selected: host/STUN candidates only; TURN relay candidates are disabled.','warn');
+  }else{
+    peerOptions.config={iceServers:turnOnly,iceTransportPolicy:'relay',sdpSemantics:'unified-plan'};
+    if(turnOnly.length){NET.turnStatus='TURN RELAY ONLY mode: relay candidates forced.';netDiag('TURN RELAY ONLY mode selected: ICE policy is relay-only ('+turnOnly.length+' TURN server entries).','warn')}
+    else{NET.turnStatus='TURN RELAY ONLY unavailable: valid TURN credentials required.';netDiag('TURN RELAY ONLY selected, but no usable TURN servers were loaded. Connections will fail until Metered configuration is corrected.','error')}
+  }
+  if(initSeq!==NET_INIT_SEQ)return;
+  try{NET.peer=new Peer(NET.id,peerOptions)}catch(e){NET.err=e.message||'init error';netDiag('Could not create PeerJS: '+NET.err,'error');netRender();return}
+  const peer=NET.peer;
+  peer.on('open',id=>{if(NET.peer!==peer)return;NET.id=id;NET.ready=true;NET.err=null;NET_MODE_RESTARTING=false;NET_MODE_RESTART_RETRIES=0;netDiag('Signalling connected in '+netModeInfo().label+' mode. Your Friend ID is '+id+'; waiting for a peer-to-peer data connection.','success');if(AUTH.user&&!AUTH.guest&&fbDb)fbDb.collection('users').doc(AUTH.user.uid).set({slugId:id},{merge:true}).catch(e=>console.warn('Slug ID profile update failed:',e));netRender()});
+  peer.on('error',e=>{
+    if(NET.peer!==peer)return;
+    if(e.type==='unavailable-id'){
+      if(NET_MODE_RESTARTING&&NET_MODE_RESTART_RETRIES<3){
+        const retry=++NET_MODE_RESTART_RETRIES,wait=1200+retry*900,seq=initSeq;
+        netDiag('Friend ID is still being released after changing modes; retrying the same ID in '+Math.ceil(wait/1000)+'s ('+retry+'/3).','warn');
+        setTimeout(()=>{if(NET.peer===peer&&NET_MODE_RESTARTING&&NET_INIT_SEQ===seq)netInit(false)},wait);return;
+      }
+      if(NET_MODE_RESTARTING){NET_MODE_RESTARTING=false;NET.err='Friend ID temporarily unavailable';NET.ready=false;netDiag('Could not reacquire the same Friend ID after switching modes. Wait a few seconds, then switch mode again to retry; the game has kept your saved ID.','error');netRender();return;}
+      NET.id=null;try{localStorage.removeItem(PK)}catch(x){}netDiag('Friend ID was already in use; generating a new ID.','warn');netInit(true);return;
+    }
+    const type=String(e.type||'error'),msg=String(e.message||'');
+    if(type==='peer-unavailable'){
+      const ids=Object.keys(NET.pendingConnections);const target=ids.find(pid=>!msg||msg.includes(pid))||ids[0];
+      if(target){netFailPending(target,NET.pendingConnections[target]?.conn,'Friend '+target+' is unavailable or offline. Confirm their ID and ask them to keep the game open.');return}
+      netDiag('PeerJS could not find the requested peer: '+msg,'error');netRender();return;
+    }
+    const fatal=['network','server-error','socket-error','socket-closed','browser-incompatible','ssl-unavailable','invalid-id','invalid-key','disconnected'].includes(type);
+    if(fatal){NET.err=type+': '+msg;NET.ready=false;netDiag('PeerJS signalling error ('+type+'): '+msg,'error')}
+    else{netDiag('PeerJS network warning ('+type+'): '+msg,'warn')}
+    netRender();
+  });
+  peer.on('connection',c=>{if(NET.peer===peer){netDiag('Incoming WebRTC connection request from '+c.peer+' using '+netModeInfo().label+' mode.','info');netAccept(c)}});
+  peer.on('disconnected',()=>{if(NET.peer===peer&&!peer.destroyed){netDiag('PeerJS signalling disconnected; attempting to restore signalling.','warn');try{peer.reconnect()}catch(e){netDiag('Signalling reconnect failed: '+String(e.message||e),'error')}}});
 }
 function netAccept(c){
   if(!c)return;
+  const pid=c.peer;
+  c.on('iceStateChanged',state=>{
+    if(state==='checking')netDiag('ICE is checking candidate pairs for '+pid+' under '+netModeInfo().label+' mode.');
+    else if(state==='connected'||state==='completed')netDiag('ICE transport established with '+pid+'; identifying the selected route…','success');
+    else if(state==='disconnected')netDiag('ICE temporarily disconnected from '+pid+'; browser is attempting recovery.','warn');
+    else if(state==='failed')netDiag('ICE failed for '+pid+' under '+netModeInfo().label+' mode: no allowed candidate pair could connect. Check both clients’ selected modes, network restrictions, and TURN configuration.','error');
+    else if(state==='closed')netDiag('ICE transport closed for '+pid+'.','warn');
+  });
   c.on('open',()=>{
-    const previous=NET.conns[c.peer];if(previous&&previous!==c&&previous.open){try{previous.close()}catch(e){}}NET.conns[c.peer]=c;
-    if(PVP.active&&PVP.role==='host'&&PVP.finished&&PVP.resultPacket&&PVP.opponent===c.peer)netSend(c.peer,PVP.resultPacket);else pvpResumeConnection(c.peer);
-    if(!NET.friends[c.peer])NET.friends[c.peer]={name:c.peer.replace(/^SLUG-/,''),status:'hub',added:Date.now()};
-    netSaveFriends();
-    netSys('Connected to '+c.peer);
-    netSend(c.peer,{type:'hello',name:AUTH.username||'SLUG'});
-    netSend(c.peer,{type:'status',mode:mode==='hub'?'hub':(PVP.active?'game':'play'),at:P.at||'neutral'});
-    if(NET.pendingCloudInvite&&NET.pendingCloudInvite.pid===c.peer){const inv=NET.pendingCloudInvite;NET.pendingCloudInvite=null;enterPvpLobby('guest',c.peer,inv.target);netSend(c.peer,{type:'pvp_accept',target:inv.target});}
-    netRender();
+    netClearPending(pid);
+    const previous=NET.conns[pid];if(previous&&previous!==c&&previous.open){try{previous.close()}catch(e){}}NET.conns[pid]=c;
+    if(PVP.active&&PVP.role==='host'&&PVP.finished&&PVP.resultPacket&&PVP.opponent===pid)netSend(pid,PVP.resultPacket);else pvpResumeConnection(pid);
+    if(!NET.friends[pid])NET.friends[pid]={name:pid.replace(/^SLUG-/,''),status:'hub',added:Date.now()};
+    netSaveFriends();netDiag('Peer-to-peer data channel CONNECTED to '+pid+'. Checking whether the active route is direct or relayed…','success');netSys('Connected to '+pid);
+    netSend(pid,{type:'hello',name:AUTH.username||'SLUG'});
+    netSend(pid,{type:'status',mode:mode==='hub'?'hub':(PVP.active?'game':'play'),at:P.at||'neutral'});
+    if(NET.pendingCloudInvite&&NET.pendingCloudInvite.pid===pid){const inv=NET.pendingCloudInvite;NET.pendingCloudInvite=null;enterPvpLobby('guest',pid,inv.target);netSend(pid,{type:'pvp_accept',target:inv.target});}
+    netRender();setTimeout(()=>netInspectRoute(pid,c,0),450);
   });
-  c.on('data',d=>netData(c.peer,d));
+  c.on('data',d=>netData(pid,d));
   c.on('close',()=>{
-    const wasCurrent=NET.conns[c.peer]===c;if(wasCurrent){delete NET.conns[c.peer];if(NET.friends[c.peer])NET.friends[c.peer].status='OFFLINE';netSaveFriends();netSys('Disconnected '+c.peer);if(PVP.active&&PVP.opponent===c.peer&&!PVP.finished){if(['playing','countdown','sync','reconnecting','roundSummary','upgrade','waveSelect'].includes(PVP.phase)){netSys('Opponent connection lost — 15-second reconnect window started');pvpBeginReconnect(c.peer)}else{netSys('Opponent disconnected from the lobby.');cleanupPvp();if(mode!=='hub'){mode='hub';hub()}}}netRender();}
+    const wasCurrent=NET.conns[pid]===c;
+    if(wasCurrent){delete NET.conns[pid];if(NET.friends[pid])NET.friends[pid].status='OFFLINE';netSaveFriends();netDiag('Peer-to-peer data channel closed with '+pid+'.','warn');netSys('Disconnected '+pid);if(PVP.active&&PVP.opponent===pid&&!PVP.finished){if(['playing','countdown','sync','reconnecting','roundSummary','upgrade','waveSelect'].includes(PVP.phase)){netSys('Opponent connection lost — 15-second reconnect window started');pvpBeginReconnect(pid)}else{netSys('Opponent disconnected from the lobby.');cleanupPvp();if(mode!=='hub'){mode='hub';hub()}}}netRender();}
+    const pending=NET.pendingConnections[pid];if(pending&&pending.conn===c)netFailPending(pid,c,'Connection to '+pid+' closed before it was established.');
   });
-  c.on('error',err=>{const wasCurrent=NET.conns[c.peer]===c;if(wasCurrent){delete NET.conns[c.peer];if(NET.friends[c.peer])NET.friends[c.peer].status='OFFLINE';netSaveFriends();netSys('Connection issue with '+c.peer+(err&&err.type?': '+err.type:''));netRender();if(PVP.active&&PVP.opponent===c.peer&&!PVP.finished){if(['playing','countdown','sync','reconnecting','roundSummary','upgrade','waveSelect'].includes(PVP.phase))pvpBeginReconnect(c.peer);else{cleanupPvp();if(mode!=='hub'){mode='hub';hub()}}}}});
+  c.on('error',err=>{
+    const errType=String(err&&err.type||'data-connection-error');
+    const pending=NET.pendingConnections[pid];if(pending&&pending.conn===c){netFailPending(pid,c,'Connection to '+pid+' failed ('+errType+'): '+String(err&&err.message||'WebRTC error'));return;}
+    const wasCurrent=NET.conns[pid]===c;
+    netDiag('Connection error with '+pid+' ('+errType+'): '+String(err&&err.message||'WebRTC error'),'error');
+    if(wasCurrent){delete NET.conns[pid];if(NET.friends[pid])NET.friends[pid].status='OFFLINE';netSaveFriends();netRender();if(PVP.active&&PVP.opponent===pid&&!PVP.finished){if(['playing','countdown','sync','reconnecting','roundSummary','upgrade','waveSelect'].includes(PVP.phase))pvpBeginReconnect(pid);else{cleanupPvp();if(mode!=='hub'){mode='hub';hub()}}}}
+  });
+}
+async function netInspectRoute(pid,conn,retry){
+  if(!conn||NET.conns[pid]!==conn||!conn.open)return;
+  const pc=conn.peerConnection;
+  if(!pc||typeof pc.getStats!=='function'){
+    if(retry<2){setTimeout(()=>netInspectRoute(pid,conn,retry+1),900);return}
+    netDiag('Connected to '+pid+'; this browser did not expose route details, so direct-vs-relay cannot be confirmed.','warn');return;
+  }
+  try{
+    const report=await pc.getStats(),items=[];report.forEach(v=>items.push(v));
+    const byId=new Map(items.filter(v=>v.id).map(v=>[v.id,v]));let pair=null;
+    for(const stat of items){if(stat.type==='transport'&&stat.selectedCandidatePairId){pair=byId.get(stat.selectedCandidatePairId);if(pair)break}}
+    if(!pair)pair=items.find(v=>v.type==='candidate-pair'&&v.state==='succeeded'&&(v.selected===true||v.nominated===true));
+    if(!pair&&retry<3){setTimeout(()=>netInspectRoute(pid,conn,retry+1),900);return}
+    if(pair){const local=byId.get(pair.localCandidateId),remote=byId.get(pair.remoteCandidateId),lt=String(local&&local.candidateType||''),rt=String(remote&&remote.candidateType||'');
+      if(lt||rt){const relayed=lt==='relay'||rt==='relay';const desc=relayed?'TURN RELAY ACTIVE':'DIRECT P2P ACTIVE (no TURN relay)';const detail=`${desc} with ${pid}${lt||rt?' — local '+(lt||'unknown')+', remote '+(rt||'unknown'):''}`;NET.routeReported[pid]=conn;netDiag(detail,relayed?'success':'success');return;}
+    }
+    if(retry<3){setTimeout(()=>netInspectRoute(pid,conn,retry+1),900);return}
+    netDiag('Connected to '+pid+'; selected network route is active but candidate details are unavailable in this browser.','warn');
+  }catch(e){if(retry<2){setTimeout(()=>netInspectRoute(pid,conn,retry+1),900);return}netDiag('Connected to '+pid+'; route diagnostics were unavailable ('+String(e.message||'getStats failed')+').','warn')}
 }
 function netSend(pid,obj){const c=NET.conns[pid];if(!c||!c.open)return false;try{c.send(obj);NET.pktsSent++;NET.bytesSent+=(JSON.stringify(obj)||'').length;return true}catch(e){return false}}
 function netBroadcast(obj){Object.keys(NET.conns).forEach(k=>netSend(k,obj))}
@@ -825,14 +997,24 @@ function netSys(msg){NET.msgs.push({sys:1,from:'sys',msg,t:Date.now()});if(NET.m
 function netConnect(arg){
   if(PVP.active&&PVP.playerDead){netSys('Spectators can only message the surviving player.');return;}
   let t=arg;if(typeof arg!=='string'){const el=$('netTarget');t=el?el.value:''}
-  if(!t)return;
-  let raw=t.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(raw.startsWith('SLUG'))raw=raw.slice(4);
+  if(!t||!String(t).trim()){netDiag('Enter your friend’s SLUG-XXXX ID, then press Connect.','warn');return}
+  let raw=String(t).trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(raw.startsWith('SLUG'))raw=raw.slice(4);
   const id='SLUG-'+raw;
-  if(!/^SLUG-[A-Z0-9]{4}$/.test(id)){netSys('Invalid ID');return}
-  if(NET.conns[id]){netSys('Already connected');return}
-  if(!NET.peer||!NET.ready){netSys('Network not ready');return}
-  netSys('Connecting to '+id+'...');
-  try{netAccept(NET.peer.connect(id,{reliable:true}))}catch(e){netSys('Connect failed: '+e.message)}
+  if(!/^SLUG-[A-Z0-9]{4}$/.test(id)){netDiag('Invalid friend ID. Expected the format SLUG-XXXX.','error');return}
+  if(NET.conns[id]&&NET.conns[id].open){netDiag('Already connected to '+id+'.','success');return}
+  if(NET.pendingConnections[id]){netDiag('A connection attempt to '+id+' is already in progress.','warn');return}
+  if(!NET.peer||!NET.ready){netDiag('Signalling is not ready yet. Current state: '+(NET.err||'initializing')+'.','error');return}
+  const attempt={conn:null,started:Date.now(),timer:null};NET.pendingConnections[id]=attempt;
+  netDiag('Starting connection to '+id+'. Signalling is ready; requesting a PeerJS data channel.');
+  netDiag('Connection mode for this attempt: '+netModeInfo().label+'. '+netModeInfo().help,'info');
+  attempt.timer=setTimeout(()=>{
+    const live=NET.pendingConnections[id];if(!live||live!==attempt)return;
+    delete NET.pendingConnections[id];
+    try{if(live.conn&&!live.conn.open)live.conn.close()}catch(e){}
+    const detail=NET_CONNECTION_MODE==='relay'?'Timed out waiting for '+id+' in TURN RELAY ONLY mode. No relay-only data channel was established; verify TURN credentials, relay reachability, and the other player’s connection mode.':NET_CONNECTION_MODE==='direct'?'Timed out waiting for '+id+' in DIRECT ONLY mode. TURN was disabled intentionally; this network may require a relay.':'Timed out waiting for '+id+' in AUTO mode. No data channel was established; verify the friend ID, both players’ signalling status, and TURN credentials if configured.';
+    netDiag(detail,'error');netSys(detail);netRender();
+  },22000);
+  try{const conn=NET.peer.connect(id,{reliable:true});attempt.conn=conn;netAccept(conn)}catch(e){netFailPending(id,null,'Could not start connection to '+id+': '+String(e.message||e))}
 }
 function netCopy(){const id=NET.id;if(!id)return;const done=()=>netSys('ID copied: '+id);if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(id).then(done).catch(()=>fallback())}else fallback();function fallback(){const t=document.createElement('textarea');t.value=id;document.body.appendChild(t);t.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(t);done()}}
 function netDel(id){delete NET.friends[id];if(NET.conns[id])try{NET.conns[id].close()}catch(e){}delete NET.conns[id];netSaveFriends();if(dmSelected===id)dmSelected=null;netRender();SFX.click()}
@@ -1065,6 +1247,7 @@ function netRender(){
   const st=$('netStatus');if(st)st.innerHTML=statusHtml();
   const lg=$('netLog');if(lg){const pid=dmSelected;if(pid){const msgs=NET.msgs.filter(m=>m.sys||m.from===pid||m.to===pid);lg.innerHTML=msgs.slice(-60).map(m=>m.sys?`<div class="cm sys">${esc(m.msg)}</div>`:`<div class=cm><b>${esc(String(m.from||'').replace(/^SLUG-/,''))}</b> ${esc(m.msg)}</div>`).join('');lg.scrollTop=lg.scrollHeight}}
   const actions=$('netDmActions');if(actions&&dmSelected)actions.innerHTML=dmActionsHtml(dmSelected);
+  netRenderDiag();
 }
 function friendListHtml(){
   const keys=Object.keys(NET.friends);
@@ -1078,7 +1261,7 @@ function friendListHtml(){
     return `<div class="fr${sel}" onclick="dmSelect('${id}')"><span class=nm>${esc(f.name||id)}<br><span class=ds>${esc(id)}</span></span><span class="bdg ${st}">${label}</span></div>`;
   }).join('');
 }
-function statusHtml(){if(NET.err)return `<span class=lock>${esc(NET.err)}</span>`;if(NET.ready)return `<span class=act>Connected</span>`;return `<span class=ds>Initializing…</span>`}
+function statusHtml(){if(NET.err)return `<span class=lock>Signalling error: ${esc(NET.err)}</span>`;if(NET.ready)return `<span class=act>Signalling connected · ID ready</span>`;return `<span class=ds>Connecting to signalling…</span>`}
 function t4(){
   const friendCount=Object.keys(NET.friends).filter(id=>NET.conns[id]&&NET.conns[id].open).length;
   const dmp=dmSelected?`<p class=ds>Chatting with <b>${esc(NET.friends[dmSelected]?.name||dmSelected)}</b></p>${dmViewHtml(dmSelected)}`:'<p class=ds>Select a friend from the list to open a DM.</p>';
@@ -1094,6 +1277,8 @@ function t4(){
       <div class=ds style="margin-top:6px">${friendCount} P2P connected / ${Object.keys(NET.friends).length} saved</div><div class=ds>Cloud friend requests require an authenticated account.</div>
     </div>
   </div>
+  <div class=p style="margin-top:8px"><h3>Connection mode</h3><div class=row style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>Current mode: <b id=netModeCurrent>${esc(netModeInfo().label)}</b></span><button id=netModeBtn onclick="netCycleConnectionMode()">${esc(netModeInfo().button)}</button></div><p id=netModeExplain class=ds style="margin:4px 0">${esc(netModeInfo().help)}</p><p class=ds style="margin:4px 0 0">Cycle: Auto → Direct only → TURN relay only. A mode change restarts networking and closes existing peer connections. Mode changes are blocked during an active 1v1.</p></div>
+  <div class=p style="margin-top:8px"><h3>Connection status & diagnostics</h3><div id=netConnectionStatus class="netConnCurrent ${esc(NET.connectionLevel)}">${esc(NET.connectionStatus)}</div><div id=netConnDiag class=netDiag>${NET.diag.slice(-9).map(d=>`<div class="netDiagLine ${esc(d.level)}"><span class=time>${new Date(d.t).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>${esc(d.message)}</div>`).join('')||'<div class=ds>No network events yet.</div>'}</div><p class=ds style="margin:5px 0 0">“Signalling connected” means your Friend ID is online. “Direct P2P” or “TURN relay” is reported separately after the peer-to-peer data channel opens.</p></div>
   <div class=g>
     <div class="p dmSidebar"><h3>Friends</h3><div id=netFriendsList>${friendListHtml()}</div><h3 style="margin-top:10px">Incoming cloud requests</h3>${(NET.cloudRequests||[]).map(r=>`<div class=fr><span class=nm>${esc(r.fromName||r.fromSlug||r.id)}</span><button onclick="acceptCloudRequest('${esc(r.fromUid||r.id)}','${esc(r.fromSlug||'SLUG-????')}','${esc(r.fromName||'Player')}','${esc(r.id)}')">Accept</button><button onclick="declineCloudRequest('${esc(r.fromUid||r.id)}','${esc(r.id)}')">Decline</button></div>`).join('')||'<p class=ds>No pending requests.</p>'}</div>
     <div class=p><h3>Direct Message ${dmSelected?`· ${esc(NET.friends[dmSelected]?.name||dmSelected)}`:''}</h3>${dmp}</div>
