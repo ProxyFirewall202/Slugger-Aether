@@ -1,4 +1,4 @@
-/* Slugger NEO v0.5.4.3 — Authoritative network packets/snapshots, data-channel messages, chats, direct messages, and invitations.
+/* Slugger NEO v0.6 Phase 1 — Authoritative network packets/snapshots, data-channel messages, chats, direct messages, and invitations.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */

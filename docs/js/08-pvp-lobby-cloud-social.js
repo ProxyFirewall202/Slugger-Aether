@@ -1,4 +1,4 @@
-/* Slugger NEO v0.5.4.3 — PvP lobby and ready protocol, loadouts, cloud friend relationships, cloud presence, and invites.
+/* Slugger NEO v0.6 Phase 1 — PvP lobby and ready protocol, loadouts, cloud friend relationships, cloud presence, and invites.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -36,8 +36,8 @@ function updatePvpLobbyUi(){
   ys.textContent=myReady?'✅ Ready':'⏳ Not ready';
   os.textContent=oppReady?'✅ Ready':'⏳ Not ready';
 }
-function makePvpLoadout(){const c=calc(),id=IT[S.eq.w]?S.eq.w:'blaster',iv=S.inv[id]||{r:0},sets=Object.fromEntries(Object.keys(SETS).map(k=>[k,setN(k)]));return{weapon:id,rank:cl(Number(iv.r)||0,0,5),level:cl(Number(S.wl[id])||0,0,20),damage:cl(Number(c.dmg)||10,1,180),cooldown:cl(Number(c.cd)||c.w.r,.07,2),pellets:cl(Number(c.w.k)||1,1,5),pierce:cl(Number(c.w.pi)||1,1,5),radius:cl(Number(c.w.pi)?7:4,3,9),hp:cl(Number(c.mhp)||100,50,2000),dr:cl(Number(c.dr)||0,0,.75),tk:cl(Number(c.tk)||1,.5,2),mag:cl(Number(c.mag)||80,40,300),hazardImmune:!!c.ad,sets};}
-function acceptPvpLoadout(raw){if(!raw||typeof raw!=='object')return null;const wid=IT[raw.weapon]?raw.weapon:'blaster',base=IT[wid];const rank=cl(Number(raw.rank)||0,0,5),level=cl(Number(raw.level)||0,0,20),damage=cl(Number(raw.damage)||base.d,Math.max(1,base.d*.6),Math.max(5,base.d*4));return{weapon:wid,rank,level,damage,cooldown:cl(Number(raw.cooldown)||base.r,.07,2),pellets:cl(Math.floor(Number(raw.pellets)||base.k||1),1,5),pierce:cl(Math.floor(Number(raw.pierce)||base.pi||1),1,5),radius:cl(Number(raw.radius)||4,3,9),hp:cl(Number(raw.hp)||100,50,2000),dr:cl(Number(raw.dr)||0,0,.75),tk:cl(Number(raw.tk)||1,.5,2),mag:cl(Number(raw.mag)||80,40,300),hazardImmune:!!raw.hazardImmune,sets:raw.sets&&typeof raw.sets==='object'?raw.sets:{}};}
+function makePvpLoadout(){const c=calc(),id=IT[S.eq.w]?S.eq.w:'blaster',sets=Object.fromEntries(Object.keys(SETS).map(k=>[k,setN(k)]));return{weapon:id,damage:cl(Number(c.dmg)||10,1,180),cooldown:cl(Number(c.cd)||c.w.r,.07,2),pellets:cl(Number(c.w.k)||1,1,5),pierce:cl(Number(c.w.pi)||1,1,5),radius:cl(Number(c.w.pi)?7:4,3,9),hp:cl(Number(c.mhp)||100,50,2000),dr:cl(Number(c.dr)||0,0,.75),tk:cl(Number(c.tk)||1,.5,2),mag:cl(Number(c.mag)||80,40,300),hazardImmune:!!c.ad,sets};}
+function acceptPvpLoadout(raw){if(!raw||typeof raw!=='object')return null;const wid=IT[raw.weapon]?raw.weapon:'blaster',base=IT[wid];const damage=cl(Number(raw.damage)||base.d,Math.max(1,base.d*.6),Math.max(5,base.d*4));return{weapon:wid,damage,cooldown:cl(Number(raw.cooldown)||base.r,.07,2),pellets:cl(Math.floor(Number(raw.pellets)||base.k||1),1,5),pierce:cl(Math.floor(Number(raw.pierce)||base.pi||1),1,5),radius:cl(Number(raw.radius)||4,3,9),hp:cl(Number(raw.hp)||100,50,2000),dr:cl(Number(raw.dr)||0,0,.75),tk:cl(Number(raw.tk)||1,.5,2),mag:cl(Number(raw.mag)||80,40,300),hazardImmune:!!raw.hazardImmune,sets:raw.sets&&typeof raw.sets==='object'?raw.sets:{}};}
 function pvpClickReady(){
   if(PVP.phase!=='lobby')return;
   PVP.myLoadout=makePvpLoadout();

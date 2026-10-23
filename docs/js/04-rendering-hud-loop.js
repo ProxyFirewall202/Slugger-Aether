@@ -1,4 +1,4 @@
-/* Slugger NEO v0.5.4.3 — Canvas drawing, player/enemy rendering, HUD, run conclusion UI, and base loop declaration.
+/* Slugger NEO v0.6 Phase 1 — Canvas drawing, player/enemy rendering, HUD, run conclusion UI, and base loop declaration.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -69,7 +69,7 @@ S.warp+=G.warp;S.souls+=G.souls;let n=0;for(const k in G.cr){S.cr[k]+=G.cr[k];n+
 logs=[(win?'Victory: the Aether boss is down.':'Run over.')+` Reached wave ${G.w}, banked ${G.warp} Warp, ${G.souls} souls and ${n} crate${n==1?'':'s'}.`];save();netBroadcast({type:'status',mode:'hub'});hub()}
 function pz(){if(PVP.active){return}if(mode==='play'){mode='pause';$('pauseOverlay').className='ov on'}else if(mode==='pause'){mode='play';$('pauseOverlay').className='ov'}}
 const bt=(f,t,x,tp)=>`<button${x?'':' disabled'} onclick="${f}"${tp?` class=tt data-tip="${tp}"`:''}>${t}</button>`;
-const TABS=['Deploys & checkpoints','Crate decryption','Skill tree & upgrades','Loadout & reinforcement','Friends & network'];
+const TABS=['Deploys & checkpoints','Crates & Decryption','Skill Tree & Upgrades','Loadout & Sets','Friends & network'];
 const UP=[['hp','Max health',5,60,'❤'],['oc','Blaster overclock',5,80,'⚡'],['thr','Movement thrusters',3,70,'🚀'],['slime','Slime trail generator',3,150,'🧪'],['amp','Attunement amplifiers',5,90,'✨']];
 
 /* Base loop declaration is placed here intentionally: it was hoisted in the original monolithic script. */

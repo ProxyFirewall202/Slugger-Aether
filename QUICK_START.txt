@@ -1,9 +1,10 @@
-Slugger NEO v0.5.4.3 — Quick Start
+Slugger NEO v0.6 — Phase 1 Quick Start
 
-[1] Cloudflare > Workers & Pages > slugger-turn-ice > Edit code. Replace Worker source with cloudflare-worker/worker.js; click Save and deploy. Keep all current Production variables/secrets. No new secret is needed.
-[2] GitHub: upload the contents of docs/ into the repo's top-level docs/ folder on main. Keep Pages set to main /docs. Do not upload cloudflare-worker/ to docs/.
-[3] Open https://slugger-turn-ice.tholloway540.workers.dev/health. Expect usernameLoginSetupStatus: "ready".
-[4] Publish/reload the game. Create account with a new 3–20 char username. Then sign out and sign in with it. Friend ID should persist.
-[5] Create that username again: it should say already exists. Sign in with an unused name: it should tell you to Create account.
+1. Extract slugger_neo_v0.6_phase1_complete.zip.
+2. Upload the CONTENTS of docs/ into your current GitHub repository's top-level docs/ folder on main.
+3. Keep index.html, manifest.webmanifest, icons/, css/, and js/ together. Commit the changes.
+4. Leave GitHub Pages set to main /docs.
+5. No Cloudflare Worker update is required for Phase 1. Preserve the existing Worker and secrets.
+6. Test crate subtabs (owned crates only), item category grid, Weapon Stats & DPS, Sets & Progress, and the 1v1 60-second upgrade screen.
 
-Full steps and troubleshooting: README.txt and cloudflare-worker/README.txt.
+See README.txt and CHANGELOG_V0.6_PHASE1.txt for details. Phase 2 and Phase 3 are deferred until Phase 1 has been tested and any bugs fixed.

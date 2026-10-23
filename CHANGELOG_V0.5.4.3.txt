@@ -1,9 +1,0 @@
-Slugger NEO v0.5.4.3 — Changelog
-
-- Initial auth screen now has separate Sign in and Create account buttons.
-- Sign in route /username-token no longer implicitly creates unknown usernames; unknown usernames return HTTP 404.
-- Added /username-register route for new account registration.
-- Registration checks duplicate usernames (including legacy user profiles), writes the deterministic username index, creates the initial Firestore profile, allocates a unique-format Friend ID, and then mints a Firebase custom token.
-- Added UI messaging for existing usernames, unknown usernames, server setup issues and duplicate registration.
-- Updated script/style cache query versions to v0.5.4.3.
-- Existing social cloud sync, mobile controls, and TURN endpoint are preserved.

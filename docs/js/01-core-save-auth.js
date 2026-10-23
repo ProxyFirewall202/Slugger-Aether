@@ -1,4 +1,4 @@
-/* Slugger NEO v0.5.4.3 — Core constants, save normalisation/merging, authentication, and cloud persistence.
+/* Slugger NEO v0.6 Phase 1 — Core constants, save normalisation/merging, authentication, and cloud persistence.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -7,7 +7,7 @@ const W=960,H=600,cv=document.getElementById('gameCanvas'),cx=cv.getContext('2d'
 let deterministicRandom=null;const R=(a,b)=>a+(deterministicRandom?deterministicRandom():Math.random())*(b-a),RI=(a,b)=>Math.floor(R(a,b+1)),D=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const EC={neutral:'#e8f0ff',fire:'#ff5a1f',ice:'#00ccff',solar:'#ffcc00',vortex:'#aa00ff',aether:'#ff0055',void:'#ff0055'},CC={wood:'#c8884a',iron:'#9fb0c8',solar:'#ffcc00',vortex:'#aa00ff',aether:'#ff0055'};
 const EN={neutral:'Neutral',fire:'Fire',ice:'Ice',solar:'Solar',vortex:'Vortex',aether:'Aether',void:'Void'},EL6=['neutral','fire','ice','solar','vortex','aether'],HK={1:'neutral',2:'fire',3:'ice',4:'solar',5:'vortex',6:'aether'};
-const OPP={fire:'ice',ice:'fire',solar:'vortex',vortex:'solar'},REC={fire:'ice',ice:'fire',solar:'vortex',vortex:'solar',void:'aether'},BP={wood:150,iron:600},RN=['','I','II','III','IV','V'];
+const OPP={fire:'ice',ice:'fire',solar:'vortex',vortex:'solar'},REC={fire:'ice',ice:'fire',solar:'vortex',vortex:'solar',void:'aether'},BP={wood:150,iron:600};
 const emul=(a,t)=>a==='aether'?(t==='void'?2:1):a==='neutral'?1:a===t?.7:OPP[a]===t?1.5*(1+.1*S.up.amp):1;
 const WV=[['Garden Pests','neutral'],['Infernal Magmals','fire'],['Frost Cryos','ice'],['Pyre Fiends','fire'],['Frost Monarch Phase','ice'],['Solar Strikers','solar'],['Vortex Wraiths','vortex'],['Solar Overlords','solar'],['Void Dreadnoughts','vortex'],['Aether Monarch Final Phase','void']];
 const CT=['wood','wood','iron','iron','iron','solar','vortex','solar','vortex','aether'];
@@ -47,7 +47,7 @@ pip:{n:'Pip Slug',t:'p',k:.35,r:.55,sc:60,tier:1,ds:'Tiny drone, steady shots.'}
 bolt:{n:'Bolt Slug',t:'p',k:.6,r:.45,sc:150,tier:2,ds:'Faster, harder drone.'},
 aesl:{n:'Aether Slug',t:'p',k:1.1,r:.35,pi:3,sc:300,tier:3,ds:'Piercing divine drone.'}};
 const SETS={fire:{n:'Pyre',need:3,b2:'+10% fire damage while attuned to Fire',b:'A damaging fire aura while attuned to Fire.'},ice:{n:'Cryo',need:3,b2:'+15% damage reduction',b:'Cryo plating slows hazards and reduces incoming damage.'},solar:{n:'Solar Flare',need:3,b2:'+10% damage',b:'Scorching aura and the Solar Cataclysm special.'},vortex:{n:'Vortex Void',need:3,b2:'+10% thrust',b:'Black-hole special that drags small foes.'},void:{n:'Void Rift',need:3,b2:'+20% Vortex damage',b:'Rift pulse pulls nearby enemies and improves Vortex shots.'},aether:{n:'Aether Divine',need:4,b2:'+10% max HP',b:'Damage taken becomes empowered ammo (+60% shot damage). Hazard immunity applies once hazards exist.'}},SN={w:'Weapon',s:'Shield',a:'Armor',c:'Boost / Charm',p:'Spirit'};
-const SK='slugger_neo_v0.2-alpha',SAVE_OWNER_KEY='slugger_neo_save_owner_v054',saveScopedKey=owner=>SK+':'+String(owner||'guest'),DEF=()=>({warp:0,pro:0,cell:0,pur:0,key:3,fus:0,souls:0,cr:{wood:0,iron:0,solar:0,vortex:0,aether:0},inv:{blaster:{d:0,r:0}},eq:{w:'blaster',s:null,a:null,c:null,p:null},aw:{},att:['neutral'],up:{hp:0,oc:0,thr:0,slime:0,amp:0},wl:{},cp:[1],rec:{},hi:0,lastSaveTimestamp:Date.now()});
+const SK='slugger_neo_v0.2-alpha',SAVE_OWNER_KEY='slugger_neo_save_owner_v054',saveScopedKey=owner=>SK+':'+String(owner||'guest'),DEF=()=>({warp:0,pro:0,key:3,fus:0,souls:0,cr:{wood:0,iron:0,solar:0,vortex:0,aether:0},inv:{blaster:{d:0}},eq:{w:'blaster',s:null,a:null,c:null,p:null},aw:{},att:['neutral'],up:{hp:0,oc:0,thr:0,slime:0,amp:0},cp:[1],rec:{},hi:0,lastSaveTimestamp:Date.now()});
 let S;try{S=normaliseSave(JSON.parse(localStorage.getItem(SK)||'{}'))}catch(e){S=DEF()}
 const V05_SESSION_KEY='slugger_neo_save_1v1_v05';let save_sp=S,save_1v1=null,activeSaveMode='sp';
 const firebaseConfig={apiKey:"AIzaSyAu7prBgEdGWbPY8u8g2CYCJbHjz2fLTl4",authDomain:"slugger-aether.firebaseapp.com",projectId:"slugger-aether",storageBucket:"slugger-aether.firebasestorage.app",messagingSenderId:"156152123566",appId:"1:156152123566:web:22cc7d829fa41ecd615d3f",measurementId:"G-TDDDMFNKZ9"};
@@ -103,6 +103,8 @@ async function activateUsernameAccount(user,requestedName){
   return accountHydrationPromise;
 }
 async function authSubmit(action='login'){
+  const err=m=>{$('authError').textContent=m};err('');
+  action=action==='register'?'register':'login';
   if(!FIREBASE_CONFIGURED||!fbAuth||!fbDb){err('Cloud username login is not configured. You can still play as Guest.');return}
   const username=cleanUsernameInput($('authUsername').value);
   const length=Array.from(username).length;
@@ -128,7 +130,7 @@ async function authSubmit(action='login'){
     }
     authStage='signing in to Firebase';
     let cred;
-    try{cred=await fbAuth.signInWithCustomToken(body.customToken)}catch(firebaseError){throw new Error('Cloudflare returned a token, but Firebase sign-in failed ('+(firebaseError.code||'unknown')+'): '+String(firebaseError.message||firebaseError)+'. Check Firebase Authentication is enabled for project slugger-aether, the Firebase API key restrictions, and that the Worker signs tokens for the same project.')}
+    try{cred=await fbAuth.signInWithCustomToken(body.customToken)}catch(firebaseError){throw new Error('Cloudflare returned a token, but Firebase sign-in failed ('+(firebaseError.code||'unknown')+'): '+String(firebaseError.message||firebaseError)+'. Check Firebase Authentication is enabled for project slugger-aether and the Worker uses the matching service account.')}
     AUTH.user=cred.user;AUTH.username=body.username||username;AUTH.guest=false;
     authStage='loading your cloud profile';
     await activateUsernameAccount(cred.user,body.username||username);
@@ -186,14 +188,28 @@ function saveLocalOnly(){S.lastSaveTimestamp=Math.max(Date.now(),(Number(S.lastS
 function cancelCloudWork(){cloudGeneration++;if(cloudSaveTimer){clearTimeout(cloudSaveTimer);cloudSaveTimer=null}cloudSavePending=false}
 function stopCloudSocial(){if(presenceTimer){clearInterval(presenceTimer);presenceTimer=null}if(presenceUnsub){presenceUnsub();presenceUnsub=null}if(cloudProfileUnsub){cloudProfileUnsub();cloudProfileUnsub=null}if(cloudRequestUnsub){cloudRequestUnsub();cloudRequestUnsub=null}Object.values(cloudDmUnsubs).forEach(fn=>{try{fn()}catch(e){}});cloudDmUnsubs={};cloudPresenceUnsubs.forEach(fn=>{try{fn()}catch(e){}});cloudPresenceUnsubs=[];cloudUidBySlug={};cloudFriends=[];cloudSocialUidStarted=null;cloudDmSeen.clear();NET.msgs=NET.msgs.filter(m=>m.sys)}
 let cloudSaveTimer=null,cloudSavePending=false;
-function saveScore(s){if(!s)return 0;let score=0;if(s.cp&&s.cp.length)score+=Math.max(...s.cp)*100000;score+=(s.hi||0)*1000;score+=(s.warp||0)+(s.pro||0)*10+(s.cell||0)*50+(s.pur||0)*50+(s.souls||0)*5;score+=Object.keys(s.inv||{}).length*2000;if(s.up)score+=Object.values(s.up).reduce((a,b)=>a+(Number(b)||0),0)*5000;return score}
-function normaliseSave(raw){const base=DEF(),v=raw&&typeof raw==='object'?raw:{};const out={...base,...v};out.cr={...base.cr,...(v.cr||{})};out.inv={...base.inv,...(v.inv||{})};out.eq={...base.eq,...(v.eq||{})};out.aw={...(v.aw||{})};out.att=Array.from(new Set(['neutral',...((Array.isArray(v.att)?v.att:[]).filter(x=>EL6.includes(x)))]));out.up={...base.up,...(v.up||{})};out.wl={...(v.wl||{})};out.cp=Array.from(new Set([1,...(Array.isArray(v.cp)?v.cp.filter(x=>Number.isInteger(x)&&x>=1&&x<=8):[])])).sort((a,b)=>a-b);out.rec={...(v.rec||{})};out.lastSaveTimestamp=Number(v.lastSaveTimestamp)||0;for(const k of Object.keys(base.cr))out.cr[k]=Math.max(0,Number(out.cr[k])||0);return out}
+function saveScore(s){if(!s)return 0;let score=0;if(s.cp&&s.cp.length)score+=Math.max(...s.cp)*100000;score+=(s.hi||0)*1000;score+=(s.warp||0)+(s.pro||0)*10+(s.souls||0)*5;score+=Object.keys(s.inv||{}).length*2000;if(s.up)score+=Object.values(s.up).reduce((a,b)=>a+(Number(b)||0),0)*5000;return score}
+function normaliseSave(raw){
+  const base=DEF(),v=raw&&typeof raw==='object'?raw:{};
+  const out={...base,...v};
+  // v0.6 removes Cells, Purified Warp, weapon levels, and reinforcement ranks. No refunds are issued.
+  delete out.cell;delete out.pur;delete out.wl;
+  out.cr={...base.cr,...(v.cr||{})};
+  const rawInv={...base.inv,...(v.inv||{})};out.inv={};
+  for(const [id,rawItem] of Object.entries(rawInv)){if(!rawItem||typeof rawItem!=='object')continue;const item={...rawItem,d:Math.max(0,Number(rawItem.d)||0)};delete item.r;out.inv[id]=item;}
+  out.eq={...base.eq,...(v.eq||{})};out.aw={...(v.aw||{})};
+  out.att=Array.from(new Set(['neutral',...((Array.isArray(v.att)?v.att:[]).filter(x=>EL6.includes(x)))]));
+  out.up={...base.up,...(v.up||{})};out.cp=Array.from(new Set([1,...(Array.isArray(v.cp)?v.cp.filter(x=>Number.isInteger(x)&&x>=1&&x<=8):[])])).sort((a,b)=>a-b);
+  out.rec={...(v.rec||{})};out.lastSaveTimestamp=Number(v.lastSaveTimestamp)||0;
+  for(const k of Object.keys(base.cr))out.cr[k]=Math.max(0,Number(out.cr[k])||0);
+  return out;
+}
 function currentSaveOwner(){try{return AUTH.user&&!AUTH.guest?AUTH.user.uid:(AUTH.guest?'guest':(localStorage.getItem(SAVE_OWNER_KEY)||'guest'))}catch(e){return AUTH.user&&!AUTH.guest?AUTH.user.uid:(AUTH.guest?'guest':'guest')}}
 function persistScopedSave(){try{const value=JSON.stringify(normaliseSave(S));localStorage.setItem(SK,value);localStorage.setItem(saveScopedKey(currentSaveOwner()),value);localStorage.setItem(SAVE_OWNER_KEY,currentSaveOwner())}catch(e){}}
 function scopeLocalSaveForOwner(owner){
   owner=String(owner||'guest');let previous='';try{previous=localStorage.getItem(SAVE_OWNER_KEY)||''}catch(e){}
   if(!previous){
-    // Adopt the legacy single-browser save once, preserving existing progress on first v0.5.4.3 login.
+    // Adopt the legacy single-browser save once, preserving existing progress on first v0.6 Phase 1 login.
     persistScopedSaveFor(owner);return false;
   }
   if(previous!==owner){
@@ -217,14 +233,13 @@ function mergeSaveProgress(localRaw,cloudRaw){
   out.att=Array.from(new Set([...(l.att||['neutral']),...(c.att||['neutral'])]));
   for(const k of Object.keys(out.up||{}))out.up[k]=Math.max(Number(l.up?.[k])||0,Number(c.up?.[k])||0);
   out.rec={...l.rec,...c.rec};for(const k of new Set([...Object.keys(l.rec||{}),...Object.keys(c.rec||{})]))out.rec[k]=Math.max(Number(l.rec?.[k])||0,Number(c.rec?.[k])||0);
-  out.wl={...l.wl,...c.wl};for(const k of new Set([...Object.keys(l.wl||{}),...Object.keys(c.wl||{})]))out.wl[k]=Math.max(Number(l.wl?.[k])||0,Number(c.wl?.[k])||0);
   out.aw={...l.aw,...c.aw};
-  // Preserve owned items and highest reinforcement rank, but never resurrect spent duplicate stock.
+  // Preserve owned items and remaining duplicate stock; legacy reinforcement ranks are discarded.
   out.inv={};const ids=new Set([...Object.keys(l.inv||{}),...Object.keys(c.inv||{})]);
-  for(const id of ids){const lv=l.inv?.[id],cv=c.inv?.[id],nv=newer.inv?.[id],ov=older.inv?.[id];
-    if(nv||ov){out.inv[id]={...(nv||ov||{}),r:Math.max(Number(lv?.r)||0,Number(cv?.r)||0),d:nv?Math.max(0,Number(nv.d)||0):0};}}
+  for(const id of ids){const nv=newer.inv?.[id],ov=older.inv?.[id];
+    if(nv||ov){out.inv[id]={...(nv||ov||{}),d:nv?Math.max(0,Number(nv.d)||0):0};delete out.inv[id].r;}}
   // Ensure equipped items exist in inventory without inventing duplicate counts.
-  for(const id of Object.values(out.eq||{}).filter(Boolean)){if(!out.inv[id])out.inv[id]={d:0,r:0};}
+  for(const id of Object.values(out.eq||{}).filter(Boolean)){if(!out.inv[id])out.inv[id]={d:0};}
   out.lastSaveTimestamp=Math.max(ln,cn);return normaliseSave(out)
 }
 function cloudSaveDebounced(){
@@ -257,7 +272,7 @@ async function loadCloudSave(){
   }catch(e){console.warn('Cloud load failed:',e);logs=['Cloud load failed; using local save.']}
 }
 const save=()=>{const sessionWrite=activeSaveMode==='pvp'&&!!save_1v1;S.lastSaveTimestamp=Math.max(Date.now(),(Number(S.lastSaveTimestamp)||0)+1);S=normaliseSave(S);if(sessionWrite){save_1v1=S;try{sessionStorage.setItem(V05_SESSION_KEY,JSON.stringify(S))}catch(e){}return;}save_sp=S;persistScopedSave();cloudSaveDebounced();};
-function cloudProfileSummary(s=S){const crates=Object.values(s.cr||{}).reduce((a,v)=>a+(Number(v)||0),0);const equipment={weapon:s.eq?.w?{id:s.eq.w,tier:Number(s.inv?.[s.eq.w]?.r)||0}:null,shield:s.eq?.s?{id:s.eq.s,tier:Number(s.inv?.[s.eq.s]?.r)||0}:null,armor:s.eq?.a?{id:s.eq.a,tier:Number(s.inv?.[s.eq.a]?.r)||0}:null,boost:s.eq?.c?{id:s.eq.c,tier:Number(s.inv?.[s.eq.c]?.r)||0}:null,spirit:s.eq?.p?{id:s.eq.p,tier:Number(s.inv?.[s.eq.p]?.r)||0}:null};return{stats:{warp:Number(s.warp)||0,protons:Number(s.pro)||0,cells:Number(s.cell)||0,purifiedWarp:Number(s.pur)||0,souls:Number(s.souls)||0,crates},checkpoints:s.cp||[1],equipment,inventory:Object.entries(s.inv||{}).map(([id,v])=>({id,tier:Number(v.r)||0,duplicates:Number(v.d)||0,awakened:!!s.aw?.[id]})),lastSaveTimestamp:Number(s.lastSaveTimestamp)||0};}
+function cloudProfileSummary(s=S){const crates=Object.values(s.cr||{}).reduce((a,v)=>a+(Number(v)||0),0);const equipment={weapon:s.eq?.w?{id:s.eq.w}:null,shield:s.eq?.s?{id:s.eq.s}:null,armor:s.eq?.a?{id:s.eq.a}:null,boost:s.eq?.c?{id:s.eq.c}:null,spirit:s.eq?.p?{id:s.eq.p}:null};return{stats:{warp:Number(s.warp)||0,protons:Number(s.pro)||0,souls:Number(s.souls)||0,crates},checkpoints:s.cp||[1],equipment,inventory:Object.entries(s.inv||{}).map(([id,v])=>({id,duplicates:Math.max(0,Number(v.d)||0),awakened:!!s.aw?.[id]})),lastSaveTimestamp:Number(s.lastSaveTimestamp)||0};}
 async function syncCloudProfileSummary(){if(!fbDb||!AUTH.user||AUTH.guest||activeSaveMode==='pvp')return;const uid=AUTH.user.uid;try{await fbDb.collection('users').doc(uid).set({...cloudProfileSummary(),username:AUTH.username||'Player',usernameLower:cleanUsernameInput(AUTH.username||'Player').toLowerCase(),slugId:NET.id||loadId(),lastLogin:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})}catch(e){console.warn('Profile stats sync failed:',e)}}
 let tab=0,ub=null,dm=false,T=0;
 const O="stroke='#0a0814' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'",sv=(w,h,b)=>`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${w} ${h}' width='${w}' height='${h}'>${b}</svg>`;

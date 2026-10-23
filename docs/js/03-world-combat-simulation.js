@@ -1,11 +1,11 @@
-/* Slugger NEO v0.5.4.3 — World data, player/equipment stats, enemy AI, wave simulation, combat, hazards, and snapshots.
+/* Slugger NEO v0.6 Phase 1 — World data, player/equipment stats, enemy AI, wave simulation, combat, hazards, and snapshots.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
 const stars=Array.from({length:70},()=>({x:R(0,W),y:R(0,H),s:R(.6,1.8)}));
-const rk=id=>1+.2*((S.inv[id]||{}).r||0),eqI=t=>IT[S.eq[t]]||null,setN=s=>'wsac'.split('').filter(t=>eqI(t)&&eqI(t).set===s).length,nearest=(x,y,r)=>{let b=null,bd=r*r;for(const e of E){const d=(e.x-x)**2+(e.y-y)**2;if(d<bd){bd=d;b=e}}return b};
+const eqI=t=>IT[S.eq[t]]||null,setN=s=>'wsac'.split('').filter(t=>eqI(t)&&eqI(t).set===s).length,nearest=(x,y,r)=>{let b=null,bd=r*r;for(const e of E){const d=(e.x-x)**2+(e.y-y)**2;if(d<bd){bd=d;b=e}}return b};
 function calc(){const id=IT[S.eq.w]?S.eq.w:'blaster',w=IT[id],a=eqI('a'),c=S.eq.c,fi=setN('fire'),ic=setN('ice'),so=setN('solar'),vo=setN('vortex'),vd=setN('void'),ae=setN('aether');
-return{w,dmg:w.d*rk(id)*(1+.1*(S.wl[id]||0))*(c==='rotc'?1.25:1)*(so>=2?1.1:1),cd:w.r*Math.max(.3,1-.12*S.up.oc),mhp:(100+20*S.up.hp+(a?a.hp*rk(S.eq.a):0))*(ae>=2?1.1:1),dr:Math.min(.75,(a?a.dr*rk(S.eq.a):0)+(ic>=2?.15:0)),spd:vo>=2?1.1:1,mag:c==='magn'?200:80,fi:fi>=2,ic:ic>=3,fireAura:fi>=3,so:so===3,vo:vo===3||vd>=3,vd:vd>=2,ad:ae===4,tk:c==='rotc'?1.25:1}}
+return{w,dmg:w.d*(c==='rotc'?1.25:1)*(so>=2?1.1:1),cd:w.r*Math.max(.3,1-.12*S.up.oc),mhp:(100+20*S.up.hp+(a?a.hp:0))*(ae>=2?1.1:1),dr:Math.min(.75,(a?a.dr:0)+(ic>=2?.15:0)),spd:vo>=2?1.1:1,mag:c==='magn'?200:80,fi:fi>=2,ic:ic>=3,fireAura:fi>=3,so:so===3,vo:vo===3||vd>=3,vd:vd>=2,ad:ae===4,tk:c==='rotc'?1.25:1}}
 function burst(x,y,c,n,s){const sh=c===EC.ice?2:(c===EC.fire||c===EC.solar)?1:0;for(let i=0;i<n&&PT.length<500;i++){const a=Math.random()*6.283,v=(.2+Math.random()*.8)*s;PT.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:.3+Math.random()*.4,c,sh,a})}}
 function swap(el){if(mode!=='play'||!S.att.includes(el)||P.at===el)return;P.at=el;SFX.swap();burst(P.x,P.y,EC[el],18,220)}
 function cyc(d){const l=EL6.filter(x=>S.att.includes(x)),i=l.indexOf(P.at);swap(l[(i+d+l.length)%l.length])}

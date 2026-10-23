@@ -147,3 +147,89 @@ nav{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}
   .mc-primary{gap:6px}.mc-special{width:58px;height:58px;min-height:58px}.mc-shoot{width:70px;height:70px;min-height:70px}
   .mc-elements button{width:34px;height:34px;min-height:34px}.mc-elements{gap:3px}#mobileCurrentElement{min-width:50px;font-size:8px}
 }
+
+
+/* ===================== v0.6 PHASE 1 — CRATE & LOADOUT UI ===================== */
+.v06-menu{display:block;min-width:0;color:var(--fg)}
+.v06-subtabs{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 14px;padding:7px;background:#04091899;border:1px solid #ffffff12;border-radius:12px}
+.v06-subtabs .tab{font-size:11px;padding:8px 12px;min-height:34px;white-space:normal}
+.v06-section-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 12px;margin:8px 0 12px;background:linear-gradient(120deg,#081329,#0b1528aa);border:1px solid #ffffff16;border-left:3px solid var(--ac);border-radius:12px}
+.v06-section-head h2{font-size:clamp(15px,2vw,20px);margin:2px 0 5px;color:#f0fff8}
+.v06-section-head p{margin:0;max-width:680px}
+.v06-eyebrow{font-size:9px;letter-spacing:1.8px;color:var(--ac);font-weight:800}
+.v06-key-count{min-width:100px;text-align:center;padding:8px 11px;border-radius:10px;border:1px solid #ffe06a66;background:#ffcf3312;color:#ffe17d;display:flex;flex-direction:column;gap:2px}
+.v06-key-count b{font-size:23px;line-height:1.2}.v06-key-count span{font-size:9px;color:#b6c6da}
+.v06-terminal-icon{flex:0 0 56px;width:56px;height:56px;display:grid;place-items:center;border:1px solid var(--gear,#00ff88);color:var(--gear,var(--ac));border-radius:15px;background:linear-gradient(135deg,#102439,#070d1d);font-size:27px;box-shadow:inset 0 0 20px #ffffff08}
+.v06-crate-grid,.v06-gear-grid,.v06-slot-grid,.v06-set-grid,.v06-recipe-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,265px),1fr));gap:10px;margin:9px 0 14px}
+.v06-crate-card,.v06-gear-card,.v06-slot-card,.v06-ranking-card,.v06-set-card,.v06-recipe-card{min-width:0;position:relative;background:linear-gradient(150deg,#0b1730f5,#070b18f5);border:1px solid #263653;border-color:color-mix(in srgb,var(--crate,var(--gear,var(--ln))) 36%,#1b2a49);border-radius:13px;padding:12px;overflow:hidden;box-shadow:0 5px 14px #0002}
+.v06-crate-card::before,.v06-gear-card::before,.v06-slot-card::before,.v06-ranking-card::before,.v06-set-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--crate,var(--gear,#00ff88));opacity:.85}
+.v06-crate-card{display:flex;gap:12px;align-items:center;min-height:126px}
+.v06-crate-card.is-active{border-color:var(--crate);box-shadow:0 0 0 1px color-mix(in srgb,var(--crate) 25%,transparent),0 8px 25px #0004}
+.v06-crate-art{width:105px;height:91px;flex:0 0 105px;object-fit:contain;filter:drop-shadow(0 4px 8px #0008)}
+.v06-crate-info,.v06-gear-details,.v06-ranking-info{min-width:0;flex:1}
+.v06-card-kicker{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;color:var(--crate,var(--gear,#85a3c8));font-weight:800;margin-bottom:3px}
+.v06-crate-info h3,.v06-gear-details h4,.v06-ranking-info h3{margin:2px 0 5px;font-size:13px;color:#f2fff9;overflow-wrap:anywhere}
+.v06-crate-info p,.v06-gear-details p{margin:3px 0 8px}
+.v06-card-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:7px}
+.v06-card-actions button{margin:0;min-height:29px;font-size:10px;padding:6px 8px}
+.v06-buy-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;padding:12px;border-radius:12px;border:1px dashed #ffffff2a;background:#060b19a8}
+.v06-buy-strip p{margin:3px 0 0}
+.v06-secondary-actions{display:flex;justify-content:flex-end;margin-top:5px}
+.v06-empty-card,.v06-forge-empty{grid-column:1/-1;text-align:center;background:#050b19bb;border:1px dashed #52658177;border-radius:13px;padding:22px 14px;color:#b6c9df}
+.v06-empty-card h3,.v06-forge-empty h3{margin:5px 0;color:#e9fff6}
+.v06-empty-icon,.v06-forge-glyph{font-size:38px;color:#8fa5c1;line-height:1.3}
+.v06-reveal{display:flex;align-items:center;gap:15px;padding:12px;margin:8px 0 13px;border-radius:13px;border:1px solid #ffe06a55;background:linear-gradient(110deg,#392c0e66,#071121dd)}
+.v06-reveal-art{width:86px;flex:0 0 86px;text-align:center}.v06-reveal-art .v06-crate-art{width:84px;height:76px}.v06-loot-results{display:flex;flex-direction:column;gap:5px;margin:7px 0}.v06-loot-results .ri{font-size:11px}
+.v06-recipe-card{text-align:left;padding:15px}.v06-recipe-card h3{margin:4px 0;color:#edfff8;font-size:14px}.v06-recipe-card>p{margin:5px 0}.v06-recipe-symbol{height:48px;display:flex;align-items:center;font-size:29px;color:#83ffe0}.v06-recipe-card button{margin-top:11px}
+.v06-resource-note{display:flex;gap:14px;flex-wrap:wrap;padding:11px;border:1px solid #ffffff14;border-radius:10px;background:#050b17}.v06-resource-note span{color:#b7c9df}.v06-resource-note strong{color:#eafff5}
+.v06-forge-empty{padding:30px 16px}.v06-status-chip{display:inline-block;margin-top:10px;font-size:9px;letter-spacing:1px;border:1px solid #00ccff55;color:#8cecff;border-radius:99px;padding:5px 10px;background:#00ccff0b}
+.v06-slot-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))}
+.v06-slot-card{text-align:center;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.v06-slot-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gear,#8da6c4);font-weight:800}
+.v06-item-art{display:block;width:88px;height:64px;object-fit:contain;margin:4px auto;filter:drop-shadow(0 3px 6px #0008)}
+.v06-item-art.small{width:48px;height:38px;flex:0 0 48px;margin:0}
+.v06-slot-name{font-weight:800;color:#f1fff8;font-size:11px;overflow-wrap:anywhere}
+.v06-slot-empty{width:88px;height:64px;display:grid;place-items:center;font-size:28px;color:#526782}
+.v06-slot-card .ds{max-width:100%;font-size:10px;overflow-wrap:anywhere}
+.v06-collection-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;border-bottom:1px solid #ffffff22;padding:7px 2px 5px;margin-top:16px}
+.v06-collection-head h3{font-size:14px;margin:0;color:#ecfff7}
+.v06-gear-category{margin-top:12px}
+.v06-category-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 6px;border-bottom:1px solid #ffffff10;padding-bottom:6px}
+.v06-category-title h3{margin:0;font-size:12px;color:#c9f9e6}.v06-category-title span{font-size:10px;color:#829cb9}
+.v06-gear-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));margin-top:6px}
+.v06-gear-card{display:grid;grid-template-columns:92px minmax(0,1fr);gap:9px;align-items:center}
+.v06-gear-card>.v06-item-art{width:88px;height:74px;margin:0}
+.v06-gear-details h4{font-size:12px}
+.v06-gear-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:9px;color:#8da7c2}
+.v06-gear-card button{min-height:28px}
+.v06-ranking-list{display:flex;flex-direction:column;gap:8px}
+.v06-ranking-card{display:grid;grid-template-columns:35px 76px minmax(0,1fr) auto;align-items:center;gap:9px;padding:11px}
+.v06-ranking-card.is-equipped{border-color:var(--gear);background:linear-gradient(90deg,color-mix(in srgb,var(--gear) 8%,#0b1730),#070b18)}
+.v06-rank{font-weight:900;font-size:18px;text-align:center;color:var(--gear,#9fb0c8)}
+.v06-ranking-card .v06-item-art{width:72px;height:60px;margin:0}
+.v06-statline{display:flex;flex-wrap:wrap;gap:4px 11px;color:#98b2ce;font-size:10px}
+.v06-statline b{color:#eafff5}.v06-dps-track,.v06-progress-track{height:5px;border-radius:99px;overflow:hidden;background:#101b30;margin:8px 0 4px}
+.v06-dps-track i,.v06-progress-track i{display:block;height:100%;border-radius:99px;background:var(--gear,#00ff88);box-shadow:0 0 10px color-mix(in srgb,var(--gear,#00ff88) 70%,transparent)}
+.v06-dps-value{font-weight:900;color:var(--gear,#00ff88);font-size:11px}.v06-ranking-action button{white-space:nowrap}
+.v06-set-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,275px),1fr))}
+.v06-set-card{padding:13px}.v06-set-top{display:flex;align-items:center;gap:10px}.v06-set-top h3{margin:0;color:var(--gear);font-size:15px}.v06-set-top p{margin:3px 0 0}.v06-set-icon{width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--gear);border-radius:12px;color:var(--gear);background:#050b19;font-size:24px;flex:0 0 44px}
+.v06-set-bonus{display:flex;flex-direction:column;gap:3px;padding:7px 8px;margin:6px 0;background:#030817;border:1px solid #ffffff0f;border-radius:7px;color:#8296b2;font-size:10px}
+.v06-set-bonus.active{border-color:color-mix(in srgb,var(--gear) 45%,transparent);color:#e8fff5;background:color-mix(in srgb,var(--gear) 8%,#030817)}
+.v06-set-bonus b{color:var(--gear)}.v06-set-pieces{display:flex;flex-direction:column;gap:6px;margin-top:9px}
+.v06-set-piece{display:flex;align-items:center;gap:7px;min-width:0;color:#bdd0e3;font-size:10px}
+.v06-set-piece span{overflow-wrap:anywhere}
+.v06-pvp-status{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 14px;margin:5px 0 9px;padding:8px 12px;border:1px solid #00ccff55;border-radius:10px;background:linear-gradient(100deg,#062032,#071020);font-size:10px;text-align:center}
+.v06-pvp-status>span:first-child{font-weight:900;color:#9bf3ff;letter-spacing:.7px}.v06-pvp-status>b{color:#d8fff0}.v06-pvp-status strong{color:#ffe27a;font-size:13px}
+.v06-pvp-status #v05ReadyStatus{overflow-wrap:anywhere}
+@media(max-width:720px){
+ .v06-section-head{align-items:flex-start;padding:9px;gap:8px}.v06-terminal-icon{width:42px;height:42px;flex-basis:42px;font-size:21px;border-radius:11px}
+ .v06-subtabs{gap:4px;padding:5px}.v06-subtabs .tab{flex:1 1 130px;font-size:10px;padding:8px 7px}
+ .v06-crate-card{gap:7px;padding:9px}.v06-crate-art{width:78px;height:75px;flex-basis:78px}
+ .v06-gear-card{grid-template-columns:70px minmax(0,1fr);padding:9px;gap:7px}.v06-gear-card>.v06-item-art{width:68px;height:64px}
+ .v06-ranking-card{grid-template-columns:27px 54px minmax(0,1fr);gap:7px;padding:8px}.v06-ranking-card .v06-item-art{width:52px;height:48px}.v06-ranking-action{grid-column:3;justify-self:start}
+ .v06-ranking-action button{font-size:10px}.v06-statline{gap:3px 8px;font-size:9px}
+ .v06-pvp-status{gap:5px 8px;padding:7px 8px;font-size:9px}
+}
+@media(max-width:420px){.v06-crate-card{align-items:flex-start}.v06-crate-art{width:64px;height:64px;flex-basis:64px}.v06-crate-info h3{font-size:12px}.v06-card-actions button{font-size:9px;padding:5px 6px}.v06-slot-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.v06-slot-card:last-child{grid-column:1/-1}.v06-section-head h2{font-size:15px}.v06-key-count{min-width:74px;padding:6px}.v06-key-count b{font-size:19px}}
+
+.v06-drop-rate-family{border-top:1px solid #ffffff14;padding:7px 0;margin-top:6px}.v06-drop-rate-family>b{font-size:12px}
