@@ -103,8 +103,6 @@ async function activateUsernameAccount(user,requestedName){
   return accountHydrationPromise;
 }
 async function authSubmit(action='login'){
-  const err=m=>{$('authError').textContent=m};err('');
-  action=action==='register'?'register':'login';
   if(!FIREBASE_CONFIGURED||!fbAuth||!fbDb){err('Cloud username login is not configured. You can still play as Guest.');return}
   const username=cleanUsernameInput($('authUsername').value);
   const length=Array.from(username).length;
@@ -130,7 +128,7 @@ async function authSubmit(action='login'){
     }
     authStage='signing in to Firebase';
     let cred;
-    try{cred=await fbAuth.signInWithCustomToken(body.customToken)}catch(firebaseError){throw new Error('Cloudflare returned a token, but Firebase sign-in failed ('+(firebaseError.code||'unknown')+'): '+String(firebaseError.message||firebaseError)+'. Check Firebase Authentication is enabled for project slugger-aether and the Worker uses the matching service account.')}
+    try{cred=await fbAuth.signInWithCustomToken(body.customToken)}catch(firebaseError){throw new Error('Cloudflare returned a token, but Firebase sign-in failed ('+(firebaseError.code||'unknown')+'): '+String(firebaseError.message||firebaseError)+'. Check Firebase Authentication is enabled for project slugger-aether, the Firebase API key restrictions, and that the Worker signs tokens for the same project.')}
     AUTH.user=cred.user;AUTH.username=body.username||username;AUTH.guest=false;
     authStage='loading your cloud profile';
     await activateUsernameAccount(cred.user,body.username||username);
