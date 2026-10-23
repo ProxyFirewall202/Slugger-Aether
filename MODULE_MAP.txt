@@ -1,0 +1,46 @@
+Slugger NEO v0.5.4 module map
+
+index.html
+  Page skeleton, iOS/PWA metadata, auth modal, mobile control markup, and ordered classic-script loading.
+
+css/styles.css
+  Original game and responsive mobile-control CSS.
+
+js/01-core-save-auth.js
+  Global constants, save normalisation/merge, Firebase initialisation, username auth client, cloud save.
+
+js/02-art-assets-audio.js
+  SVG sprites, asset loading, audio effects, procedural music.
+
+js/03-world-combat-simulation.js
+  World state, player and enemy stats, waves, combat, enemy AI, hazards, base PvP hooks.
+
+js/04-rendering-hud-loop.js
+  Canvas rendering, HUD, result panels, base animation loop declaration.
+
+js/05-upgrades-inventory-hub.js
+  Inventory, upgrades, crafting, progression, hub tab content.
+
+js/06-turn-peer-lifecycle.js
+  Stable local/cloud Friend ID handling, TURN configuration fetch, ICE modes, PeerJS lifecycle, connection diagnostics, account-scoped local friend cache.
+
+js/07-network-data-messages.js
+  Peer data packets, network snapshots, Connect, direct chat fallback, cloud-first DM send path.
+
+js/08-pvp-lobby-cloud-social.js
+  PvP lobby/session protocol, cloud friend list, presence, Firestore DM listener and write path, auto-save relationships.
+
+js/09-social-ui-debug-hub.js
+  Friends & network UI, connection diagnostics, developer console, hub renderer.
+
+js/10-pvp-hotfix-overrides.js
+  Ordered v0.5.1 continuous PvP, spectator, synchronized upgrades, result and cleanup overrides.
+
+js/11-mobile-touch-controls.js
+  Virtual joystick, touch shooting, special, element cycling, mobile detection.
+
+js/12-input-and-startup.js
+  Keyboard/mouse input and startup sequence. Keep script order unchanged because modules share classic-script globals.
+
+cloudflare-worker/worker.js
+  Existing /ice-servers route plus the new /username-token route. Deploy to Cloudflare only; never put in docs/.

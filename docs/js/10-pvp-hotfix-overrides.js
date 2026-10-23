@@ -1,8 +1,8 @@
-/* Slugger NEO v0.5.3.1 — Existing v0.5.1 campaign/spectator/upgrade/results/network overrides, preserved as one ordered IIFE.
+/* Slugger NEO v0.5.4 — Existing v0.5.1 campaign/spectator/upgrade/results/network overrides, preserved as one ordered IIFE.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
-/* ========================= SLUGGER (NEO) v0.5.3.1 MOBILE CONTROLS HOTFIX =========================
+/* ========================= SLUGGER (NEO) v0.5.4 MOBILE CONTROLS HOTFIX =========================
    Session-isolated 1v1 campaign, permadeath spectator, shared 60s upgrade
    stage, graceful exits, emoji taunts, DM toasts, and local-only impact feel.
    This release splits the unchanged systems into ordered classic scripts and a stylesheet.

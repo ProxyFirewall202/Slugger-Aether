@@ -1,0 +1,16 @@
+Slugger NEO CHANGELOG
+
+v0.5.4 — Username accounts & cloud social persistence
+- Replaced email/password UI with username-only sign-in via the Cloudflare Worker /username-token endpoint.
+- Username maps to a stable Firebase UID; old profiles are matched by username when the match is unambiguous.
+- Stable cloud Friend ID restored across sign-out/sign-in and devices; sign-out switches to a temporary guest ID so an unauthenticated session does not keep claiming the account's ID.
+- Scoped local save snapshots and local friend caches by account to prevent cross-account data leaking when switching usernames.
+- Separated local friend caches by account to avoid leaking a prior account's friends when switching accounts.
+- Added best-effort first-login migration of legacy browser friend IDs into the cloud friend list.
+- Successful P2P connections auto-add each other to cloud friends when both users have username accounts; removed friend-request UI in favour of Connect.
+- Authenticated DMs write to Firestore first and restore recent conversation history on another device; explicit diagnostics report cloud write failures.
+- Extended the existing Cloudflare Worker without removing /ice-servers; added /username-token support and documented the one-time service-account secret setup.
+- Preserved game appearance, gameplay, mobile controls, PWA, PvP hotfixes, and the existing TURN endpoint.
+
+v0.5.3.1 — Mobile controls hotfix
+- Fixed desktop/mobile control detection, shooting hold state, projectile muzzle position, and mobile control sizing.

@@ -1,4 +1,4 @@
-/* Slugger NEO v0.5.3.1 — Canvas drawing, player/enemy rendering, HUD, run conclusion UI, and base loop declaration.
+/* Slugger NEO v0.5.4 — Canvas drawing, player/enemy rendering, HUD, run conclusion UI, and base loop declaration.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */

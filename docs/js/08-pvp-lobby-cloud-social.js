@@ -1,4 +1,4 @@
-/* Slugger NEO v0.5.3.1 — PvP lobby and ready protocol, loadouts, cloud friend relationships, cloud presence, and invites.
+/* Slugger NEO v0.5.4 — PvP lobby and ready protocol, loadouts, cloud friend relationships, cloud presence, and invites.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -148,17 +148,75 @@ function showPvpEnd(iWon,reason,isDraw,details={},stats=PVP.stats,elapsed=0){
   const tie=details&&details.tieBreak?`<p class=ds>Timeout tie-break order: damage dealt, kills, then crates.</p>`:'';
   o.innerHTML=`<h2>${title}</h2><p style="color:#d6ffe9;max-width:620px">${esc(sub)}</p>${table}${tie}<p class=ds>${iWon&&!isDraw?'Winner bonus: +500 Warp. ':''}Returning to hub…</p>`;
 }
-function startCloudSocial(){if(!fbDb||!AUTH.user||AUTH.guest)return;stopCloudSocial();const uid=AUTH.user.uid,profile=fbDb.collection('users').doc(uid);profile.set({...cloudProfileSummary(),username:AUTH.username||'Player',slugId:NET.id||loadId(),lastLogin:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(e=>console.warn('Profile sync failed:',e));
+function startCloudSocial(){
+  if(!fbDb||!AUTH.user||AUTH.guest)return;
+  if(cloudSocialUidStarted===AUTH.user.uid)return;
+  stopCloudSocial();const uid=AUTH.user.uid,profile=fbDb.collection('users').doc(uid);cloudSocialUidStarted=uid;
+  profile.set({...cloudProfileSummary(),username:AUTH.username||'Player',usernameLower:cleanUsernameInput(AUTH.username||'Player').toLowerCase(),slugId:NET.id||loadId(),lastLogin:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).then(async()=>{
+    // On the first username login only, migrate legacy contacts from the old browser-wide friend cache.
+    // Future logins use the UID-scoped cache and cloud profile, so another account never inherits those contacts.
+    if(legacyFriendCacheMigrationUid===uid&&AUTH.user&&AUTH.user.uid===uid){
+      legacyFriendCacheMigrationUid=null;
+      const legacyIds=Object.keys(NET.friends||{}).filter(slug=>/^SLUG-[A-Z0-9]{4}$/.test(slug)&&slug!==NET.id);
+      await Promise.allSettled(legacyIds.map(slug=>persistCloudFriend(slug,true)));
+    }
+  }).catch(e=>console.warn('Profile sync failed:',e));
   cloudProfileUnsub=profile.onSnapshot(doc=>{if(!doc.exists)return;const d=doc.data()||{};cloudFriends=Array.isArray(d.friends)?d.friends.filter(x=>/^SLUG-[A-Z0-9]{4}$/.test(x)):[];cloudUidBySlug={};watchCloudFriendPresence();},e=>console.warn('Profile listener failed:',e));
-  cloudRequestUnsub=profile.collection('requests').onSnapshot(snap=>{NET.cloudRequests=snap.docs.map(d=>({id:d.id,...d.data()}));netRender();},e=>console.warn('Friend request listener failed:',e));
-  const writePresence=()=>{if(!AUTH.user||AUTH.guest||!fbDb)return;const status=PVP.active?'IN_MATCH':mode==='hub'?'IN_LOBBY':'IN_GAME';fbDb.collection('presence').doc(uid).set({uid,slugId:NET.id||loadId(),username:AUTH.username||'Player',status,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(e=>console.warn('Presence update failed:',e));};writePresence();presenceTimer=setInterval(writePresence,30000);
+  const writePresence=()=>{if(!AUTH.user||AUTH.guest||!fbDb||AUTH.user.uid!==uid)return;const status=PVP.active?'IN_MATCH':mode==='hub'?'IN_LOBBY':'IN_GAME';fbDb.collection('presence').doc(uid).set({uid,slugId:NET.id||loadId(),username:AUTH.username||'Player',status,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(e=>console.warn('Presence update failed:',e));};writePresence();presenceTimer=setInterval(writePresence,30000);
 }
 function watchCloudFriendPresence(){cloudPresenceUnsubs.forEach(fn=>{try{fn()}catch(e){}});cloudPresenceUnsubs=[];if(!fbDb||!AUTH.user||AUTH.guest||!cloudFriends.length){return}const ownerUid=AUTH.user.uid,batches=[];for(let i=0;i<cloudFriends.length;i+=10)batches.push(cloudFriends.slice(i,i+10));batches.forEach(tags=>{fbDb.collection('users').where('slugId','in',tags).get().then(snap=>{if(!AUTH.user||AUTH.guest||AUTH.user.uid!==ownerUid)return;snap.forEach(doc=>{const d=doc.data()||{},slug=d.slugId;if(!slug)return;cloudUidBySlug[slug]=doc.id;if(!NET.friends[slug])NET.friends[slug]={name:d.username||slug.replace('SLUG-',''),status:'off',added:Date.now(),cloud:true};cloudPresenceUnsubs.push(fbDb.collection('presence').doc(doc.id).onSnapshot(pd=>{const v=pd.exists?pd.data():null;NET.friends[slug].status=v&&v.updatedAt&&v.updatedAt.toMillis&&Date.now()-v.updatedAt.toMillis()<90000?(v.status||'ONLINE'):'OFFLINE';NET.friends[slug].name=(v&&v.username)||d.username||NET.friends[slug].name;netSaveFriends();netRender();}));watchCloudDm(slug);netSaveFriends();netRender()})}).catch(e=>console.warn('Friend presence query failed:',e));});}
-async function sendCloudFriendRequest(){const el=$('netTarget'),tag=(el?el.value:'').trim().toUpperCase();if(!/^SLUG-[A-Z0-9]{4}$/.test(tag)){netSys('Enter a valid SLUG-XXXX tag.');return}if(tag===(NET.id||loadId())){netSys('You cannot add yourself.');return}if(!fbDb||!AUTH.user||AUTH.guest){netSys('Sign in to a cloud account to send friend requests.');return}try{const found=await fbDb.collection('users').where('slugId','==',tag).limit(1).get();if(found.empty){netSys('No cloud account found for '+tag);return}const doc=found.docs[0];if(doc.id===AUTH.user.uid){netSys('You cannot add yourself.');return}await fbDb.collection('users').doc(doc.id).collection('requests').doc(AUTH.user.uid).set({fromUid:AUTH.user.uid,fromSlug:NET.id||loadId(),fromName:AUTH.username||'Player',createdAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});netSys('Friend request sent to '+tag);if(el)el.value='';}catch(e){netSys('Friend request failed: '+(e.code||e.message||'check Firestore rules'));}}
-async function acceptCloudRequest(uid,slug,name,requestId){if(!AUTH.user||!fbDb)return;try{await fbDb.collection('users').doc(AUTH.user.uid).update({friends:firebase.firestore.FieldValue.arrayUnion(slug)});await fbDb.collection('users').doc(uid).update({friends:firebase.firestore.FieldValue.arrayUnion(NET.id||loadId())});await fbDb.collection('users').doc(AUTH.user.uid).collection('requests').doc(requestId).delete();NET.friends[slug]={name:name||slug.replace('SLUG-',''),status:'OFFLINE',added:Date.now(),cloud:true};netSaveFriends();netSys('Friend added: '+(name||slug));try{netConnect(slug)}catch(e){}netRender();}catch(e){netSys('Could not accept request: '+(e.code||e.message||'check Firestore rules'));}}
-async function declineCloudRequest(uid,requestId){if(!AUTH.user||!fbDb)return;try{await fbDb.collection('users').doc(AUTH.user.uid).collection('requests').doc(requestId).delete();netSys('Friend request declined.')}catch(e){netSys('Could not decline request: '+(e.code||e.message||''))}}
 function cloudChatId(uidA,uidB){return [uidA,uidB].sort().join('_')}
-function watchCloudDm(slug){if(!fbDb||!AUTH.user||AUTH.guest||!cloudUidBySlug[slug]||cloudDmUnsubs[slug])return;const ownerUid=AUTH.user.uid,friendUid=cloudUidBySlug[slug],chat=cloudChatId(ownerUid,friendUid);cloudDmUnsubs[slug]=fbDb.collection('chats').doc(chat).collection('messages').orderBy('createdAt').limitToLast(60).onSnapshot(snap=>{if(!AUTH.user||AUTH.guest||AUTH.user.uid!==ownerUid||cloudUidBySlug[slug]!==friendUid)return;snap.docChanges().forEach(ch=>{if(ch.type!=='added'||cloudDmSeen.has(ch.doc.id))return;cloudDmSeen.add(ch.doc.id);const d=ch.doc.data()||{};if(d.fromUid===AUTH.user.uid)return;if(d.kind==='match_invite'){onCloudInvite(slug,d.target);return}NET.msgs.push({from:slug,to:NET.id,msg:String(d.text||'').slice(0,200),t:Date.now()});if(window.showV05Toast)window.showV05Toast(NET.friends[slug]?.name||slug,String(d.text||'').slice(0,200),slug);if(NET.msgs.length>200)NET.msgs.shift();});netRender();},e=>console.warn('Cloud DM listener failed:',e));}
-async function cloudSendDm(slug,payload){if(!fbDb||!AUTH.user||AUTH.guest)return false;if(!cloudUidBySlug[slug]){try{const q=await fbDb.collection('users').where('slugId','==',slug).limit(1).get();if(q.empty)return false;cloudUidBySlug[slug]=q.docs[0].id;watchCloudDm(slug)}catch(e){return false}}try{const chat=cloudChatId(AUTH.user.uid,cloudUidBySlug[slug]);await fbDb.collection('chats').doc(chat).collection('messages').add({fromUid:AUTH.user.uid,fromSlug:NET.id||loadId(),toUid:cloudUidBySlug[slug],text:payload.text||'',kind:payload.kind||'text',target:payload.target||null,createdAt:firebase.firestore.FieldValue.serverTimestamp()});return true}catch(e){console.warn('Cloud DM send failed:',e);return false}}
+let cloudDmLastError='';
+function watchCloudDm(slug){
+  if(!fbDb||!AUTH.user||AUTH.guest||!cloudUidBySlug[slug]||cloudDmUnsubs[slug])return;
+  const ownerUid=AUTH.user.uid,friendUid=cloudUidBySlug[slug],chat=cloudChatId(ownerUid,friendUid);
+  cloudDmUnsubs[slug]=fbDb.collection('chats').doc(chat).collection('messages').orderBy('createdAt').limitToLast(60).onSnapshot(snap=>{
+    if(!AUTH.user||AUTH.guest||AUTH.user.uid!==ownerUid||cloudUidBySlug[slug]!==friendUid)return;
+    snap.docChanges().forEach(ch=>{
+      if(ch.type!=='added')return;
+      const cloudId='cloud:'+chat+':'+ch.doc.id;if(cloudDmSeen.has(cloudId))return;cloudDmSeen.add(cloudId);
+      const d=ch.doc.data()||{};
+      if(d.kind==='match_invite'){if(d.fromUid!==ownerUid)onCloudInvite(slug,d.target);return}
+      const fromSlug=d.fromSlug||(d.fromUid===ownerUid?NET.id:slug),toSlug=d.toSlug||(d.toUid===ownerUid?NET.id:slug),created=d.createdAt&&typeof d.createdAt.toMillis==='function'?d.createdAt.toMillis():Date.now();
+      NET.msgs.push({from:fromSlug,to:toSlug,msg:String(d.text||'').slice(0,200),t:created,id:cloudId,cloud:true});
+      if(d.fromUid!==ownerUid&&window.showV05Toast)window.showV05Toast(NET.friends[slug]?.name||slug,String(d.text||'').slice(0,200),slug);
+      if(NET.msgs.length>300)NET.msgs.splice(0,NET.msgs.length-300);
+    });
+    netRender();
+  },e=>console.warn('Cloud DM listener failed:',e));
+}
+async function cloudSendDm(slug,payload){
+  cloudDmLastError='';
+  if(!fbDb||!AUTH.user||AUTH.guest){cloudDmLastError='Sign in with a username account to save messages to cloud history.';return false;}
+  if(!cloudUidBySlug[slug]){
+    try{const q=await fbDb.collection('users').where('slugId','==',slug).limit(1).get();if(q.empty){cloudDmLastError='That Friend ID is not linked to a username cloud account.';return false;}cloudUidBySlug[slug]=q.docs[0].id;}
+    catch(e){cloudDmLastError=String(e.code||e.message||'could not look up the friend profile');console.warn('Cloud DM friend lookup failed:',e);return false;}
+  }
+  try{
+    const friendUid=cloudUidBySlug[slug],chat=cloudChatId(AUTH.user.uid,friendUid),messages=fbDb.collection('chats').doc(chat).collection('messages'),ref=messages.doc(),cloudId='cloud:'+chat+':'+ref.id;
+    // Use a stable document ID before writing so the sender's own listener can't duplicate the optimistic entry.
+    cloudDmSeen.add(cloudId);
+    await ref.set({fromUid:AUTH.user.uid,fromSlug:NET.id||loadId(),toUid:friendUid,toSlug:slug,text:String(payload.text||'').slice(0,200),kind:payload.kind||'text',target:payload.target||null,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+    watchCloudDm(slug);
+    return {id:cloudId,chatId:chat,from:NET.id||loadId(),to:slug,t:Date.now()};
+  }catch(e){cloudDmLastError=String(e.code||e.message||'Firestore write failed');console.warn('Cloud DM send failed:',e);return false;}
+}
+async function persistCloudFriend(slug,quiet=false){
+  if(!fbDb||!AUTH.user||AUTH.guest||!slug||slug===NET.id||!/^SLUG-[A-Z0-9]{4}$/.test(slug))return false;
+  const ownerUid=AUTH.user.uid;
+  try{
+    const found=await fbDb.collection('users').where('slugId','==',slug).limit(1).get();
+    if(found.empty){if(!quiet)netDiag('Connected to '+slug+', but it is not linked to a username cloud account; this friend cannot sync across devices yet.','warn');return false;}
+    const friendDoc=found.docs[0];if(friendDoc.id===ownerUid)return false;
+    if(!AUTH.user||AUTH.user.uid!==ownerUid||AUTH.guest)return false;
+    await fbDb.collection('users').doc(ownerUid).set({friends:firebase.firestore.FieldValue.arrayUnion(slug)},{merge:true});
+    const data=friendDoc.data()||{};cloudUidBySlug[slug]=friendDoc.id;
+    NET.friends[slug]={...(NET.friends[slug]||{}),name:data.username||NET.friends[slug]?.name||slug.replace('SLUG-',''),status:NET.friends[slug]?.status||'OFFLINE',added:NET.friends[slug]?.added||Date.now(),cloud:true};
+    if(!cloudFriends.includes(slug))cloudFriends.push(slug);
+    watchCloudDm(slug);netSaveFriends();netRender();
+    netDiag('Friend '+slug+' saved to your cloud friend list. The other player saves you when their connection opens.','success');
+    return true;
+  }catch(e){console.warn('Cloud friend sync failed:',e);if(!quiet)netDiag('Connected to '+slug+', but cloud friend sync failed: '+String(e.code||e.message||e),'warn');return false;}
+}
 function onCloudInvite(slug,target){if(PVP.active)return;const ov=document.createElement('div');ov.className='modal';ov.innerHTML=`<div class=p style="max-width:420px"><h3>Cloud 1v1 invitation</h3><p>${esc(slug)} invited you to race to the Wave ${target} boss.</p><button onclick="acceptCloudInvite('${esc(slug)}',${target});this.closest('.modal').remove()">Connect and accept</button><button onclick="this.closest('.modal').remove()">Decline</button></div>`;document.body.appendChild(ov);SFX.warn()}
 function acceptCloudInvite(slug,target){if(PVP.active)return;NET.pendingCloudInvite={pid:slug,target:target===10?10:5};netConnect(slug)}

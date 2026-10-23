@@ -1,4 +1,4 @@
-/* Slugger NEO v0.5.3.1 — Authoritative network packets/snapshots, data-channel messages, chats, direct messages, and invitations.
+/* Slugger NEO v0.5.4 — Authoritative network packets/snapshots, data-channel messages, chats, direct messages, and invitations.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -106,9 +106,17 @@ let dmSelected=null;
 function dmSelect(pid){if(PVP.active&&PVP.playerDead)return;dmSelected=pid;watchCloudDm(pid);SFX.click();hub()}
 async function dmSay(pid){
   if(PVP.active){netSys(PVP.playerDead?'Spectators can only message the surviving player.':'Direct messages are disabled during an active 1v1.');return;}
-  const el=$('netMsg');if(!el)return;const m=el.value.trim();if(!m)return;const messageId=`${NET.id||'local'}:${Date.now()}:${Math.random().toString(36).slice(2,7)}`;
-  const conn=netSend(pid,{type:'chat',msg:m,messageId});if(!conn){const ok=await cloudSendDm(pid,{text:m,kind:'text'});if(!ok){netSys('Message failed: recipient is offline and cloud DM is unavailable.');return}}
-  NET.msgs.push({from:NET.id,to:pid,msg:m,t:Date.now(),id:messageId});if(NET.msgs.length>200)NET.msgs.shift();el.value='';hub();SFX.click();
+  const el=$('netMsg');if(!el)return;const m=el.value.trim();if(!m)return;
+  if(AUTH.user&&!AUTH.guest&&fbDb){
+    const saved=await cloudSendDm(pid,{text:m,kind:'text'});
+    if(saved){NET.msgs.push({from:saved.from,to:saved.to,msg:m,t:saved.t,id:saved.id,cloud:true});if(NET.msgs.length>300)NET.msgs.splice(0,NET.msgs.length-300);el.value='';hub();SFX.click();return;}
+    const sentDirect=netSend(pid,{type:'chat',msg:m,messageId:`${NET.id||'local'}:${Date.now()}`});
+    if(!sentDirect){netSys('Message failed: cloud history is unavailable and the friend is not directly connected.');return;}
+    NET.msgs.push({from:NET.id,to:pid,msg:m,t:Date.now()});netSys('Message sent directly, but not saved to cloud history: '+(cloudDmLastError||'cloud write unavailable')+'. Check your Firestore rules and cloud diagnostics.');el.value='';hub();SFX.click();return;
+  }
+  const sent=netSend(pid,{type:'chat',msg:m,messageId:`${NET.id||'local'}:${Date.now()}:${Math.random().toString(36).slice(2,7)}`});
+  if(!sent){netSys('Message failed: recipient is offline. Sign in with a username account to use cloud DMs while friends are offline.');return;}
+  NET.msgs.push({from:NET.id,to:pid,msg:m,t:Date.now()});if(NET.msgs.length>200)NET.msgs.shift();el.value='';hub();SFX.click();
 }
 function dmActionsHtml(pid){
   const conn=NET.conns[pid],presence=String(NET.friends[pid]?.status||'OFFLINE'),cloudOnline=!!(AUTH.user&&!AUTH.guest&&fbDb&&cloudUidBySlug[pid]&&presence!=='OFFLINE');

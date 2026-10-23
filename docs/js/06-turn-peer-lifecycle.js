@@ -1,4 +1,4 @@
-/* Slugger NEO v0.5.3.1 — Friend ID, TURN endpoint loading, mode policy, PeerJS lifecycle, signalling, and route inspection.
+/* Slugger NEO v0.5.4 — Friend ID, TURN endpoint loading, mode policy, PeerJS lifecycle, signalling, and route inspection.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -45,7 +45,7 @@ function netCycleConnectionMode(){
   NET.routeReported={};NET_MODE_RESTARTING=true;NET_MODE_RESTART_RETRIES=0;
   netSchedulePeerRestart(2300,'Connection mode changed to '+netModeInfo().label+'. Retiring the old PeerJS session before reclaiming your Friend ID; reconnect to friends after signalling returns.');
 }
-const NET={peer:null,id:null,conns:{},friends:{},msgs:[],ready:false,err:null,bytesSent:0,bytesRecv:0,pktsSent:0,pktsRecv:0,ping:0,turnStatus:'Preparing ICE configuration…',diag:[],connectionStatus:'Waiting for the signalling service…',connectionLevel:'info',pendingConnections:{},routeReported:{}};
+const NET={peer:null,id:null,accountIdLocked:false,conns:{},friends:{},msgs:[],ready:false,err:null,bytesSent:0,bytesRecv:0,pktsSent:0,pktsRecv:0,ping:0,turnStatus:'Preparing ICE configuration…',diag:[],connectionStatus:'Waiting for the signalling service…',connectionLevel:'info',pendingConnections:{},routeReported:{}};
 // PeerJS emits "disconnected" during destroy(), before setting peer.destroyed=true.
 // Detach NET.peer BEFORE destroying it, otherwise the old disconnected handler can
 // call reconnect() on the instance being retired and race the new instance for the same ID.
@@ -97,8 +97,49 @@ async function fetchMeteredIceServers(){
     const seen=new Set();return merged.filter(server=>{const urls=Array.isArray(server.urls)?server.urls:[server.urls];const key=JSON.stringify({urls,username:server.username||'',credential:server.credential||''});if(seen.has(key))return false;seen.add(key);return true});
   }finally{clearTimeout(timer)}
 }
-function netLoadFriends(){try{NET.friends=JSON.parse(localStorage.getItem(FK)||'{}')}catch(e){NET.friends={}}}
-function netSaveFriends(){try{localStorage.setItem(FK,JSON.stringify(NET.friends))}catch(e){}}
+const FRIENDS_OWNER_KEY='slugger_neo_friends_owner_v054';
+const friendScopedKey=owner=>FK+':'+String(owner||'guest');
+function storageGet(key){try{return localStorage.getItem(key)}catch(e){return null}}
+function storageSet(key,value){try{localStorage.setItem(key,value);return true}catch(e){return false}}
+function parseFriendCache(raw){try{const value=JSON.parse(raw||'{}');return value&&typeof value==='object'&&!Array.isArray(value)?value:{}}catch(e){return {}}}
+function scopeLocalFriendCache(owner){
+  owner=String(owner||'guest');
+  const previous=storageGet(FRIENDS_OWNER_KEY)||'';
+  if(!previous){
+    const legacy=NET.friends&&typeof NET.friends==='object'?NET.friends:parseFriendCache(storageGet(FK));
+    NET.friends=legacy;
+    storageSet(friendScopedKey(owner),JSON.stringify(NET.friends));storageSet(FRIENDS_OWNER_KEY,owner);storageSet(FK,JSON.stringify(NET.friends));
+    return owner!=='guest'&&Object.keys(legacy).length>0;
+  }
+  if(previous!==owner){
+    storageSet(friendScopedKey(previous),JSON.stringify(NET.friends||{}));
+    const scopedRaw=storageGet(friendScopedKey(owner));
+    NET.friends=scopedRaw===null?{}:parseFriendCache(scopedRaw);
+    storageSet(FRIENDS_OWNER_KEY,owner);storageSet(FK,JSON.stringify(NET.friends));
+    if(scopedRaw===null)storageSet(friendScopedKey(owner),JSON.stringify(NET.friends));
+    return false;
+  }
+  const scopedRaw=storageGet(friendScopedKey(owner));
+  if(scopedRaw!==null)NET.friends=parseFriendCache(scopedRaw);
+  storageSet(FK,JSON.stringify(NET.friends));storageSet(friendScopedKey(owner),JSON.stringify(NET.friends));
+  return false;
+}
+function netLoadFriends(){
+  const owner=storageGet(FRIENDS_OWNER_KEY)||'';
+  if(AUTH.guest){NET.friends=parseFriendCache(storageGet(friendScopedKey('guest'))||storageGet(FK));return}
+  // Firebase restores the signed-in identity asynchronously. Until then, show the last cache
+  // provisionally; activateUsernameAccount() switches to that UID's separate cache afterwards.
+  NET.friends=parseFriendCache((owner?storageGet(friendScopedKey(owner)):null)||storageGet(FK));
+}
+function netSaveFriends(){
+  const savedOwner=storageGet(FRIENDS_OWNER_KEY)||'';
+  const owner=AUTH.user&&!AUTH.guest?AUTH.user.uid:(AUTH.guest?'guest':(savedOwner||'guest'));
+  const value=JSON.stringify(NET.friends||{});storageSet(FK,value);storageSet(friendScopedKey(owner),value);storageSet(FRIENDS_OWNER_KEY,owner);
+}
+function releaseAccountPeerIdentity(){
+  const temporaryId=genId();NET.accountIdLocked=false;NET.id=temporaryId;NET_MODE_RESTARTING=true;NET_MODE_RESTART_RETRIES=0;
+  netSchedulePeerRestart(2200,'Account signed out. Releasing the saved account Friend ID and starting a temporary guest identity '+temporaryId+'. Signing back into your username restores its cloud Friend ID.');
+}
 function pvpBeginReconnect(pid){if(!PVP.active||pid!==PVP.opponent||PVP.finished||PVP.phase==='reconnecting')return;PVP.reconnectPhase=PVP.phase;PVP.phase='reconnecting';PVP.reconnectDeadline=Date.now()+15000;mode='pause';$('pauseOverlay').className='ov on';$('pauseOverlay').innerHTML=`<h2>Connection Lost</h2><p>Reconnecting to ${esc(pid)}…</p><h3 id="pvpReconnectTimer">15</h3><p class=ds>Reconnect from the Friends tab within 15 seconds to resume.</p><button onclick="netConnect('${esc(pid)}')">Reconnect now</button>`;}
 function pvpResumeConnection(pid){if(!PVP.active||pid!==PVP.opponent||PVP.phase!=='reconnecting')return;PVP.reconnectDeadline=0;PVP.phase=PVP.reconnectPhase||'playing';PVP.reconnectPhase=null;mode=PVP.phase==='playing'?'play':PVP.phase==='pause'?'pause':'hub';$('pauseOverlay').innerHTML=PVP.pauseHtml||'<h2>Paused</h2><button onclick="pz()">Resume (Esc)</button><button onclick="endRun(false)">Abandon run</button>';$('pauseOverlay').className=mode==='pause'?'ov on':'ov';netSend(pid,{type:'pvp_resume',matchId:PVP.matchId,phase:PVP.phase,seed:PVP.seed});netSys('Connection restored; match resumed.');}
 function pvpTickReconnect(){if(PVP.phase!=='reconnecting'||!PVP.reconnectDeadline)return;const left=Math.max(0,Math.ceil((PVP.reconnectDeadline-Date.now())/1000)),el=$('pvpReconnectTimer');if(el)el.textContent=left;if(left<=0){PVP.reconnectDeadline=0;if(PVP.role==='host'){endPvp('host','disconnect',{reason:'reconnect-timeout',graceMs:15000});}else{PVP.noReward=false;endPvp('guest','disconnect',{reason:'host-reconnect-timeout',graceMs:15000,opponentRole:'host'});}}}
@@ -146,10 +187,10 @@ async function netInit(newId){
     if(e.type==='unavailable-id'){
       if(NET_MODE_RESTARTING&&NET_MODE_RESTART_RETRIES<3){
         const retry=++NET_MODE_RESTART_RETRIES,wait=4000+retry*2000;
-        netSchedulePeerRestart(wait,'PeerJS reports that your Friend ID is still reserved after the mode change; retry '+retry+'/3 scheduled for the same ID.');return;
+        netSchedulePeerRestart(wait,'PeerJS reports that your Friend ID is still reserved; retry '+retry+'/3 scheduled for the same ID.');return;
       }
-      if(NET_MODE_RESTARTING){NET_MODE_RESTARTING=false;NET.err='Friend ID temporarily unavailable';NET.ready=false;if(NET.peer===peer)NET.peer=null;netDiag('Could not reacquire the same Friend ID after three delayed retries. The saved ID is unchanged; wait a little longer and switch mode once to retry.','error');netRender();return;}
-      NET.id=null;try{localStorage.removeItem(PK)}catch(x){}netDiag('Friend ID was already in use; generating a new ID.','warn');netInit(true);return;
+      if(NET_MODE_RESTARTING||NET.accountIdLocked){NET_MODE_RESTARTING=false;NET.err='Stable Friend ID temporarily unavailable';NET.ready=false;if(NET.peer===peer)NET.peer=null;netDiag('Your saved account Friend ID is already in use or has not yet been released. The game will not generate a replacement ID. Sign out on the other device or wait and retry.','error');netRender();return;}
+      NET.id=null;try{localStorage.removeItem(PK)}catch(x){}netDiag('Friend ID was already in use; generating a new guest ID.','warn');netInit(true);return;
     }
     const type=String(e.type||'error'),msg=String(e.message||'');
     if(type==='peer-unavailable'){
@@ -180,7 +221,8 @@ function netAccept(c){
     const previous=NET.conns[pid];if(previous&&previous!==c&&previous.open){try{previous.close()}catch(e){}}NET.conns[pid]=c;
     if(PVP.active&&PVP.role==='host'&&PVP.finished&&PVP.resultPacket&&PVP.opponent===pid)netSend(pid,PVP.resultPacket);else pvpResumeConnection(pid);
     if(!NET.friends[pid])NET.friends[pid]={name:pid.replace(/^SLUG-/,''),status:'hub',added:Date.now()};
-    netSaveFriends();netDiag('Peer-to-peer data channel CONNECTED to '+pid+'. Checking whether the active route is direct or relayed…','success');netSys('Connected to '+pid);
+    netSaveFriends();if(AUTH.user&&!AUTH.guest&&typeof persistCloudFriend==='function')persistCloudFriend(pid);
+    netDiag('Peer-to-peer data channel CONNECTED to '+pid+'. Checking whether the active route is direct or relayed…','success');netSys('Connected to '+pid);
     netSend(pid,{type:'hello',name:AUTH.username||'SLUG'});
     netSend(pid,{type:'status',mode:mode==='hub'?'hub':(PVP.active?'game':'play'),at:P.at||'neutral'});
     if(NET.pendingCloudInvite&&NET.pendingCloudInvite.pid===pid){const inv=NET.pendingCloudInvite;NET.pendingCloudInvite=null;enterPvpLobby('guest',pid,inv.target);netSend(pid,{type:'pvp_accept',target:inv.target});}
