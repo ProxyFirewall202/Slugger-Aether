@@ -1,9 +1,9 @@
-Slugger v0.6.0.1 — Quick Start
+v0.6.0.2 QUICK START
 
-1. Extract the Docs ZIP.
-2. Upload the CONTENTS of docs/ into your repo's top-level docs/ folder on main.
-3. Commit the changes; keep GitHub Pages on main /docs.
-4. Reload the game (fully close and reopen the installed iOS PWA).
-5. Try username sign-in again.
+1. Use slugger_neo_v0.6.0.2_phase1_hotfix_docs.zip for GitHub Pages.
+2. Extract it; upload its contents into your existing top-level docs/ folder; commit.
+3. Do not redeploy Cloudflare Worker or alter Metered credentials.
+4. Reload the website. On iPhone PWA, close and reopen the app.
+5. Test auto sign-in, manual username sign-in, and guest mode.
 
-No Cloudflare Worker update is needed for this client-side hotfix.
+Root cause fixed: restored the omitted shared esc() HTML-escaping helper and added a visible hub recovery path.

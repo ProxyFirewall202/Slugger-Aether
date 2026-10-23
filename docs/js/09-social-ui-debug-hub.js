@@ -92,6 +92,52 @@ function tickDbgDiag(){
     <div class=kv><span>Mode</span><b>${mode}</b></div>
     <div class=kv><span>PVP</span><b>${PVP.active?PVP.phase+' · '+PVP.role:'—'}</b></div>`;
 }
-function hub(){const o=$('hubOverlay'),sc=o.scrollTop,rs5=[['Warp','🌀',S.warp,'Earned from kills and cleared waves.'],['Protons','⚛',S.pro,'Used to craft Decryption Keys.'],['Keys','🗝',S.key,'Decrypt crates.'],['Fusion','🔮',S.fus,'Unlock Aether attunement.'],['Souls','👻',S.souls,'Awaken Spirit Slugs.']];o.className='ov on';$('topHUD').innerHTML='';
-const signBtn=AUTH.user?`<button onclick="authSignOut()">Sign out (${esc(AUTH.username||'')})</button>`:'<span class=ds>Guest mode</span>';
-o.innerHTML=`<div class=hd><svg class=logo viewBox='0 0 380 74'><defs><linearGradient id='lg' x1='0' x2='1'><stop offset='0' stop-color='#00ff88'/><stop offset='1' stop-color='#00ccff'/></linearGradient></defs><text x='190' y='46' text-anchor='middle' font-size='40' font-weight='800' font-family='Orbitron,sans-serif' fill='url(#lg)' stroke='#0a0814' stroke-width='7' paint-order='stroke' stroke-linejoin='round'>SLUGGER <tspan fill='#ff0055'>(NEO)</tspan></text><path class=dr d='M70 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/><path class=dr d='M190 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/><path class=dr d='M300 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/></svg><div class=rs>${rs5.map(r=>`<span class=tt data-tip="${r[3]}"><b>${r[1]} ${r[2]}</b> ${r[0]}</span>`).join('')}</div></div>${PVP.active&&PVP.phase==='upgrade'?`<nav>${TABS.slice(0,4).map((t,i)=>`<button class="tab${i===tab?' on':''}" onclick="tb(${i})">${['Deploy','Unboxing / Crates','Skill Tree','Equipment & Sets'][i]}</button>`).join('')}</nav>`:PVP.active?'<nav><button class="tab on" disabled>Direct Messages</button></nav>':`<nav>${TABS.map((t,i)=>`<button class="tab${i===tab?' on':''}" onclick="tb(${i})">${t}</button>`).join('')}</nav>`}${PVP.active&&PVP.phase==='upgrade'?`<div class="v05-upgrade-status" style="margin:8px auto;padding:10px 14px;max-width:1100px;border:1px solid #00ccff66;border-radius:10px;background:#101a2a;color:#d5e8f7;text-align:center;font-family:Orbitron,sans-serif;font-size:12px">UPGRADE WINDOW · <b><span id="v05Timer">${Math.max(0,Math.ceil(((PVP.upgradeDeadline||Date.now())-Date.now())/1000))}</span>s</b> · <b>${PVP.upgradeReady?'✓ YOU READY':'YOU NOT READY'}</b> · <b>${PVP.peerUpgradeReady?'✓ OPPONENT READY':'WAITING FOR OPPONENT'}</b></div>`:''}${logs.length?`<div class="p log">${logs.join('<br>')}</div>`:''}<div class=tbc>${PVP.active&&PVP.phase==='upgrade'?[t0,t1,t2,t3][Math.max(0,Math.min(3,tab))]():PVP.active?t4():[t0,t1,t2,t3,t4][tab]()}</div><p>${PVP.active?(PVP.phase==='upgrade'?'':'<button onclick="returnToV05PvpMenu()">Return to 1v1</button>'):`${signBtn} <button onclick="rs()">Reset save</button>`} <span class=ds>v0.6 Phase 1 · Streamlined economy · F2 or ~ opens dev console</span></p>`;o.scrollTop=sc;if(tab===4){netRender();if(dmSelected)watchCloudDm(dmSelected)}}
+function hub(){
+  const o=$('hubOverlay');if(!o){console.error('[Slugger] hubOverlay element is missing');return false;}
+  const sc=o.scrollTop;
+  try{if(!S||typeof S!=='object')S=DEF();if(typeof normaliseSave==='function')S=normaliseSave(S);}catch(e){console.error('[Slugger] Save normalisation before hub render failed:',e);}
+  const authState=typeof AUTH!=='undefined'&&AUTH?AUTH:{user:null,username:null,guest:true};
+  const pvpState=typeof PVP!=='undefined'&&PVP?PVP:{active:false,phase:'idle',upgradeDeadline:Date.now(),upgradeReady:false,peerUpgradeReady:false};
+  const tabsList=typeof TABS!=='undefined'&&Array.isArray(TABS)?TABS:['Deploys & checkpoints','Crates & Decryption','Skill Tree & Upgrades','Loadout & Sets','Friends & network'];
+  if(!Number.isInteger(Number(tab))||Number(tab)<0||Number(tab)>4)tab=0;else tab=Number(tab);
+  const rs5=[['Warp','🌀',S?.warp??0,'Earned from kills and cleared waves.'],['Protons','⚛',S?.pro??0,'Used to craft Decryption Keys.'],['Keys','🗝',S?.key??0,'Decrypt crates.'],['Fusion','🔮',S?.fus??0,'Unlock Aether attunement.'],['Souls','👻',S?.souls??0,'Awaken Spirit Slugs.']];
+  const inPvpUpgrade=!!(pvpState.active&&pvpState.phase==='upgrade');
+  let body='',renderWarning='';
+  try{
+    let renderer;
+    if(inPvpUpgrade){renderer=[t0,t1,t2,t3][Math.max(0,Math.min(3,tab))];}
+    else if(pvpState.active){renderer=typeof t4==='function'?t4:null;}
+    else renderer=[t0,t1,t2,t3,t4][tab];
+    if(typeof renderer!=='function')throw new Error('The selected menu renderer is unavailable (tab '+tab+').');
+    body=renderer();
+    if(typeof body!=='string')body=String(body??'');
+    if(!body.trim())throw new Error('The selected menu renderer returned an empty panel.');
+  }catch(e){
+    console.error('[Slugger] Menu panel failed to render:',e);
+    renderWarning='Menu panel could not render: '+String(e&&e.message||e);
+    tab=0;
+    try{if(typeof t0==='function')body=t0();}catch(recoveryError){console.error('[Slugger] Fallback deploy menu also failed:',recoveryError);}
+    if(!body||!String(body).trim())body=`<div class="p v06-menu-recovery"><h3>Menu failed to load</h3><p class="ds">${esc(renderWarning||'A required game module did not finish loading.')}</p><p class="ds">Try reloading the game. If this keeps happening, share the exact error from the browser console.</p><button onclick="hub()">Retry menu</button> <button onclick="location.reload()">Reload game</button></div>`;
+    else body=`<div class="p v06-menu-recovery-note"><b>Menu recovery:</b> ${esc(renderWarning)} Showing Deploys & checkpoints instead.</div>`+body;
+  }
+  const signBtn=authState.user?`<button onclick="authSignOut()">Sign out (${esc(authState.username||'')})</button>`:'<span class=ds>Guest mode</span>';
+  let navHtml='';
+  if(inPvpUpgrade)navHtml=`<nav>${tabsList.slice(0,4).map((t,i)=>`<button class="tab${i===tab?' on':''}" onclick="tb(${i})">${['Deploy','Unboxing / Crates','Skill Tree','Equipment & Sets'][i]}</button>`).join('')}</nav>`;
+  else if(pvpState.active)navHtml='<nav><button class="tab on" disabled>Direct Messages</button></nav>';
+  else navHtml=`<nav>${tabsList.map((t,i)=>`<button class="tab${i===tab?' on':''}" onclick="tb(${i})">${t}</button>`).join('')}</nav>`;
+  const statusHtml=inPvpUpgrade?`<div class="v05-upgrade-status" style="margin:8px auto;padding:10px 14px;max-width:1100px;border:1px solid #00ccff66;border-radius:10px;background:#101a2a;color:#d5e8f7;text-align:center;font-family:Orbitron,sans-serif;font-size:12px">UPGRADE WINDOW · <b><span id="v05Timer">${Math.max(0,Math.ceil(((pvpState.upgradeDeadline||Date.now())-Date.now())/1000))}</span>s</b> · <b>${pvpState.upgradeReady?'✓ YOU READY':'YOU NOT READY'}</b> · <b>${pvpState.peerUpgradeReady?'✓ OPPONENT READY':'WAITING FOR OPPONENT'}</b></div>`:'';
+  const logHtml=Array.isArray(logs)&&logs.length?`<div class="p log">${logs.map(x=>esc(String(x))).join('<br>')}</div>`:'';
+  const footer=pvpState.active?(inPvpUpgrade?'':'<button onclick="returnToV05PvpMenu()">Return to 1v1</button>'):`${signBtn} <button onclick="rs()">Reset save</button>`;
+  const versionLabel='<span class=ds>v0.6.0.2 · Phase 1 hotfix · F2 or ~ opens dev console</span>';
+  const header=`<div class=hd><svg class=logo viewBox='0 0 380 74'><defs><linearGradient id='lg' x1='0' x2='1'><stop offset='0' stop-color='#00ff88'/><stop offset='1' stop-color='#00ccff'/></linearGradient></defs><text x='190' y='46' text-anchor='middle' font-size='40' font-weight='800' font-family='Orbitron,sans-serif' fill='url(#lg)' stroke='#0a0814' stroke-width='7' paint-order='stroke' stroke-linejoin='round'>SLUGGER <tspan fill='#ff0055'>(NEO)</tspan></text><path class=dr d='M70 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/><path class=dr d='M190 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/><path class=dr d='M300 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/></svg><div class=rs>${rs5.map(r=>`<span class=tt data-tip="${r[3]}"><b>${r[1]} ${r[2]}</b> ${r[0]}</span>`).join('')}</div></div>`;
+  let html='';
+  try{html=header+navHtml+statusHtml+logHtml+`<div class=tbc>${body}</div><p>${footer} ${versionLabel}</p>`;}
+  catch(e){console.error('[Slugger] Menu shell failed to render:',e);html=`<div class="p v06-menu-recovery"><h2>Slugger menu recovery</h2><p class="ds">${esc(String(e&&e.message||e))}</p><button onclick="location.reload()">Reload game</button></div>`;}
+  o.innerHTML=html;
+  o.className='ov on';
+  o.scrollTop=Math.min(sc,o.scrollHeight||sc);
+  $('topHUD').innerHTML='';
+  if(tab===4&&!pvpState.active){try{netRender();if(typeof dmSelected!=='undefined'&&dmSelected)watchCloudDm(dmSelected)}catch(e){console.error('[Slugger] Social menu refresh failed:',e);const warn=document.createElement('p');warn.className='p lock';warn.textContent='Friends panel could not refresh: '+String(e.message||e);o.querySelector('.tbc')?.prepend(warn)}}
+  if(typeof sluggerRefreshMobileControls==='function')sluggerRefreshMobileControls();
+  return true;
+}

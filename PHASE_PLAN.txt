@@ -1,6 +1,4 @@
-Slugger NEO v0.6 roadmap
-
-Phase 1: Economy trim + menu overhaul (current).
-Phase 1 Hotfix v0.6.0.1: fixed missing FK/PK client constants that blocked sign-in.
-Phase 2: Mystery crate registry, discovery, nested rarity, unique crate SVGs and opening effects (not included).
-Phase 3: Unique item SVG behaviours, animated armor shell plates, atmospheric backgrounds and online-friend toast polish (not included).
+Slugger NEO v0.6 Phase Plan
+Phase 1: Economy trim, crate/loadout menu overhaul, 1v1 status HUD fix; v0.6.0.2 hotfix covers login-to-menu reliability only.
+Phase 2: Mystery crate registry, discovery rules, nested rarity, unique procedural SVG crate visuals and particles. Not included in v0.6.0.2.
+Phase 3: Unique gear behavior/animations, visual armor shells, atmospheric backgrounds and online friend toast notifications. Not included in v0.6.0.2.

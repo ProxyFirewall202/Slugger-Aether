@@ -61,6 +61,7 @@ let authStateUnsub=null, cloudGeneration=0, presenceTimer=null, presenceUnsub=nu
 const USERNAME_AUTH_ENDPOINT='https://slugger-turn-ice.tholloway540.workers.dev/username-token';
 const USERNAME_REGISTER_ENDPOINT='https://slugger-turn-ice.tholloway540.workers.dev/username-register';
 let pendingUsernameAuth=null,accountHydrationUid=null,accountHydrationPromise=null,legacyFriendCacheMigrationUid=null;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function cleanUsernameInput(raw){return String(raw||'').normalize('NFKC').trim().replace(/\s+/gu,' ')}
 function newAccountFriendIdCandidate(){const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let out='SLUG-';for(let i=0;i<4;i++)out+=alphabet[Math.floor(Math.random()*alphabet.length)];return out}
 function authTab(mode){AUTH.mode='username';if($('authError'))$('authError').textContent='';}
@@ -164,8 +165,22 @@ function authSignOut(){
   $('authModal').style.display='flex';$('hubOverlay').className='ov';authTab('login');
 }
 function enterGame(){
-  $('authModal').style.display='none';hub();
-  if(AUTH.user&&!AUTH.guest)startCloudSocial();
+  const modal=$('authModal'),err=$('authError'),overlay=$('hubOverlay');
+  try{
+    // Reset to the main tab on entry and render first, while the auth modal is still available.
+    if(!Number.isInteger(Number(tab))||Number(tab)<0||Number(tab)>4)tab=0;else tab=Number(tab);
+    const rendered=hub();
+    if(rendered===false||!overlay||!overlay.innerHTML.trim())throw new Error('The main menu did not render. Try reloading; if it continues, share the browser console error.');
+    modal.style.display='none';
+    if(AUTH.user&&!AUTH.guest)startCloudSocial();
+    return true;
+  }catch(e){
+    console.error('[Slugger] Could not enter the main menu after sign-in:',e);
+    if(modal)modal.style.display='flex';
+    if(overlay)overlay.className='ov';
+    if(err)err.textContent='Signed in, but the menu did not finish loading: '+String(e&&e.message||e);
+    return false;
+  }
 }
 function startAuthObserver(){
   if(!fbAuth||AUTH.observerStarted)return;AUTH.observerStarted=true;

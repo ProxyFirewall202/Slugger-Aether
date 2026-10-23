@@ -233,3 +233,6 @@ nav{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}
 @media(max-width:420px){.v06-crate-card{align-items:flex-start}.v06-crate-art{width:64px;height:64px;flex-basis:64px}.v06-crate-info h3{font-size:12px}.v06-card-actions button{font-size:9px;padding:5px 6px}.v06-slot-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.v06-slot-card:last-child{grid-column:1/-1}.v06-section-head h2{font-size:15px}.v06-key-count{min-width:74px;padding:6px}.v06-key-count b{font-size:19px}}
 
 .v06-drop-rate-family{border-top:1px solid #ffffff14;padding:7px 0;margin-top:6px}.v06-drop-rate-family>b{font-size:12px}
+
+/* v0.6.0.2 diagnostic fallback: only displayed if a menu module fails. */
+.v06-menu-recovery,.v06-menu-recovery-note{border:1px solid #ff4d9d!important;border-radius:8px;padding:12px;margin:8px 0;background:#171126;color:#ffdce9}.v06-menu-recovery .ds,.v06-menu-recovery-note{overflow-wrap:anywhere}

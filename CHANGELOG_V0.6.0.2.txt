@@ -1,0 +1,7 @@
+v0.6.0.2 — Phase 1 Menu Transition Hotfix
+- Restored the shared esc() HTML-escaping helper accidentally omitted during modularisation.
+- Made hub rendering robust against a failing tab renderer and invalid tab state.
+- Login-to-menu transition no longer hides the auth modal before hub rendering succeeds.
+- Bumped every CSS/JS cache-busting query to v0.6.0.2-hotfix.
+- No intentional gameplay/economy/network backend changes.
+- Cloudflare Worker update is not required.

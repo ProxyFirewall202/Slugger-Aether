@@ -1,37 +1,31 @@
-Slugger (NEO) v0.6.0.1 — Phase 1 Hotfix
-======================================
-
-PURPOSE
-This is a targeted hotfix for v0.6 Phase 1. It fixes a JavaScript ReferenceError on the username sign-in screen: `FK is not defined`.
+Slugger (NEO) v0.6.0.2 — Phase 1 Menu Transition Hotfix
+======================================================
 
 ROOT CAUSE
-During the v0.6 Phase 1 refactor, the legacy storage-key constants `FK` (friend cache) and `PK` (PeerJS Friend ID) were removed from their original hub file but not re-declared where the networking module uses them. The networking module now declares both constants before any networking or account actions use them.
+The v0.6 modular split inadvertently omitted the shared HTML escaping helper `esc()` that existed in the previous combined game file. The signed-in hub builds a “Sign out (username)” button using esc(); the resulting ReferenceError interrupted menu HTML rendering after the hub overlay was shown, leaving a blank gradient.
 
 WHAT CHANGED
-- Defined `FK='slugger_neo_friends_v1'` and `PK='slugger_neo_peerid'` in the networking module.
-- Updated CSS/JS cache-busting query strings to v0.6.0.1-hotfix so browsers fetch the fixed files.
-- No intentional gameplay, UI design, economy, save migration, Firebase, or Worker behaviour changes.
-- Existing TURN endpoint is preserved.
+- Restored the shared `esc()` helper in the first-loaded core/save/auth module.
+- Made hub rendering defensive: invalid tabs are normalized, renderer failures fall back to the Deploys menu or a visible recovery panel.
+- Changed the login-to-menu transition to render the hub before hiding the auth modal. If rendering fails, sign-in remains visible with a useful message.
+- Bumped every local CSS and JS cache-busting identifier to `v=0.6.0.2-hotfix`, preventing mixed cached module versions.
+- No economy, crate, loadout, Firebase API, Worker, or TURN behaviour was intentionally changed.
 
 DEPLOY TO GITHUB PAGES
-1. Extract the Docs ZIP, or use the `docs/` folder in this complete package.
-2. Upload the CONTENTS of `docs/` into the existing top-level `docs/` folder in the GitHub repository on `main`, replacing the previous files.
+1. Extract the Docs ZIP, or open `docs/` in the complete archive.
+2. Upload the CONTENTS of `docs/` into the existing top-level `docs/` folder in the GitHub repository on `main`, replacing the files in place.
 3. Keep `index.html`, `manifest.webmanifest`, `css/`, `js/`, and `icons/` together.
-4. Commit changes and leave GitHub Pages set to `main` / `docs`.
-5. Reload the website. For the installed iOS PWA, fully close and reopen it after deployment.
+4. Commit changes; leave GitHub Pages set to `main` / `docs`.
+5. Fully reload the website. For the installed iOS PWA, close it completely and reopen it after deployment.
 
 CLOUDFLARE
-No Worker update is required. This fix is in the game’s client-side JavaScript only. The `cloudflare-worker/` folder in the complete archive is a reference/backup; do not upload it into the public docs folder or redeploy it for this hotfix.
-The existing TURN endpoint remains:
+No Worker update is required. This hotfix is client-side only. Existing TURN endpoint preserved:
 https://slugger-turn-ice.tholloway540.workers.dev/ice-servers
 
-VALIDATION
-- All 12 JavaScript modules pass `node --check`.
-- Combined JavaScript syntax passes `node --check`.
-- The `FK` and `PK` declarations each occur once.
-- All local CSS, script, manifest, and icon references resolve.
-- PWA manifest JSON parses successfully.
-- No live browser/Firebase/PeerJS end-to-end test was possible here; verify username sign-in after deployment.
+TEST AFTER DEPLOYMENT
+- Auto sign-in with an existing account should reach the hub.
+- Incognito/manual sign-in should reach the hub.
+- Guest mode should still reach the hub.
+- If another menu module fails, the game should show recovery information instead of a blank gradient.
 
-SECURITY
-Never publish Firebase service-account JSON, private keys, Metered credentials, or Cloudflare secrets. Username-only accounts remain passwordless under the current design.
+If it still fails, capture the exact on-screen message and browser console error (F12 -> Console on desktop). Never share Firebase service-account JSON or private keys.
