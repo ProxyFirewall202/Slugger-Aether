@@ -291,7 +291,7 @@
       v0603RuntimeFault=err;
       const detail=String(err&&err.stack||err&&err.message||err);
       window.__sluggerRuntimeFault=detail;
-      console.error('[Slugger runtime fault — v0.6.0.3]',err);
+      console.error('[Slugger runtime fault — v0.6.0.4]',err);
       try{
         mode='pause';
         const pause=$('pauseOverlay');

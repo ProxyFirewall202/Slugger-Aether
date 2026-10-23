@@ -1,7 +1,16 @@
-Slugger NEO v0.6 Phase Plan
-Phase 1: Economy trim, crate/loadout menu overhaul, 1v1 status HUD fix; v0.6.0.2 hotfix covers login-to-menu reliability only.
-Phase 2: Mystery crate registry, discovery rules, nested rarity, unique procedural SVG crate visuals and particles. Not included in v0.6.0.2.
-Phase 3: Unique gear behavior/animations, visual armor shells, atmospheric backgrounds and online friend toast notifications. Not included in v0.6.0.2.
+SLUGGER NEO v0.6 PHASE PLAN
 
+Phase 1 — Economy Trim & Menu Overhaul
+- Remove Purified Warp, weapon levels, and reinforcement progression.
+- Organize Crates and Loadout into sub-tabs.
+- Phase 1 polish in v0.6.0.4: fix crate opening state transitions and add multi-category sortable/filterable equipment stats.
 
-Current maintenance hotfix: v0.6.0.3 fixes spirit-drone runtime exception and adds main-loop diagnostics. Phase 2/3 features remain unchanged.
+Phase 2 — Mystery Crates & Nested Rarity
+- Expand crate registry to 30+ variants, discovery-only owned views, internal rarity tiers, unique crate SVGs and opening particles.
+
+Phase 3 — Unique Gear, Armor Shells & Social Polish
+- Give individual weapons/shields/items unique SVGs, animation and combat behaviour.
+- Render animated armor shell plates on player slugs.
+- Implement online friend transition toasts and verify expanded systems in 1v1.
+
+Do not begin Phase 2 until the current Phase 1 build has been tested and any reported bugs are addressed.

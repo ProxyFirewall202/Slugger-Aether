@@ -1,0 +1,19 @@
+Slugger NEO v0.6.0.4 — Phase 1 Crate & Equipment Stats Polish
+
+FIX: Crate opening no longer gets stuck in the Decrypting animation because a save-normalisation pass replaced the S object and the old completion timer incorrectly required object identity to remain unchanged.
+- Added an idempotent crate completion transition with active-save-mode guarding and a defensive watchdog.
+- Crate inventory/key spending is persisted at the start of the opening; the reveal result is saved when the animation completes.
+- Reveal failures are logged and move the UI to a completed/recovery state instead of leaving the opening spinner forever.
+
+LOADOUT STATS:
+- Stats tab now includes every owned equipment type: weapons, shields, armor, boosts/charms, and Spirit Slugs.
+- Added search, category filtering, tier filtering, equipped-only filtering, sorting by name/tier/duplicates/DPS/damage/rate/pierce/HP/damage reduction/shield coverage/utility, and ascending/descending direction.
+- Cards show relevant category-specific metrics and N/A stats are excluded from a given stat sort.
+- Weapon DPS is an estimate from base damage, fire interval, and pellet count. Spirit DPS estimate assumes 10 base player damage. Temporary buffs, element matchups, and set multipliers are not included.
+
+VERSIONING:
+- Updated CSS/JS cache query parameters to v0.6.0.4-phase1-polish.
+- No Cloudflare Worker, Firebase, or TURN changes are required.
+
+ART SCOPE:
+- This release intentionally does not replace placeholder per-item silhouettes with unique animated artwork. The complete per-item SVG/animation/behaviour system should be built with Phase 3, avoiding a throwaway interim art system.

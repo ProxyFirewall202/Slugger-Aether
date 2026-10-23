@@ -1,5 +1,7 @@
-# Slugger NEO v0.6.0.3 — Phase 1 Runtime Freeze Hotfix
+# Slugger NEO v0.6.0.4
 
-This release fixes a runtime crash in the spirit-slug drone firing path and adds a diagnostic fallback to the animation loop.
+Phase 1 polish release: fixes the crate opening animation getting stuck when the hub re-normalises save state, and replaces weapon-only rankings with a searchable, sortable and filterable stats browser for all owned equipment categories.
 
-See `README.txt` for beginner deployment steps, `QUICK_START.txt` for a short checklist, and `CHANGELOG_V0.6.0.3.txt` for details. The web game lives in `docs/`. `cloudflare-worker/` is reference/backup only and does not need deploying for this client-only hotfix.
+Deploy the contents of `docs/` into the existing GitHub Pages `/docs` publishing folder. No Worker or TURN redeploy is required. See `README.txt`, `QUICK_START.txt`, and `CHANGELOG_V0.6.0.4.txt` at the archive root.
+
+Validation: JS syntax, CSS parse, crate state transition harness, stats rendering and category/search/tier filter tests passed. Full live browser/network playthrough remains unverified.

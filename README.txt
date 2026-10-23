@@ -1,28 +1,36 @@
-Slugger (NEO) v0.6.0.3 — Phase 1 Runtime Freeze Hotfix
-=====================================================
+SLUGGER (NEO) v0.6.0.4 — PHASE 1 CRATE & LOADOUT POLISH
 
-ROOT CAUSE FOUND
-The spirit-slug drone firing path still called rk(S.eq.p), an obsolete reinforcement-rank multiplier removed in Phase 1. When an awakened spirit slug was equipped and acquired a target, the first drone shot could throw ReferenceError: rk is not defined. Since this happened inside requestAnimationFrame without a catch/final scheduling path, the loop stopped and the game appeared frozen.
+CONTENTS
+- docs/: GitHub Pages site content, including index.html, CSS, JS modules, icons and manifest.
+- cloudflare-worker/: reference source for the existing Cloudflare Worker. It is included for backup; do not deploy it for this update.
+- QUICK_START.txt: quick deployment/testing steps.
+- CHANGELOG_V0.6.0.4.txt: changes made in this release.
+- PHASE_PLAN.txt: Phase 1/2/3 scope.
+- README.md: summary.
+
+DEPLOY TO GITHUB PAGES
+1. Download/extract the docs-only ZIP or open this package's docs/ folder.
+2. Upload the CONTENTS of docs/ into the existing repository's top-level docs/ folder on branch main, replacing prior game files.
+3. Keep index.html, manifest.webmanifest, css/, js/, and icons/ together.
+4. Commit changes, then wait for GitHub Pages deployment.
+5. Reload the game. If using the installed iPhone app, fully close and reopen it.
 
 WHAT CHANGED
-- Removed the obsolete rk multiplier from spirit-slug drone damage; Phase 1 removed reinforcement ranks, so drone damage now uses the normal weapon/equipment damage factor only.
-- Added a top-level runtime guard around the main animation loop. Unexpected runtime errors now pause the game and show a diagnostic message/stack instead of silently stopping the loop. The error is also logged to the browser console as [Slugger runtime fault — v0.6.0.3].
-- Bumped CSS/JS cache-busting identifiers to v0.6.0.3-hotfix.
-- Preserved v0.6 Phase 1 economy, crate/loadout menus, account/social code, mobile controls, and TURN endpoint.
-- No Cloudflare Worker update is required.
+- Crate decryption no longer remains indefinitely in the opening state due to save-object normalisation changing object identity.
+- Added a safety completion path for a reveal still in progress after the normal timer.
+- Loadout statistics now include every owned equipment category with search/category/tier/equipped filters and metric sorting.
+- Full unique per-item SVGs and animations are intentionally deferred to Phase 3 so art and behaviour are built together.
 
-DEPLOY
-1. Extract the Docs ZIP or open docs/ inside the complete ZIP.
-2. Upload the CONTENTS of docs/ into the existing repository's top-level docs/ folder on main, replacing the files in place.
-3. Keep index.html, manifest.webmanifest, css/, js/, and icons/ together.
-4. Commit and keep GitHub Pages set to main /docs.
-5. Fully reload the page; close and reopen the installed iOS PWA after publishing.
+BACKEND
+No Cloudflare Worker redeploy or Metered credential edit is needed for v0.6.0.4. The existing TURN endpoint remains in place.
 
-TEST
-- Start a single-player run with an awakened Spirit Slug equipped. Wait for it to acquire enemies and fire.
-- Confirm the run continues and the spirit slug shoots normally.
-- If any other unexpected runtime error occurs, the game should pause and show the actual diagnostic instead of remaining frozen. Capture that message for the next hotfix.
-- Also test a normal run without a spirit slug, the hub tabs, and 1v1 if available.
+VALIDATION
+- All 12 JS modules and their concatenated script pass node --check.
+- CSS parses successfully.
+- Targeted Node VM test passed: crate state moves from opening (ph=1) to results (ph=2) even when hub/save normalization replaces S.
+- Targeted stats-render test passed for weapons, shields, armor, charms and Spirit Slugs. Search/category/tier filter tests passed.
+- ZIP integrity checks passed.
+- Not verified: complete browser playthrough against live Firebase/PeerJS or live 1v1 network testing.
 
-TURN ENDPOINT (preserved)
-https://slugger-turn-ice.tholloway540.workers.dev/ice-servers
+IMPORTANT
+Stats are estimates. Weapon DPS uses base damage, attack interval and pellets. Spirit Slug DPS assumes 10 base player damage. Temporary buffs, element matchups and set bonuses are not included in ranking numbers.

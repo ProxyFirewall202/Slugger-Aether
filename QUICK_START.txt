@@ -1,9 +1,20 @@
-v0.6.0.3 QUICK START
+SLUGGER NEO v0.6.0.4 — QUICK START
 
-1. Download/extract the Docs ZIP.
-2. Upload its contents into your existing top-level docs/ folder on GitHub (main branch).
-3. Commit changes and wait for GitHub Pages to publish.
-4. Fully reload the game. Close/reopen installed iOS PWA if necessary.
-5. Test a run with an awakened Spirit Slug equipped.
+GITHUB PAGES DEPLOY
+1. Extract the v0.6.0.4 docs ZIP.
+2. Upload its contents to your existing top-level docs/ folder on branch main, replacing the prior files.
+3. Keep index.html, manifest.webmanifest, css/, js/, and icons/ together.
+4. Commit changes and let GitHub Pages deploy from main -> /docs.
+5. Fully reload the site. On iOS Home Screen app, close it completely and reopen it.
 
-No Cloudflare Worker or Firebase configuration changes are needed.
+TEST
+- Open a crate from Crates & Decryption. Confirm the animation completes and the results show; click away/back while opening and confirm it still completes.
+- Open Loadout & Sets -> Weapon Stats & DPS. Test category, search, tier, equipped-only and sorting filters.
+- Verify weapons, shields, armor, boosts/charms and Spirit Slugs show their relevant stats and visuals.
+- Smoke-test normal run launch and 1v1 upgrade screen.
+
+BACKEND
+No Worker/Firebase/Metered configuration changes are needed for this release. Existing TURN endpoint is preserved.
+
+NOTE
+All JavaScript modules were syntax checked. The crate completion state and stats UI/filters were exercised in local targeted harnesses. The full game was not tested against a live cloud account or in a full end-to-end browser gameplay run.
