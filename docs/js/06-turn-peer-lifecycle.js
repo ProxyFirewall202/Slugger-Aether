@@ -2,6 +2,10 @@
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
+// Storage keys shared by the save/auth and networking layers. These were
+// originally declared in the old combined hub script; keep them here so the
+// modular build defines them before networking/auth actions can be invoked.
+const FK='slugger_neo_friends_v1',PK='slugger_neo_peerid';
 function genId(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<4;i++)s+=A[Math.floor(Math.random()*A.length)];const id='SLUG-'+s;try{localStorage.setItem(PK,id)}catch(e){}return id}
 function loadId(){try{const v=localStorage.getItem(PK);if(v&&/^SLUG-[A-Z0-9]{4}$/.test(v))return v}catch(e){}return genId()}
 /* TURN configuration is served by your permanently deployed Cloudflare Worker.

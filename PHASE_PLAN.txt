@@ -1,14 +1,6 @@
-Slugger NEO v0.6 phase boundaries
+Slugger NEO v0.6 roadmap
 
-PHASE 1 (this package)
-- Economy trim: remove Cells/Purified Warp, weapon levels, and reinforcement logic, no refunds.
-- Crate and Loadout menu sub-tabs, owned crate list, graphical previews, categorization, DPS ranking and set tracker.
-- 1v1 60-second upgrade status/currency overlap fix.
-
-PHASE 2 (not included)
-- 30+ specialized crate variants, discovery/owned display logic, rarity tiers within crate families, and per-crate SVG designs/particle opening effects.
-
-PHASE 3 (not included)
-- Unique per-item SVG appearance/animation/weapon behaviour, visible animated armor shell plates, atmospheric dynamic wave backgrounds, Firebase online-friend notifications, and final peer synchronization pass for Phase 2/3 features.
-
-Do not start Phase 2 until Phase 1 is deployed and the user has finished testing/fixing it.
+Phase 1: Economy trim + menu overhaul (current).
+Phase 1 Hotfix v0.6.0.1: fixed missing FK/PK client constants that blocked sign-in.
+Phase 2: Mystery crate registry, discovery, nested rarity, unique crate SVGs and opening effects (not included).
+Phase 3: Unique item SVG behaviours, animated armor shell plates, atmospheric backgrounds and online-friend toast polish (not included).
