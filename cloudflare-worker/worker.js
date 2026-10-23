@@ -232,9 +232,15 @@ async function issueUsernameToken(request, env, headers) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const allowed = String(env.ALLOWED_ORIGINS || "").split(",").map(x => x.trim()).filter(Boolean);
+    // Normalize each configured entry to its origin. This tolerates a mistakenly pasted
+    // GitHub Pages URL with a repository path, while still requiring an exact origin match.
+    const allowed = String(env.ALLOWED_ORIGINS || "").split(",").map(x => {
+      const value = x.trim(); if (!value) return "";
+      try { return new URL(value.includes("://") ? value : "https://" + value).origin; } catch (_) { return ""; }
+    }).filter(Boolean);
     const origin = request.headers.get("Origin") || "";
-    const corsOrigin = allowed.includes(origin) ? origin : "";
+    let normalizedOrigin = ""; try { normalizedOrigin = origin ? new URL(origin).origin : ""; } catch (_) {}
+    const corsOrigin = normalizedOrigin && allowed.includes(normalizedOrigin) ? normalizedOrigin : "";
     const headers = {
       "Cache-Control": "no-store, max-age=0",
       "Content-Type": "application/json; charset=utf-8",
@@ -250,8 +256,14 @@ export default {
       if (!origin || !corsOrigin) return json({ error: "Origin is not allowed" }, 403, headers);
       return new Response(null, { status: 204, headers });
     }
-    if (!origin || !corsOrigin) return json({ error: "Origin is not allowed" }, 403, headers);
+    if (!origin || !corsOrigin) return json({ error: "Origin is not allowed", hint: "Configure ALLOWED_ORIGINS with your GitHub Pages origin (scheme and hostname)." }, 403, headers);
 
+    if (url.pathname === "/health") return json({
+      ok: true,
+      usernameLoginConfigured: !!String(env.FIREBASE_SERVICE_ACCOUNT_JSON || "").trim(),
+      turnConfigured: !!String(env.METERED_DOMAIN || "").trim() && !!String(env.METERED_CREDENTIAL_API_KEY || "").trim(),
+      originAccepted: true
+    }, 200, headers);
     if (url.pathname === "/username-token") return issueUsernameToken(request, env, headers);
     if (url.pathname !== "/ice-servers") return json({ error: "Not found" }, 404, headers);
     if (request.method !== "GET") return json({ error: "Method not allowed" }, 405, headers);

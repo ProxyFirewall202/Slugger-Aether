@@ -107,20 +107,24 @@ async function authSubmit(){
   const username=cleanUsernameInput($('authUsername').value);
   const length=Array.from(username).length;
   if(length<3||length>20||/[\u0000-\u001f\u007f/\\]/u.test(username)){err('Choose a username 3–20 characters long. Slashes and control characters are not allowed.');return}
-  $('authSubmitBtn').disabled=true;pendingUsernameAuth=username;
+  $('authSubmitBtn').disabled=true;pendingUsernameAuth=username;let authStage='contacting Cloudflare username service';
   try{
-    const response=await fetch(USERNAME_AUTH_ENDPOINT,{method:'POST',cache:'no-store',credentials:'omit',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({username})});
+    let response;
+    try{response=await fetch(USERNAME_AUTH_ENDPOINT,{method:'POST',cache:'no-store',credentials:'omit',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({username})})}
+    catch(fetchError){throw new Error('Could not contact the username service (Cloudflare/CORS/network). Check that ALLOWED_ORIGINS exactly matches this GitHub Pages origin and that the Worker is deployed. Details: '+String(fetchError.message||fetchError))}
     let body={};try{body=await response.json()}catch(e){}
-    if(!response.ok||!body.customToken)throw new Error(body.error||('Username service returned HTTP '+response.status));
-    const cred=await fbAuth.signInWithCustomToken(body.customToken);
+    if(!response.ok||!body.customToken)throw new Error('Username service HTTP '+response.status+': '+(body.error||'No custom token returned. Check the Worker logs and FIREBASE_SERVICE_ACCOUNT_JSON secret.'));
+    authStage='signing in to Firebase';
+    let cred;
+    try{cred=await fbAuth.signInWithCustomToken(body.customToken)}catch(firebaseError){throw new Error('Cloudflare returned a token, but Firebase sign-in failed ('+(firebaseError.code||'unknown')+'): '+String(firebaseError.message||firebaseError)+'. Check Firebase Authentication is enabled for project slugger-aether, the Firebase API key restrictions, and that the Worker signs tokens for the same project.')}
     AUTH.user=cred.user;AUTH.username=body.username||username;AUTH.guest=false;
+    authStage='loading your cloud profile';
     await activateUsernameAccount(cred.user,body.username||username);
     enterGame();
   }catch(e){
     const msg=String(e.message||e||'Sign-in failed');
-    if(msg.includes('Failed to fetch'))err('Could not reach the username service. Check the Cloudflare Worker deployment and allowed website origin.');
-    else if(msg.includes('auth/invalid-custom-token')||msg.includes('auth/custom-token-mismatch'))err('The username service returned an invalid Firebase token. Check the Worker service-account setup.');
-    else err(msg);
+    console.error('Slugger username sign-in failed at stage:',authStage,e);
+    err(msg);
   }finally{pendingUsernameAuth=null;$('authSubmitBtn').disabled=false}
 }
 function authGuest(){

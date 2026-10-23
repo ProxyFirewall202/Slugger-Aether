@@ -1,4 +1,4 @@
-Slugger NEO v0.5.4 — Cloudflare Worker deployment guide
+Slugger NEO v0.5.4.1 — Cloudflare Worker deployment guide
 
 WHY THIS UPDATE IS REQUIRED
 The same Worker now serves both endpoints:
@@ -9,7 +9,7 @@ The HTML calls these stable addresses:
   https://slugger-turn-ice.tholloway540.workers.dev/ice-servers
   https://slugger-turn-ice.tholloway540.workers.dev/username-token
 
-Do this one time for v0.5.4. Ordinary future game releases do not require changing the Worker unless the Worker backend itself changes or a secret is rotated.
+Do this one time for v0.5.4.1. Ordinary future game releases do not require changing the Worker unless the Worker backend itself changes or a secret is rotated.
 
 BEFORE STARTING
 - Keep the current Metered variables and secret; do not delete them.
@@ -59,3 +59,9 @@ IMPORTANT ACCOUNT BEHAVIOUR
 - Friend lists synchronize when both players have username accounts. Existing browser-only contacts are best-effort migrated the first time an unscoped legacy cache is used; reconnect to a friend if they were not linked to a cloud account yet.
 - DMs for two username accounts are written to Firestore and the latest 60 messages are displayed on each device. Guest mode and conversations with users who do not have cloud accounts cannot guarantee cross-device history.
 - The Worker does not make the public username login private or resistant to impersonation; that is part of the explicitly requested no-password design.
+
+
+v0.5.4.1 DIAGNOSTICS
+- GET /health returns ok, originAccepted, and booleans indicating whether username/ TURN configuration values are present. It never returns secrets. Open it from the published GitHub Pages origin.
+- ALLOWED_ORIGINS entries are normalized to scheme + hostname, so a pasted repository path is ignored; the live request Origin must still match exactly.
+- The game now reports whether failure occurred while contacting Cloudflare, signing in with Firebase, or loading the cloud profile.
