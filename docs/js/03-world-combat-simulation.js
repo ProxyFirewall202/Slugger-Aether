@@ -1,4 +1,4 @@
-/* Slugger NEO v0.5.4 — World data, player/equipment stats, enemy AI, wave simulation, combat, hazards, and snapshots.
+/* Slugger NEO v0.5.4.2 — World data, player/equipment stats, enemy AI, wave simulation, combat, hazards, and snapshots.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */

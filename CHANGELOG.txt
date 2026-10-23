@@ -1,6 +1,0 @@
-Slugger NEO v0.5.4.1 — Username login diagnostics hotfix
-
-- Replaced the vague network-error fallback with stage-specific Cloudflare, Firebase, and profile-loading errors.
-- Added a safe Worker /health endpoint that reports configuration presence only.
-- Normalized ALLOWED_ORIGINS entries to origin-only values, tolerating a repository path pasted into the setting while retaining exact origin matching.
-- Preserved the existing Metered TURN endpoint, username account flow, game visuals, and module order.

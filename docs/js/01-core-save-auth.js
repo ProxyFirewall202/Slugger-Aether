@@ -1,4 +1,4 @@
-/* Slugger NEO v0.5.4 — Core constants, save normalisation/merging, authentication, and cloud persistence.
+/* Slugger NEO v0.5.4.2 — Core constants, save normalisation/merging, authentication, and cloud persistence.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -113,7 +113,13 @@ async function authSubmit(){
     try{response=await fetch(USERNAME_AUTH_ENDPOINT,{method:'POST',cache:'no-store',credentials:'omit',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({username})})}
     catch(fetchError){throw new Error('Could not contact the username service (Cloudflare/CORS/network). Check that ALLOWED_ORIGINS exactly matches this GitHub Pages origin and that the Worker is deployed. Details: '+String(fetchError.message||fetchError))}
     let body={};try{body=await response.json()}catch(e){}
-    if(!response.ok||!body.customToken)throw new Error('Username service HTTP '+response.status+': '+(body.error||'No custom token returned. Check the Worker logs and FIREBASE_SERVICE_ACCOUNT_JSON secret.'));
+    if(!response.ok||!body.customToken){
+      const serviceMessage=String(body.error||'');
+      if(response.status===503&&/FIREBASE_SERVICE_ACCOUNT_JSON|service-account JSON|service account/i.test(serviceMessage)){
+        throw new Error('Username login server setup is incomplete. Your username has not been created yet. In Cloudflare, open Workers & Pages → slugger-turn-ice → Settings → Variables and Secrets → Production. Add FIREBASE_SERVICE_ACCOUNT_JSON as a Secret and paste the entire Google Cloud service-account JSON file (including the opening and closing braces), then deploy the Worker. Details: '+serviceMessage);
+      }
+      throw new Error('Username service HTTP '+response.status+': '+(serviceMessage||'No custom token returned. Check the Worker configuration and logs.'));
+    }
     authStage='signing in to Firebase';
     let cred;
     try{cred=await fbAuth.signInWithCustomToken(body.customToken)}catch(firebaseError){throw new Error('Cloudflare returned a token, but Firebase sign-in failed ('+(firebaseError.code||'unknown')+'): '+String(firebaseError.message||firebaseError)+'. Check Firebase Authentication is enabled for project slugger-aether, the Firebase API key restrictions, and that the Worker signs tokens for the same project.')}
@@ -181,7 +187,7 @@ function persistScopedSave(){try{const value=JSON.stringify(normaliseSave(S));lo
 function scopeLocalSaveForOwner(owner){
   owner=String(owner||'guest');let previous='';try{previous=localStorage.getItem(SAVE_OWNER_KEY)||''}catch(e){}
   if(!previous){
-    // Adopt the legacy single-browser save once, preserving existing progress on first v0.5.4 login.
+    // Adopt the legacy single-browser save once, preserving existing progress on first v0.5.4.2 login.
     persistScopedSaveFor(owner);return false;
   }
   if(previous!==owner){

@@ -1,10 +1,11 @@
-/* Slugger NEO v0.5.4 Cloudflare Worker.
+/* Slugger NEO v0.5.4.2 Cloudflare Worker.
  * Routes:
- *   GET  /ice-servers    - retrieve temporary TURN ICE credentials from Metered
- *   POST /username-token - issue a Firebase custom token for username-only access
+ *   GET  /ice-servers     - retrieve temporary TURN ICE credentials from Metered
+ *   GET  /health          - safe configuration diagnostics (never exposes secrets)
+ *   POST /username-token  - issue a Firebase custom token for username-only access
  *
- * The Firebase service-account JSON must be stored as the Worker Secret
- * FIREBASE_SERVICE_ACCOUNT_JSON. Never place that key in the public game files.
+ * Required Worker Secret: FIREBASE_SERVICE_ACCOUNT_JSON (the entire service-account
+ * JSON key file contents). Never place this key in public game files or chat.
  */
 let cachedGoogleAccessToken = null;
 let cachedGoogleAccessTokenExpiresAt = 0;
@@ -106,6 +107,47 @@ function firestoreFieldString(doc, field) {
   return doc?.fields?.[field]?.stringValue || "";
 }
 
+// Parse the whole Cloudflare secret, never returning or logging its contents.
+// Nested JSON strings are tolerated because they can result from accidentally
+// pasting a JSON-encoded string; direct raw key-file JSON remains preferred.
+function readServiceAccountConfig(env) {
+  const raw = String(env.FIREBASE_SERVICE_ACCOUNT_JSON || "").replace(/^\uFEFF/, "").trim();
+  if (!raw) return { status: "missing", serviceAccount: null, projectId: "" };
+  let serviceAccount;
+  try {
+    serviceAccount = JSON.parse(raw);
+    if (typeof serviceAccount === "string") serviceAccount = JSON.parse(serviceAccount);
+  } catch (_) {
+    return { status: "invalid_json", serviceAccount: null, projectId: "" };
+  }
+  if (!serviceAccount || typeof serviceAccount !== "object" || Array.isArray(serviceAccount)) {
+    return { status: "invalid_json", serviceAccount: null, projectId: "" };
+  }
+  const projectId = String(serviceAccount.project_id || env.FIREBASE_PROJECT_ID || "").trim();
+  const clientEmail = String(serviceAccount.client_email || "").trim();
+  const privateKey = String(serviceAccount.private_key || "").trim();
+  if (!projectId || !clientEmail || !privateKey) {
+    return { status: "missing_fields", serviceAccount, projectId };
+  }
+  if (!privateKey.includes("-----BEGIN PRIVATE KEY-----") || !privateKey.includes("-----END PRIVATE KEY-----")) {
+    return { status: "invalid_private_key", serviceAccount, projectId };
+  }
+  return { status: "ready", serviceAccount, projectId };
+}
+
+function serviceAccountSetupMessage(status) {
+  if (status === "missing") {
+    return "Username login is not configured: the Cloudflare Worker Secret FIREBASE_SERVICE_ACCOUNT_JSON is missing for Production. Add it under Settings > Variables and Secrets as a Secret, paste the entire Google Cloud service-account JSON key file, and deploy the Worker. A username has not been created yet.";
+  }
+  if (status === "invalid_json") {
+    return "Username login is not configured: FIREBASE_SERVICE_ACCOUNT_JSON exists but is not valid JSON. Paste the entire downloaded service-account .json file contents, including the opening and closing braces. Do not paste the filename, only the private key, or Markdown code fences. A username has not been created yet.";
+  }
+  if (status === "missing_fields") {
+    return "Username login is not configured: FIREBASE_SERVICE_ACCOUNT_JSON must be the service-account key JSON and include project_id, client_email, and private_key. Firebase web configuration is not a service-account key. A username has not been created yet.";
+  }
+  return "";
+}
+
 async function fetchFirestoreIndex(projectId, accessToken, indexId) {
   const response = await fetch(firestoreRoot(projectId) + "/usernameIndex/" + encodeURIComponent(indexId), {
     headers: { Authorization: "Bearer " + accessToken, Accept: "application/json" }
@@ -198,16 +240,12 @@ async function issueUsernameToken(request, env, headers) {
   try { identity = normalizeUsername(body?.username); }
   catch (e) { return json({ error: e.message }, 400, headers); }
 
-  let serviceAccount;
-  try {
-    serviceAccount = JSON.parse(String(env.FIREBASE_SERVICE_ACCOUNT_JSON || ""));
-  } catch (_) {
-    return json({ error: "Username login is not configured: Firebase service-account JSON is missing or invalid." }, 503, headers);
+  const accountConfig = readServiceAccountConfig(env);
+  if (accountConfig.status !== "ready") {
+    return json({ error: serviceAccountSetupMessage(accountConfig.status), setupStatus: accountConfig.status }, 503, headers);
   }
-  const projectId = String(serviceAccount.project_id || env.FIREBASE_PROJECT_ID || "").trim();
-  if (!projectId || !serviceAccount.client_email || !serviceAccount.private_key) {
-    return json({ error: "Username login is not configured: Firebase service-account JSON must include project_id, client_email, and private_key." }, 503, headers);
-  }
+  const serviceAccount = accountConfig.serviceAccount;
+  const projectId = accountConfig.projectId;
 
   try {
     const accessToken = await googleAccessToken(serviceAccount);
@@ -256,14 +294,25 @@ export default {
       if (!origin || !corsOrigin) return json({ error: "Origin is not allowed" }, 403, headers);
       return new Response(null, { status: 204, headers });
     }
-    if (!origin || !corsOrigin) return json({ error: "Origin is not allowed", hint: "Configure ALLOWED_ORIGINS with your GitHub Pages origin (scheme and hostname)." }, 403, headers);
+    // /health exposes only configuration booleans/status, never secret values. Allow
+    // opening it directly in a browser (no Origin header) to help diagnose setup.
+    if ((!origin || !corsOrigin) && !(url.pathname === "/health" && !origin)) {
+      return json({ error: "Origin is not allowed", hint: "Configure ALLOWED_ORIGINS with your GitHub Pages origin (scheme and hostname)." }, 403, headers);
+    }
 
-    if (url.pathname === "/health") return json({
-      ok: true,
-      usernameLoginConfigured: !!String(env.FIREBASE_SERVICE_ACCOUNT_JSON || "").trim(),
-      turnConfigured: !!String(env.METERED_DOMAIN || "").trim() && !!String(env.METERED_CREDENTIAL_API_KEY || "").trim(),
-      originAccepted: true
-    }, 200, headers);
+    if (url.pathname === "/health") {
+      const accountConfig = readServiceAccountConfig(env);
+      return json({
+        ok: true,
+        originAccepted: true,
+        usernameLoginConfigured: accountConfig.status === "ready",
+        usernameLoginSetupStatus: accountConfig.status,
+        turnConfigured: !!String(env.METERED_DOMAIN || "").trim() && !!String(env.METERED_CREDENTIAL_API_KEY || "").trim(),
+        note: accountConfig.status === "ready"
+          ? "Service-account JSON is present and structurally valid. This does not verify Google IAM permissions, Firestore API availability, or Firebase Authentication settings."
+          : serviceAccountSetupMessage(accountConfig.status)
+      }, 200, headers);
+    }
     if (url.pathname === "/username-token") return issueUsernameToken(request, env, headers);
     if (url.pathname !== "/ice-servers") return json({ error: "Not found" }, 404, headers);
     if (request.method !== "GET") return json({ error: "Method not allowed" }, 405, headers);

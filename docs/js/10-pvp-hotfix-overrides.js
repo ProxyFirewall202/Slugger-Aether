@@ -1,4 +1,4 @@
-/* Slugger NEO v0.5.4 — Existing v0.5.1 campaign/spectator/upgrade/results/network overrides, preserved as one ordered IIFE.
+/* Slugger NEO v0.5.4.2 — Existing v0.5.1 campaign/spectator/upgrade/results/network overrides, preserved as one ordered IIFE.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
