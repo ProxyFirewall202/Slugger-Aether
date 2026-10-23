@@ -1,9 +1,9 @@
-v0.6.0.2 QUICK START
+v0.6.0.3 QUICK START
 
-1. Use slugger_neo_v0.6.0.2_phase1_hotfix_docs.zip for GitHub Pages.
-2. Extract it; upload its contents into your existing top-level docs/ folder; commit.
-3. Do not redeploy Cloudflare Worker or alter Metered credentials.
-4. Reload the website. On iPhone PWA, close and reopen the app.
-5. Test auto sign-in, manual username sign-in, and guest mode.
+1. Download/extract the Docs ZIP.
+2. Upload its contents into your existing top-level docs/ folder on GitHub (main branch).
+3. Commit changes and wait for GitHub Pages to publish.
+4. Fully reload the game. Close/reopen installed iOS PWA if necessary.
+5. Test a run with an awakened Spirit Slug equipped.
 
-Root cause fixed: restored the omitted shared esc() HTML-escaping helper and added a visible hub recovery path.
+No Cloudflare Worker or Firebase configuration changes are needed.

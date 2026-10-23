@@ -276,8 +276,35 @@
 
   // Keep the local hit-stop visual-only: simulation and network snapshots continue advancing.
   const _loopDraw=draw;
-  const _oldRafLoop=loop;
-  loop=function(t){const dt=Math.min(.05,(t-last)/1000)||0;last=t;T+=dt;DBG.frames++;if(t-DBG.lastFpsT>500){DBG.fps=DBG.frames*1000/(t-DBG.lastFpsT);DBG.dt=dt*1000;DBG.frames=0;DBG.lastFpsT=t;}if(DBG.open){DBG.diagT+=dt;if(DBG.diagT>.25){DBG.diagT=0;tickDbgDiag();}}pvpTickCountdown();pvpTickReconnect();setMus(mode==='hub'?'hub':mode==='pause'?mus:E.some(e=>e.ty==='b')?'boss':'combat');if(mode==='play'){upd(dt);hh-=dt;if(hh<=0){hh=.1;hud();}}if(HS>0&&mode==='play'){HS--;/* one rendered frame skipped; simulation and network keep advancing */}else draw();requestAnimationFrame(loop);};
+  let v0603RuntimeFault=null;
+  loop=function(t){
+    try{
+      if(v0603RuntimeFault)return;
+      const dt=Math.min(.05,(t-last)/1000)||0;last=t;T+=dt;DBG.frames++;
+      if(t-DBG.lastFpsT>500){DBG.fps=DBG.frames*1000/(t-DBG.lastFpsT);DBG.dt=dt*1000;DBG.frames=0;DBG.lastFpsT=t;}
+      if(DBG.open){DBG.diagT+=dt;if(DBG.diagT>.25){DBG.diagT=0;tickDbgDiag();}}
+      pvpTickCountdown();pvpTickReconnect();
+      setMus(mode==='hub'?'hub':mode==='pause'?mus:E.some(e=>e.ty==='b')?'boss':'combat');
+      if(mode==='play'){upd(dt);hh-=dt;if(hh<=0){hh=.1;hud();}}
+      if(HS>0&&mode==='play'){HS--;}else draw();
+    }catch(err){
+      v0603RuntimeFault=err;
+      const detail=String(err&&err.stack||err&&err.message||err);
+      window.__sluggerRuntimeFault=detail;
+      console.error('[Slugger runtime fault — v0.6.0.3]',err);
+      try{
+        mode='pause';
+        const pause=$('pauseOverlay');
+        if(pause){
+          pause.className='ov on';
+          pause.innerHTML='<div style="max-width:760px;margin:0 auto;padding:20px"><h2 style="color:#ff668b">GAME PAUSED — INTERNAL ERROR</h2><p>The game detected an unexpected error and paused instead of silently freezing. Copy the diagnostic below when reporting the bug.</p><pre id="sluggerRuntimeFaultText" style="white-space:pre-wrap;text-align:left;overflow-wrap:anywhere;max-height:35vh;overflow:auto"></pre><button onclick="location.reload()">Reload game</button></div>';
+          const diagnostic=pause.querySelector('#sluggerRuntimeFaultText');if(diagnostic)diagnostic.textContent=detail;
+        }
+      }catch(uiErr){console.error('[Slugger] Could not display runtime diagnostic:',uiErr);}
+    }finally{
+      if(!v0603RuntimeFault)requestAnimationFrame(loop);
+    }
+  };
   ensureV05Ui();
 })();
 

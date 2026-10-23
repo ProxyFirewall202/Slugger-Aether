@@ -1,0 +1,20 @@
+Slugger NEO v0.6.0.1 — Hotfix
+
+FIXED
+- Username sign-in triggered `FK is not defined` due to missing friend-cache key declaration.
+- Restored both FK and PK storage-key constants in the networking module before they are used.
+- Updated CSS/JS cache-busting query strings to force clients to download the hotfix assets.
+
+UNCHANGED
+- Phase 1 economy trim and menu overhaul.
+- Save migration policy (removed progression fields are discarded, no refunds).
+- Mobile and desktop controls.
+- Firebase and Cloudflare Worker APIs.
+- Metered TURN endpoint and credentials.
+
+TESTS
+- 12 JS modules: node --check passed.
+- Combined JS: node --check passed.
+- FK and PK declaration uniqueness checked.
+- Local assets, script references and manifest checked.
+- Live end-to-end sign-in still requires deployment testing.

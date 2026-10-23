@@ -2,3 +2,6 @@ Slugger NEO v0.6 Phase Plan
 Phase 1: Economy trim, crate/loadout menu overhaul, 1v1 status HUD fix; v0.6.0.2 hotfix covers login-to-menu reliability only.
 Phase 2: Mystery crate registry, discovery rules, nested rarity, unique procedural SVG crate visuals and particles. Not included in v0.6.0.2.
 Phase 3: Unique gear behavior/animations, visual armor shells, atmospheric backgrounds and online friend toast notifications. Not included in v0.6.0.2.
+
+
+Current maintenance hotfix: v0.6.0.3 fixes spirit-drone runtime exception and adds main-loop diagnostics. Phase 2/3 features remain unchanged.

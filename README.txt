@@ -1,31 +1,28 @@
-Slugger (NEO) v0.6.0.2 — Phase 1 Menu Transition Hotfix
-======================================================
+Slugger (NEO) v0.6.0.3 — Phase 1 Runtime Freeze Hotfix
+=====================================================
 
-ROOT CAUSE
-The v0.6 modular split inadvertently omitted the shared HTML escaping helper `esc()` that existed in the previous combined game file. The signed-in hub builds a “Sign out (username)” button using esc(); the resulting ReferenceError interrupted menu HTML rendering after the hub overlay was shown, leaving a blank gradient.
+ROOT CAUSE FOUND
+The spirit-slug drone firing path still called rk(S.eq.p), an obsolete reinforcement-rank multiplier removed in Phase 1. When an awakened spirit slug was equipped and acquired a target, the first drone shot could throw ReferenceError: rk is not defined. Since this happened inside requestAnimationFrame without a catch/final scheduling path, the loop stopped and the game appeared frozen.
 
 WHAT CHANGED
-- Restored the shared `esc()` helper in the first-loaded core/save/auth module.
-- Made hub rendering defensive: invalid tabs are normalized, renderer failures fall back to the Deploys menu or a visible recovery panel.
-- Changed the login-to-menu transition to render the hub before hiding the auth modal. If rendering fails, sign-in remains visible with a useful message.
-- Bumped every local CSS and JS cache-busting identifier to `v=0.6.0.2-hotfix`, preventing mixed cached module versions.
-- No economy, crate, loadout, Firebase API, Worker, or TURN behaviour was intentionally changed.
+- Removed the obsolete rk multiplier from spirit-slug drone damage; Phase 1 removed reinforcement ranks, so drone damage now uses the normal weapon/equipment damage factor only.
+- Added a top-level runtime guard around the main animation loop. Unexpected runtime errors now pause the game and show a diagnostic message/stack instead of silently stopping the loop. The error is also logged to the browser console as [Slugger runtime fault — v0.6.0.3].
+- Bumped CSS/JS cache-busting identifiers to v0.6.0.3-hotfix.
+- Preserved v0.6 Phase 1 economy, crate/loadout menus, account/social code, mobile controls, and TURN endpoint.
+- No Cloudflare Worker update is required.
 
-DEPLOY TO GITHUB PAGES
-1. Extract the Docs ZIP, or open `docs/` in the complete archive.
-2. Upload the CONTENTS of `docs/` into the existing top-level `docs/` folder in the GitHub repository on `main`, replacing the files in place.
-3. Keep `index.html`, `manifest.webmanifest`, `css/`, `js/`, and `icons/` together.
-4. Commit changes; leave GitHub Pages set to `main` / `docs`.
-5. Fully reload the website. For the installed iOS PWA, close it completely and reopen it after deployment.
+DEPLOY
+1. Extract the Docs ZIP or open docs/ inside the complete ZIP.
+2. Upload the CONTENTS of docs/ into the existing repository's top-level docs/ folder on main, replacing the files in place.
+3. Keep index.html, manifest.webmanifest, css/, js/, and icons/ together.
+4. Commit and keep GitHub Pages set to main /docs.
+5. Fully reload the page; close and reopen the installed iOS PWA after publishing.
 
-CLOUDFLARE
-No Worker update is required. This hotfix is client-side only. Existing TURN endpoint preserved:
+TEST
+- Start a single-player run with an awakened Spirit Slug equipped. Wait for it to acquire enemies and fire.
+- Confirm the run continues and the spirit slug shoots normally.
+- If any other unexpected runtime error occurs, the game should pause and show the actual diagnostic instead of remaining frozen. Capture that message for the next hotfix.
+- Also test a normal run without a spirit slug, the hub tabs, and 1v1 if available.
+
+TURN ENDPOINT (preserved)
 https://slugger-turn-ice.tholloway540.workers.dev/ice-servers
-
-TEST AFTER DEPLOYMENT
-- Auto sign-in with an existing account should reach the hub.
-- Incognito/manual sign-in should reach the hub.
-- Guest mode should still reach the hub.
-- If another menu module fails, the game should show recovery information instead of a blank gradient.
-
-If it still fails, capture the exact on-screen message and browser console error (F12 -> Console on desktop). Never share Firebase service-account JSON or private keys.
