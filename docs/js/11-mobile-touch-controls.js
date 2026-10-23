@@ -1,8 +1,8 @@
-/* Slugger NEO v0.5.3.1 — Mobile controls hotfix.
+/* Slugger NEO v0.5.4.3 — Mobile controls hotfix.
  * Loaded after game/network modules and before the final startup module.
  * Touch screens get a virtual joystick, hold-to-shoot with auto-aim, special, and element cycling.
  */
-/* v0.5.3.1 mobile input: virtual movement joystick, auto-aim hold-to-fire, special and element cycling. */
+/* v0.5.4.3 mobile input: virtual movement joystick, auto-aim hold-to-fire, special and element cycling. */
 const SLUGGER_TOUCH_DEVICE=(()=>{const ua=String(navigator.userAgent||''),points=Number(navigator.maxTouchPoints)||0,mm=window.matchMedia?window.matchMedia.bind(window):null;const mobileUA=/Android|iPhone|iPad|iPod/i.test(ua),ipadDesktopUA=/Macintosh/i.test(ua)&&points>1,narrowTouch=points>0&&mm&&mm('(max-width: 900px)').matches;return !!(mobileUA||ipadDesktopUA||narrowTouch)})();
 let sluggerTouchControlsVisible=true,sluggerJoyPointer=null,sluggerJoyCenter=null,sluggerFirePointer=null;
 try{const savedTouch=localStorage.getItem('slugger_neo_touch_controls');if(savedTouch==='0')sluggerTouchControlsVisible=false;else if(savedTouch==='1')sluggerTouchControlsVisible=true;}catch(e){}

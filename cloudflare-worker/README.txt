@@ -1,23 +1,57 @@
-Slugger NEO — Cloudflare Worker for TURN ICE configuration
+Slugger NEO v0.5.4.3 — Cloudflare Worker setup and account creation
 
-PURPOSE
-This Worker keeps the Metered credential-scoped API key in a server-side Cloudflare Secret. The published game calls this Worker for ICE server configuration. The public game HTML contains only the Worker URL, not the Metered API key.
+WHAT CHANGED
+This Worker retains your existing TURN and username-sign-in routes and adds a separate username-registration route:
+  GET  /ice-servers          Retrieves Metered TURN ICE configuration
+  GET  /health               Reports safe setup diagnostics
+  POST /username-token      Signs in to an existing username account
+  POST /username-register   Creates a new username account and returns a Firebase custom token
 
-ONE-TIME SETUP
-1. In Cloudflare, open Workers & Pages and create a Worker named `slugger-turn-ice`.
-2. Deploy `worker.js` (or deploy from this folder with Wrangler).
-3. Set these Worker variables:
-   - METERED_DOMAIN = the exact app hostname shown in Metered Developers, e.g. yourapp.metered.live
-   - ALLOWED_ORIGINS = your GitHub Pages origin, e.g. https://yourusername.github.io (origin only, no path). Add your custom domain origin too if needed, comma-separated.
-4. Add a Worker Secret named `METERED_CREDENTIAL_API_KEY` using the API key for your active Metered TURN credential. Do not use the account-wide Metered Secret Key.
-5. Deploy the Worker, then copy its exact endpoint URL ending in `/ice-servers`, Your current endpoint is `https://slugger-turn-ice.tholloway540.workers.dev/ice-servers`.
-6. In `docs/js/06-turn-peer-lifecycle.js`, the `TURN_CREDENTIALS_ENDPOINT` constant is already set to the current deployed endpoint in `docs/js/06-turn-peer-lifecycle.js`. This is the one-time URL wiring step. Keep that URL stable and preserve the constant in future game builds.
-7. Put the `docs/` folder at the repository top level and set GitHub Pages to branch `main` / folder `/docs`. The folder intentionally contains NO turn-config.json; the endpoint constant lives in docs/js/06-turn-peer-lifecycle.js.
+The fixed game endpoints are:
+  https://slugger-turn-ice.tholloway540.workers.dev/ice-servers
+  https://slugger-turn-ice.tholloway540.workers.dev/username-token
+  https://slugger-turn-ice.tholloway540.workers.dev/username-register
 
-AFTER SETUP
-For routine modular game-code updates: publish the changed files from the new `docs/` package, including any changed JS/CSS files. No separate config JSON is required. Keep the Worker URL constant in `docs/js/06-turn-peer-lifecycle.js` unchanged in future versions. The Metered API key stays in Cloudflare and does not need to be re-entered for ordinary game updates.
+ONE-TIME UPDATE
+1. Open https://dash.cloudflare.com/ and choose Workers & Pages > slugger-turn-ice > Edit code.
+2. Open this file (worker.js) in a text editor, copy all its contents, replace the editor contents, and click Save and deploy.
+3. Preserve all existing Production variables/secrets. No new secret is required by v0.5.4.3:
+   - METERED_DOMAIN (Text)
+   - ALLOWED_ORIGINS (Text)
+   - METERED_CREDENTIAL_API_KEY (Secret)
+   - FIREBASE_SERVICE_ACCOUNT_JSON (Secret)
+4. Wait for deployment to finish.
 
-Only update the Worker Secret if you deliberately rotate/revoke the Metered credential or it is compromised. If you change the Worker URL or your GitHub Pages origin, you must update the endpoint constant or ALLOWED_ORIGINS respectively. Browser clients necessarily receive TURN username/password data returned by Metered so WebRTC can authenticate; this does not expose the Metered API key.
+The service account should have Cloud Datastore User (roles/datastore.user) in the Firebase project's Google Cloud project. This permits Firestore REST reads/writes to usernameIndex and users. Keep the JSON key private: never paste it in this file, HTML, GitHub Pages, or chat.
 
-SECURITY
-A TURN credential password was previously posted in chat; revoke/delete that credential and use a new one. Do not commit a Metered key or account secret to the repository. CORS restricts normal browser access by Origin, but it is not authentication against scripts/curl; consider Cloudflare rate limits and monitor the Metered quota.
+HOW THE TWO BUTTONS WORK
+- Sign in submits to /username-token. Existing usernames are resolved from the usernameIndex collection, with a legacy users collection lookup for older profiles. An unknown username returns HTTP 404 and the game tells the player to select Create account.
+- Create account submits to /username-register. It validates the username (3–20 characters; no slash or control characters), checks the existing username index and legacy accounts, rejects duplicates with HTTP 409, reserves the username index, creates the initial users/{uid} profile with username, usernameLower, a stable SLUG-XXXX Friend ID and an empty friends list, then returns a Firebase custom token.
+- After Firebase signs in with the custom token, the game loads that profile, preserves the Friend ID, and loads cloud save/social data.
+- Username-only login deliberately has no password. Anyone who knows a username can sign into that account. Do not use this for sensitive/private information.
+
+GITHUB PAGES UPDATE
+1. Extract the v0.5.4.3 complete package.
+2. Upload the CONTENTS of docs/ into your repository's top-level docs/ folder (main branch). Keep index.html, css/, js/, icons/, and manifest.webmanifest together.
+3. Do not upload cloudflare-worker/ or this Worker source into the public docs/ folder.
+4. Keep GitHub Pages set to main /docs.
+
+TESTING
+1. Open https://slugger-turn-ice.tholloway540.workers.dev/health. usernameLoginSetupStatus should read "ready". This validates the secret's structure only, not all permissions.
+2. Publish the updated docs files.
+3. Use a new, unused username and press Create account. It should register and enter the hub.
+4. Sign out, then Sign in with that username. The Friend ID should remain the same.
+5. Try Create account with the same username again. It should return “That username already exists”.
+6. Try Sign in with a name that does not exist. It should explain that Create account is needed.
+
+TROUBLESHOOTING
+- HTTP 503: check the Worker Secret FIREBASE_SERVICE_ACCOUNT_JSON and its Google Cloud permissions, and check Worker Logs. Never post the private key.
+- HTTP 403 Origin not allowed: set ALLOWED_ORIGINS to the exact GitHub Pages origin (scheme and hostname only, e.g. https://yourname.github.io), not the repo path. Multiple origins can be comma-separated.
+- HTTP 409: username already exists or a concurrent registration won the race. Try Sign in, or choose another name.
+- HTTP 404 on Sign in: username does not exist; use Create account.
+- If registration returns HTTP 503 after the index is written, try Sign in once; a subsequent attempt may report the username already exists if the account profile completed. Check the Worker Logs if it does not.
+
+SECURITY / CONFIGURATION NOTES
+- No Metered or Firebase secrets are added to the public HTML.
+- TURN configuration is unchanged and still uses the existing Metered endpoint.
+- No new Cloudflare variable is required.

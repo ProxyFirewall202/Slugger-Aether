@@ -1,22 +1,27 @@
-SLUGGER NEO v0.5.3.1 — MOBILE CONTROLS HOTFIX
+Slugger NEO v0.5.4.3 — Complete Release Package
 
-START HERE
-Open START_HERE.txt for the publishing checklist.
+THIS PACKAGE CONTAINS
+- docs/                 Website files to publish to GitHub Pages main /docs
+- cloudflare-worker/    Worker source and detailed Worker instructions
+- README.txt            Main guide (this file)
+- QUICK_START.txt       Short checklist
+- CHANGELOG_V0.5.4.3.txt Release summary
 
-PACKAGE LAYOUT
-- docs/: the public GitHub Pages website; publish its contents to your repository’s top-level docs/ folder.
-- cloudflare-worker/: server-side TURN endpoint source and setup documentation; do not upload it into the public docs/ folder.
-- BEGINNER_GUIDE.txt: mobile controls, publishing, and testing guide.
+WHAT V0.5.4.3 DOES
+The initial screen has separate Sign in and Create account buttons. Sign in only works for existing usernames. Create account registers a new username, reserves its case-normalized name, makes the first Firestore profile and a stable Friend ID, then signs the player in.
 
-WHAT’S NEW IN v0.5.3.1
-- Hide touch controls on the hub, wave selection, auth screens, pause/summary screens and non-playing PvP phases.
-- Improved device detection so full-size desktop PCs don't show touch controls merely because a browser reports touch points.
-- Fix mobile hold-to-shoot so compatibility mouse events do not cancel the touch-held state.
-- Align projectile origins with the displayed weapon muzzle.
-- Slightly reduce mobile control sizes.
+IMPORTANT: THIS RELEASE NEEDS A ONE-TIME WORKER UPDATE
+The game has a new endpoint dependency: POST /username-register. Your existing Worker must be updated once or the Create account button will return 404. No new secret/variable is required; preserve your current Metered and Firebase secrets.
 
-PUBLISHING
-GitHub Pages should use branch main /docs. Publish all updated contents of docs/ together, including css/, js/, icons/, manifest.webmanifest, and index.html. The HTML adds a v0.5.3.1 cache-buster to CSS/JS paths so devices don't keep running stale modules. Preserve the synchronous JS load order; do not add async/defer.
+DEPLOY IN THIS ORDER
+1. CLOUDFLARE: Go to https://dash.cloudflare.com/ > Workers & Pages > slugger-turn-ice > Edit code. Replace the code with cloudflare-worker/worker.js and Save and deploy. Preserve existing Production variables/secrets. See cloudflare-worker/README.txt.
+2. GITHUB PAGES: Upload the contents of docs/ to your repository's top-level docs/ folder on the main branch. Keep the existing Pages source set to main /docs. Do not upload cloudflare-worker/ into docs/.
+3. TEST: Open https://slugger-turn-ice.tholloway540.workers.dev/health and check usernameLoginSetupStatus is "ready". Then reload the game and create an unused username (3–20 characters). Sign out and sign back in, then try creating the same username twice to confirm duplicates are rejected.
 
-TURN
-The existing endpoint remains configured in docs/js/06-turn-peer-lifecycle.js. Normal game updates do not require changing Cloudflare Worker secrets.
+EXISTING SERVICES PRESERVED
+- Metered TURN endpoint: https://slugger-turn-ice.tholloway540.workers.dev/ice-servers
+- Username sign-in endpoint: https://slugger-turn-ice.tholloway540.workers.dev/username-token
+- New username registration endpoint: https://slugger-turn-ice.tholloway540.workers.dev/username-register
+
+SECURITY
+The username-only account design is intentionally not protected by a password. Anyone who knows the username can access that account. Do not use it for private or sensitive data. Never publish FIREBASE_SERVICE_ACCOUNT_JSON, the private key, or Metered credentials. Keep cloudflare-worker/ out of the public docs/ website.

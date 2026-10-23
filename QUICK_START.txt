@@ -1,0 +1,9 @@
+Slugger NEO v0.5.4.3 — Quick Start
+
+[1] Cloudflare > Workers & Pages > slugger-turn-ice > Edit code. Replace Worker source with cloudflare-worker/worker.js; click Save and deploy. Keep all current Production variables/secrets. No new secret is needed.
+[2] GitHub: upload the contents of docs/ into the repo's top-level docs/ folder on main. Keep Pages set to main /docs. Do not upload cloudflare-worker/ to docs/.
+[3] Open https://slugger-turn-ice.tholloway540.workers.dev/health. Expect usernameLoginSetupStatus: "ready".
+[4] Publish/reload the game. Create account with a new 3–20 char username. Then sign out and sign in with it. Friend ID should persist.
+[5] Create that username again: it should say already exists. Sign in with an unused name: it should tell you to Create account.
+
+Full steps and troubleshooting: README.txt and cloudflare-worker/README.txt.
