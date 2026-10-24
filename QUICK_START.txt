@@ -19,3 +19,7 @@ Local simulated tests passed, but live cloud and two-peer network tests were not
 
 ANTI-GRIND RULE
 Random enemy loot-box drop chance scales down per box family as you collect its five set pieces (7% base down to 1.4% at full set). Guaranteed wave/boss milestone boxes are unaffected. Warp from a box also scales down to 20% at full set collection.
+
+
+VERSION 0.6.5.0
+Publish the contents of docs/ to the existing GitHub Pages docs/ root. The new file docs/js/14-v0650-run-cinematics.js is required. No Cloudflare Worker, Firebase, or Metered configuration changes are needed.

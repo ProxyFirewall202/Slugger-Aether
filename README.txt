@@ -27,3 +27,6 @@ All 13 JS modules pass syntax checks. Chromium simulated checks passed for the 3
 
 ANTI-GRIND
 Random enemy loot-box drop chance scales with the specific box set's collection progress (7% base, down to 1.4% at a complete set). Guaranteed wave/boss milestone boxes stay guaranteed. Opening Warp rewards scale down to 20% at full set collection.
+
+
+Version 0.6.5.0 adds Roman numeral tiers, tier-scaled Warp rewards, owned-only loot box display, and full-screen run-end loot cinematics. See CHANGELOG_V0.6.5.0.txt.

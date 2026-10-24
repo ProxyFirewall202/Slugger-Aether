@@ -16,3 +16,6 @@ SUB-PHASE 5 — Social and multiplayer parity
 Not included yet. Firebase friend-online notifications and an audit of 1v1 synchronization/reconnect behavior for the new loot/set mechanics.
 
 Each sub-phase should be tested and bugs fixed before starting the next one.
+
+
+V0.6.5.0: Roman numeral tiers, tier-scaled Warp payouts, owned-only loot box opening list, death/run summary cinematic, sequential loot reveal and final reward summary.
