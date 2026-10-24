@@ -1,0 +1,10 @@
+SLUGGER NEO v0.6.6.0 — Unique Gear & Armor Shells
+
+- Added distinct procedural SVG designs and animated presentation for all generated equipment items; shared IDs keep art consistent across loadout, stats, sets, and rewards.
+- Added animated shell plates over the slug body while leaving the front eye area exposed.
+- Activated five-piece set passives and themed set-special attacks; weapon identity now affects projectile shape, piercing, speed, and impact behaviour. Weapon-specific special buttons remain removed; specials are tied to complete sets.
+- Fixed run timer initialization and tracked dealt damage for the end-run stats screen.
+- Loot reveal cards now show each actual equipment SVG, a Warp icon, and exact per-box Warp payout; the summary shows total Warp earned rather than the number of Warp text lines.
+- Maintained the existing 10-tier Roman-numeral system, Warp/loot-box economy, username/Firebase integration, and TURN Worker endpoint configuration.
+
+Validation: JavaScript syntax checks and package structure checks performed. Browser/device and live two-peer gameplay testing still recommended before treating multiplayer parity as fully verified.

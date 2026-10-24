@@ -116,7 +116,7 @@ TL.forEach(l=>l.t-=dt);TL=TL.filter(l=>l.t>0);
 MS.forEach(m=>{m.t+=dt;if(m.t>=m.T)burst(m.x1,m.y1,m.c,10,180)});MS=MS.filter(m=>m.t<m.T);
 BM.forEach(b=>{if(b.e){if(b.e.hp>0){b.x=b.e.x;b.y=b.e.y}else b.t=0}b.a+=b.rot*dt;if(b.w>0){b.w-=dt;return}b.t-=dt;const test=(x,y,r)=>{const px=x-b.x,py=y-b.y;return px*Math.cos(b.a)+py*Math.sin(b.a)>0&&Math.abs(-px*Math.sin(b.a)+py*Math.cos(b.a))<b.wd+r};if(test(P.x,P.y,P.r))hurt(12+G.w*2,P.x,P.y,true);if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&!PVP.oppHazardImmune&&test(PVP.oppX,PVP.oppY,13))damagePvpGuest((12+G.w*2)*dt,'boss-beam')});BM=BM.filter(b=>b.t>0);
 SHK=Math.max(0,SHK-dt*30)}
-function deploy(cp){if(PVP.active&&PVP.phase!=='playing')return;SFX.click();ST=calc();pendingGuestCrates.clear();enemyUidCounter=0;crateUidCounter=0;bulletUidCounter=0;G={w:cp-1,warp:S.rec[cp]||0,startWarp:S.rec[cp]||0,runBanked:false,seed:PVP.active?(PVP.seed||1):((Math.random()*0xffffffff)>>>0),rngState:((PVP.seed||1)^cp)>>>0,cr:makeCrateCounts(),kills:0,q:[],t:0,gap:1,st:'inter',tmr:1.5,el:'neutral',name:'Get ready',storm:0,stt:0,spi:(eqI('p')&&S.aw[S.eq.p])?{cd:0,x:0,y:0}:null};P.at='neutral';P.rx=P.rv=P.ammo=0;
+function deploy(cp){if(PVP.active&&PVP.phase!=='playing')return;SFX.click();ST=calc();pendingGuestCrates.clear();enemyUidCounter=0;crateUidCounter=0;bulletUidCounter=0;G={w:cp-1,warp:S.rec[cp]||0,startWarp:S.rec[cp]||0,startTime:Date.now(),damage:0,runBanked:false,seed:PVP.active?(PVP.seed||1):((Math.random()*0xffffffff)>>>0),rngState:((PVP.seed||1)^cp)>>>0,cr:makeCrateCounts(),kills:0,q:[],t:0,gap:1,st:'inter',tmr:1.5,el:'neutral',name:'Get ready',storm:0,stt:0,spi:(eqI('p')&&S.aw[S.eq.p])?{cd:0,x:0,y:0}:null};P.at='neutral';P.rx=P.rv=P.ammo=0;
 Object.assign(P,{x:W/2,y:H/2,vx:0,vy:0,hp:ST.mhp,inv:0,sp:0,spm:6,cd:0});deterministicRandom=(PVP.active&&PVP.role==='host')?()=>seededRand():null;E=[];B=[];EB=[];CR=[];PT=[];SL=[];HO=[];TL=[];HZ=[];MS=[];BM=[];SHK=HS=0;P.sm=1;mode='play';$('hubOverlay').className='ov';$('pauseOverlay').className='ov';netBroadcast({type:'status',mode:'play'})}
 function nextWave(){const w=++G.w;G.rngState=((PVP.seed||G.seed||1)^Math.imul(w,0x9e3779b1))>>>0;S.rec[w]=Math.max(S.rec[w]||0,G.warp);G.q=[];HZ=[];BM=[];TL=[];MS=[];EB=[];const b=w%5===0,ids=w===5?[13,14]:[w*3-3,w*3-2,w*3-1],wt=w===5?[.5,.5]:[.45,.3,.25];
 const baseCount=b?w+6:5+w*3,actualCount=PVP.active?Math.ceil(baseCount*1.35):baseCount;
@@ -127,7 +127,7 @@ function spawn(id,x0,y0,mini){const w=G.w,n=EN30[id],s=RI(0,3),sd=SHD[id],bs=id=
 e={x:x0!=null?x0:s<2?R(0,W):s===2?-20:W+20,y:y0!=null?y0:s<2?(s?H+20:-20):R(0,H),kx:0,ky:0,v:0,fx:1,fa:0,o:R(0,6.28),uid:++enemyUidCounter,id,b:n.ai,ty:bs?'b':'n',el:elOf(id),cd:R(.5,2),r:n.r*(mini?.7:1),spd:n.spd*(1+.02*(w-1)),fl:0,ph:0,st:5,fm:1,dm:1,fz:G.fr?1:0,sh:sd&&sd[0],tr:sd&&sd[1],rg:id===19,dk:mini?0:DKH[id],sm:mini?1:0};
 const hpScale=(PVP.active?1.5:1)*(mini?.4:1);
 e.hp=e.mh=n.hp*sc*hpScale;E.push(e);if(bs&&PVP.active&&PVP.role==='host'&&PVP.phase==='playing')netSend(PVP.opponent,{type:'pvp_boss_spawn',matchId:PVP.matchId,uid:e.uid,id,wave:G.w,name:n.n,el:e.el});}
-function dmgE(e,d,el,fromGuest){if(e.inv>0||e.gh)return;const actual=Math.max(0,d*emul(el,e.el));e.hp-=actual;if(d>2)e.fl=.034;e._lastHitBy=fromGuest?'guest':'host';if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'&&PVP.stats){PVP.stats[fromGuest?'guest':'host'].damage+=actual;}}
+function dmgE(e,d,el,fromGuest){if(e.inv>0||e.gh)return;const actual=Math.max(0,d*emul(el,e.el));if(G&&!fromGuest)G.damage=(Number(G.damage)||0)+actual;e.hp-=actual;if(d>2)e.fl=.034;e._lastHitBy=fromGuest?'guest':'host';if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'&&PVP.stats){PVP.stats[fromGuest?'guest':'host'].damage+=actual;}}
 function kill(e,j){
  const killer=e._lastHitBy||'host';
  E.splice(j,1);G.dead++;G.kills++;
@@ -273,7 +273,7 @@ function upd(dt){
   if(e.rg){let bl=0;e.bk=e.bk||[0,0,0];for(let k=0;k<3;k++){const sa=T*2.2+k*2.094;if(e.bk[k]<=0&&Math.hypot(b.x-e.x-Math.cos(sa)*38,b.y-e.y-Math.sin(sa)*38)<10)bl=k+1}if(bl){e.hc=(e.hc||0)+1;if(e.hc>=4){e.hc=0;e.bk[bl-1]=3;burst(e.x,e.y,EC.vortex,10,160)}burst(b.x,b.y,'#fff',4,140);B.splice(i,1);break}}
   if(Math.hypot(b.x-e.x,b.y-e.y)>e.r+b.r)continue;
   if(e.sh){const a=Math.atan2(b.y-e.y,b.x-e.x),df=Math.abs(Math.atan2(Math.sin(a-e.fa),Math.cos(a-e.fa)));if(df<(e.sh==='i'?1.3:1)){if(e.sh==='r')EB.push({uid:++bulletUidCounter,x:b.x,y:b.y,vx:-b.vx*.7,vy:-b.vy*.7,el:b.el,l:3,d:8+G.w,r:5});burst(b.x,b.y,'#fff',5,150);SFX.hit();B.splice(i,1);break}}
-  b.h.push(e);dmgE(e,b.d,b.el,b._guest);if(b.iceSet&&b.el==='ice')e.slow=Math.max(e.slow||0,.45);SFX.hit();burst(b.x,b.y,EC[b.el],3,120);if(b.cr){HS=Math.max(HS,2);SHK=Math.max(SHK,3)}if(--b.pi<=0){B.splice(i,1);break}}}
+  b.h.push(e);dmgE(e,b.d,b.el,b._guest);if(b.explode&&!b.didExplode){b.didExplode=true;const exr=92;E.forEach(other=>{if(other!==e&&Math.hypot(other.x-e.x,other.y-e.y)<exr)dmgE(other,b.d*.55,b.el,b._guest)});burst(e.x,e.y,EC[b.el],28,250);SHK=Math.max(SHK,2.5)}if(b.iceSet&&b.el==='ice')e.slow=Math.max(e.slow||0,.45);SFX.hit();burst(b.x,b.y,EC[b.el],3,120);if(b.cr){HS=Math.max(HS,2);SHK=Math.max(SHK,3)}if(--b.pi<=0){B.splice(i,1);break}}}
   E.forEach(e=>{
     // determine target (nearest alive player during PvP)
     if(PVP.active && PVP.oppAlive){

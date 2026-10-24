@@ -1,25 +1,20 @@
-SLUGGER NEO v0.6.4.0 — QUICK START
+SLUGGER NEO v0.6.6.0 — QUICK START
 
-1. Extract the release ZIP.
-2. Upload the contents of docs/ into your existing repository's top-level docs/ directory. Do not create docs/docs/.
-3. Commit to main; keep GitHub Pages on main -> /docs.
-4. Reload the website. Fully close/reopen the installed iOS PWA if it serves cached files.
+1. Extract the complete ZIP.
+2. Upload the contents of docs/ into the existing repository docs/ directory. Do not create docs/docs/.
+3. Keep GitHub Pages set to main -> /docs, then commit and push.
+4. Refresh the website. On iPhone, fully close and reopen the installed PWA.
 
 NO BACKEND UPDATE
-No Cloudflare Worker or Firebase changes are required. The TURN endpoint is unchanged.
+No Cloudflare Worker, Firebase, TURN, or Metered changes are needed.
 
 TEST THESE FIRST
-- Check tier labels for the loot boxes, set cards and each item in Equip Slot Grid/Equipment Stats.
-- Open boxes and verify the explicit Lucky/Standard/Unlucky result.
-- Verify the 10 tier filter includes Tier 1–Tier 10.
-- Try several opens of the same box and confirm Warp/item rewards taper as more pieces from its set are collected.
-- Smoke-test a normal run and a real two-device 1v1 session if available.
+- Start a run and check Time survived and Damage dealt on the end screen.
+- Open multiple loot boxes and verify each result shows the real item SVG, Warp icon, and exact Warp amount.
+- Confirm the summary's Total Warp gained equals the sum of per-box Warp payouts.
+- Equip a full five-piece set and verify its passive and set-special attack.
+- Inspect animated armor shell plates in a run; eyes should remain visible.
+- Test several different weapons and equipment items to confirm distinct visuals and projectile behaviours.
+- If possible, test 1v1 on two separate devices, including set-specials and the post-round loot flow.
 
-Local simulated tests passed, but live cloud and two-peer network tests were not performed.
-
-ANTI-GRIND RULE
-Random enemy loot-box drop chance scales down per box family as you collect its five set pieces (7% base down to 1.4% at full set). Guaranteed wave/boss milestone boxes are unaffected. Warp from a box also scales down to 20% at full set collection.
-
-
-VERSION 0.6.5.0
-Publish the contents of docs/ to the existing GitHub Pages docs/ root. The new file docs/js/14-v0650-run-cinematics.js is required. No Cloudflare Worker, Firebase, or Metered configuration changes are needed.
+All JS files pass syntax checks. Live cloud and two-peer device testing was not available in this build environment.
