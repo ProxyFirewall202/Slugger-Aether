@@ -19,7 +19,7 @@ const V063_LOOTBOX_BY_WAVE={};
 const V063_SET_IDS=[];
 function v063NumFromDesc(text,patterns,fallback=0){for(const p of patterns){const m=String(text||'').match(p);if(m)return Number(m[1])||0;}return fallback;}
 function v063BuildItemStats(set,item,slot){
- const wave=Number(set.wave)||1, tier=Math.max(1,Math.min(4,Math.ceil(wave/3))), text=item.desc||'', low=(item.name+' '+text).toLowerCase();
+ const wave=Number(set.wave)||1, tier=Math.max(1,Math.min(10,Number(set.tier)||wave)), text=item.desc||'', low=(item.name+' '+text).toLowerCase();
  const common={n:item.name,t:V063_SLOT_TYPES[slot],tier,set:set.id,el:V063_THEME_ELEMENTS[set.theme]||'neutral',theme:set.theme,wave,setTier:set.tier,box:set.boxId,ds:text,iconKey:set.id+'_'+V063_SLOT_SLUGS[slot],color:V063_THEME_COLORS[set.theme]||'#00ccff'};
  if(slot==='Weapon'){
    let d=8+wave*2.6,r=Math.max(.105,.36-wave*.018),k=1,pi=1,sp=0;
@@ -52,20 +52,24 @@ for(const set of V063_SET_SOURCE){
  const color=V063_THEME_COLORS[set.theme]||'#00ccff',element=V063_THEME_ELEMENTS[set.theme]||'neutral';
  SETS[set.id]={n:set.name,need:5,legacy:false,tier:set.tier,wave:set.wave,theme:set.theme,color,element,lootBox:set.box,boxId,bonus:set.bonus,b2:set.bonus,b:set.bonus,special:{name:set.specialName,description:set.specialDesc},specialName:set.specialName,specialDesc:set.specialDesc};
  set.items.forEach(item=>{const id=set.id+'_'+slugifyV063(item.name);const type=V063_SLOT_TYPES[item.slot];IT[id]=v063BuildItemStats(set,item,item.slot);});
- const rarityWeights=[[76,19,4,1],[63,27,8,2],[52,30,14,4],[43,31,19,7],[34,32,24,10],[28,32,26,14],[22,30,29,19],[18,27,31,24],[14,24,32,30],[8,19,33,40]][set.wave-1];
+ const lootOutcomeRates={lucky:5,standard:80,unlucky:15};
  const boxText=`${set.name} set equipment, wave ${set.wave} ${set.theme} theme.`;
- const meta={id:boxId,name:set.box,color,set:set.id,wave:set.wave,tier:set.tier,family:set.id,weights:rarityWeights.slice(),k:0,filter:{set:set.id},warp:[Math.round(45+set.wave*18),Math.round(100+set.wave*42)],description:boxText,resourceOnly:false};
+ const meta={id:boxId,name:set.box,color,set:set.id,wave:set.wave,tier:set.tier,family:set.id,outcomes:lootOutcomeRates,k:0,filter:{set:set.id},warp:[Math.round(45+set.wave*18),Math.round(100+set.wave*42)],description:boxText,resourceOnly:false};
  if(boxId==='wood'){
-   Object.assign(CRATE_CATALOG.wood,meta,{id:'wood',name:'Scrap Loot Box',set:set.id,filter:{set:set.id},weights:rarityWeights.slice(),k:0,warp:[40,100],description:boxText,resourceOnly:false});
+   Object.assign(CRATE_CATALOG.wood,meta,{id:'wood',name:'Scrap Loot Box',set:set.id,filter:{set:set.id},outcomes:lootOutcomeRates,k:0,warp:[40,100],description:boxText,resourceOnly:false});
  }else CRATE_CATALOG[boxId]=meta;
  if(!CRATE_TYPES.includes(boxId))CRATE_TYPES.push(boxId);
  CC[boxId]=color;CRATE_COLORS[boxId]=color;try{spr('cr'+boxId,SV.crate(color,boxId),48,48)}catch(e){}
  const price=boxId==='wood'?150:Math.round(120+set.wave*145);BP[boxId]=price;
  (V063_LOOTBOX_BY_WAVE[set.wave]||(V063_LOOTBOX_BY_WAVE[set.wave]=[])).push(boxId);
 }
+// Every remaining legacy item is kept usable but normalized into the 1–10 tier range.
+for(const id of Object.keys(IT))IT[id].tier=Math.max(1,Math.min(10,Math.floor(Number(IT[id].tier)||1)));
 // Ironclad is the general starter box. Legacy Key Cache is migration-only and is not in the active loot-box registry.
-Object.assign(CRATE_CATALOG.iron,{id:'iron',name:'Ironclad Loot Box',color:'#9fb0c8',k:0,weights:[62,27,9,2],filter:{minTier:1,sets:V063_SET_IDS.slice()},warp:[100,180],description:'A reinforced starter loot box containing equipment from the 30 catalogue sets.',resourceOnly:false});
+Object.assign(CRATE_CATALOG.iron,{id:'iron',name:'Ironclad Loot Box',color:'#9fb0c8',tier:1,k:0,outcomes:{lucky:5,standard:80,unlucky:15},filter:{minTier:1,sets:V063_SET_IDS.slice()},warp:[100,180],description:'A reinforced starter loot box containing equipment from the 30 catalogue sets.',resourceOnly:false});
 CC.iron=CRATE_CATALOG.iron.color;CRATE_COLORS.iron=CRATE_CATALOG.iron.color;try{spr('criron',SV.crate(CC.iron,'iron'),48,48)}catch(e){}BP.wood=150;BP.iron=600;
+for(const id of V063_LOOTBOX_IDS){const box=CRATE_CATALOG[id];if(box){delete box.weights;delete box.rarity;box.tier=Math.max(1,Math.min(10,Number(box.tier)||1));}}
+for(const id of Object.keys(IT))delete IT[id].rarity;
 // Update wave fallback drops to match the exact set tier/wave map from the supplied catalogue.
 CT.splice(0,CT.length,...Array.from({length:10},(_,i)=>(V063_LOOTBOX_BY_WAVE[i+1]||['wood'])[0]));
 // Include Spirit Slug as a first-class fifth set slot for any code still iterating slot metadata.

@@ -1,0 +1,22 @@
+Slugger (NEO) v0.6.4.0 — Sub-phase 2: Ten Tiers & Loot Outcomes
+
+Implemented:
+- Replaced equipment-grade rarity with a strict Tier 1–10 progression aligned with the ten campaign waves.
+- Every catalogue set and its five equipment pieces use the set's wave tier; every loot box displays its tier in the collection and market. The Equipment Stats filter now exposes Tier 1 through Tier 10.
+- Loot box outcomes: Lucky 5%, Standard 80%, Unlucky 15%.
+- Lucky: 2× standard Warp payout and 2–3 distinct items from the box's set.
+- Standard: normal Warp payout and one set item, with a small chance of Warp-only. The no-item chance gradually increases from 6% to about 25% as that set is collected.
+- Unlucky: half Warp payout and no items.
+- Collection-sensitive diminishing returns reduce Warp payout to 20% at full collection from that box's set. Random enemy loot-box drops also scale down from 7% to 1.4% as that specific box's set is completed; guaranteed boss/wave milestone boxes remain guaranteed.
+- Result screens explicitly identify the outcome and tier; awarded items include their tier in the results.
+- Legacy grade fields are removed during save normalization and do not scale equipment stats.
+
+Preserved:
+- Existing login, Firebase and Cloudflare TURN endpoint settings.
+- Mobile controls, save scoping, Phase 1 menus, and the 30-set registry.
+
+Validation:
+- All 13 JavaScript modules and the combined script pass syntax checks.
+- Simulated browser test confirmed 30 sets, 150 set items, 31 active boxes, and exact outcome proportions of 5,000 Lucky / 80,000 Standard / 15,000 Unlucky across 100,000 deterministic samples.
+- Collection scale was checked at 100%, partial and full collection; the loot UI, 10-tier filter, and set-piece tier labels were tested in Chromium.
+- Full live two-peer PvP and Firebase integration testing has not been performed.

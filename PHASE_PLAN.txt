@@ -1,24 +1,18 @@
 SLUGGER NEO v0.6 — 5 SUB-PHASE PLAN
 
-SUB-PHASE 1 — Set registry & economy foundation (this release)
-- 30 complete five-slot set data, Warp + Loot Box economy, starter box rename, legacy save migration.
-- Set bonus/special descriptions registered for later gameplay implementation.
+SUB-PHASE 1 — Set registry & economy foundation
+Completed in v0.6.3.0. 30 complete five-slot sets, Warp + Loot Box economy, starter box rename and legacy save migration.
 
-SUB-PHASE 2 — Loot Box outcomes and discovery scaling
-- Lucky 5%, Standard 80%, Unlucky 15% outcomes.
-- Warp/item payout rules and box-family collection-scaled drop-rate reduction.
-- Explicit outcome card/UI.
+SUB-PHASE 2 — Ten tiers & loot outcomes (this release)
+Completed in v0.6.4.0. Ten tiers aligned with waves, per-box collection scaling, Lucky/Standard/Unlucky outcomes, and tier indicators throughout the loot and equipment UI.
 
 SUB-PHASE 3 — Unique gear visuals, behaviours, set bonus & special mechanics
-- Individual procedural SVGs/animations and item-specific weapon/shield behaviour.
-- Implement set passives and actives in combat, with tuning.
+Not included yet. Individual procedural SVGs/animations and item-specific weapon/shield behaviours, then implement passives and active set specials.
 
 SUB-PHASE 4 — Character and world visual systems
-- Animated armor shells wrapping the slug with eyes exposed.
-- Atmospheric animated wave backgrounds with each element's colour identity.
+Not included yet. Animated armor shells on slug bodies and atmospheric moving wave backgrounds.
 
 SUB-PHASE 5 — Social and multiplayer parity
-- Firebase friend online/offline transition toasts.
-- 1v1 synchronization/reconnect audit for new Loot Boxes, rarity, set bonuses/specials and visuals.
+Not included yet. Firebase friend-online notifications and an audit of 1v1 synchronization/reconnect behavior for the new loot/set mechanics.
 
-Each sub-phase must be provided for user testing and bug fixes before proceeding to the next. Do not start another sub-phase until the current one is reviewed.
+Each sub-phase should be tested and bugs fixed before starting the next one.

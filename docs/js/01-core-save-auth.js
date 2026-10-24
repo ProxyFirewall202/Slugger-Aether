@@ -1,4 +1,4 @@
-/* Slugger NEO v0.6.3.0 Sub-phase 1 — Core constants, save normalisation/merging, authentication, and cloud persistence.
+/* Slugger NEO v0.6.4.0 Sub-phase 2 — Core constants, save normalisation/merging, authentication, and cloud persistence.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -7,36 +7,36 @@ const W=960,H=600,cv=document.getElementById('gameCanvas'),cx=cv.getContext('2d'
 let deterministicRandom=null;const R=(a,b)=>a+(deterministicRandom?deterministicRandom():Math.random())*(b-a),RI=(a,b)=>Math.floor(R(a,b+1)),D=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const EC={neutral:'#e8f0ff',fire:'#ff5a1f',ice:'#00ccff',solar:'#ffcc00',vortex:'#aa00ff',aether:'#ff0055',void:'#ff0055'},CC={wood:'#c8884a',iron:'#9fb0c8',solar:'#ffcc00',vortex:'#aa00ff',aether:'#ff0055'};
 const CRATE_SET_FAMILIES=[
- {prefix:'pyre',set:'fire',name:'Pyre',color:'#ff5a1f',weights:[40,38,18,4]},
- {prefix:'cryo',set:'ice',name:'Cryo',color:'#00ccff',weights:[36,38,21,5]},
- {prefix:'solar',set:'solar',name:'Solar Flare',color:'#ffcc00',weights:[29,38,24,9]},
- {prefix:'vortex',set:'vortex',name:'Vortex',color:'#aa00ff',weights:[27,37,26,10]},
- {prefix:'void',set:'void',name:'Void Rift',color:'#ff4d9d',weights:[16,30,34,20]},
- {prefix:'aether',set:'aether',name:'Aether Divine',color:'#ff0055',weights:[9,24,36,31]}
+ {prefix:'pyre',set:'fire',name:'Pyre',color:'#ff5a1f'},
+ {prefix:'cryo',set:'ice',name:'Cryo',color:'#00ccff'},
+ {prefix:'solar',set:'solar',name:'Solar Flare',color:'#ffcc00'},
+ {prefix:'vortex',set:'vortex',name:'Vortex',color:'#aa00ff'},
+ {prefix:'void',set:'void',name:'Void Rift',color:'#ff4d9d'},
+ {prefix:'aether',set:'aether',name:'Aether Divine',color:'#ff0055'}
 ];
 const CRATE_SLOTS=[{slug:'weapon',type:'w',label:'Weapon'},{slug:'shield',type:'s',label:'Shield'},{slug:'armor',type:'a',label:'Armor'},{slug:'charm',type:'c',label:'Charm'}];
 const CRATE_BASE_META={
- wood:{name:'Scrap Loot Box',color:'#c8884a',k:1,weights:[76,19,4,1],warp:[40,110],description:'A basic field cache with common equipment.'},
- iron:{name:'Ironclad Loot Box',color:'#9fb0c8',k:1,weights:[51,34,12,3],warp:[100,240],description:'A reinforced cache with reliable uncommon gear.'},
- solar:{name:'Solar Cache',color:'#ffcc00',k:2,weights:[35,38,21,6],warp:[180,380],description:'A solar-themed cache with broad gear selection.'},
- vortex:{name:'Vortex Cache',color:'#aa00ff',k:2,weights:[29,37,25,9],warp:[180,420],description:'A reality-warped cache with improved rare odds.'},
- aether:{name:'Aether Vault',color:'#ff0055',k:4,weights:[14,29,36,21],warp:[450,850],description:'A high-security vault with an elevated legendary chance.'}
+ wood:{name:'Scrap Loot Box',color:'#c8884a',k:1,warp:[40,110],description:'A starter field box containing Tier 1 equipment.'},
+ iron:{name:'Ironclad Loot Box',color:'#9fb0c8',k:1,warp:[100,240],description:'A reinforced starter box containing equipment from the ten-tier collection.'},
+ solar:{name:'Solar Cache',color:'#ffcc00',k:2,warp:[180,380],description:'A solar-themed cache with broad gear selection.'},
+ vortex:{name:'Vortex Cache',color:'#aa00ff',k:2,warp:[180,420],description:'A reality-warped cache with a specialized item pool.'},
+ aether:{name:'Aether Vault',color:'#ff0055',k:4,warp:[450,850],description:'A high-security vault containing advanced themed equipment.'}
 };
 const CRATE_SPECIALS=[
- {id:'weapon_cache',name:'Weapon Cache',color:'#49e3cf',k:2,weights:[34,38,22,6],filter:{category:'w'},warp:[130,280],description:'Weapon-focused loot pool.'},
- {id:'shield_cache',name:'Shield Cache',color:'#54b9ff',k:2,weights:[34,38,22,6],filter:{category:'s'},warp:[130,280],description:'Shield-focused loot pool.'},
- {id:'armor_cache',name:'Armor Cache',color:'#80e0a4',k:2,weights:[34,38,22,6],filter:{category:'a'},warp:[130,280],description:'Armor-focused loot pool.'},
- {id:'charm_cache',name:'Charm Cache',color:'#d6a2ff',k:2,weights:[34,38,22,6],filter:{category:'c'},warp:[130,280],description:'Boosts and charms loot pool.'},
- {id:'spirit_cache',name:'Spirit Cache',color:'#9dffd0',k:2,weights:[30,38,24,8],filter:{category:'p'},warp:[160,320],description:'Spirit Slug companion loot pool.'},
- {id:'relic_cache',name:'Relic Cache',color:'#f48bcb',k:3,weights:[10,25,40,25],filter:{minTier:2},warp:[260,520],description:'High-tier relics from several sets.'},
- {id:'elite_cache',name:'Elite Cache',color:'#ffb45e',k:3,weights:[8,22,42,28],filter:{minTier:2},warp:[300,580],description:'Elite gear with a strong rare and legendary chance.'},
- {id:'monarch_cache',name:'Monarch Vault',color:'#ff3355',k:4,weights:[2,12,38,48],filter:{minTier:3,sets:['void','aether']},warp:[550,1000],description:'An endgame vault with a very high legendary chance.'},
+ {id:'weapon_cache',name:'Weapon Cache',color:'#49e3cf',k:2,filter:{category:'w'},warp:[130,280],description:'Weapon-focused loot pool.'},
+ {id:'shield_cache',name:'Shield Cache',color:'#54b9ff',k:2,filter:{category:'s'},warp:[130,280],description:'Shield-focused loot pool.'},
+ {id:'armor_cache',name:'Armor Cache',color:'#80e0a4',k:2,filter:{category:'a'},warp:[130,280],description:'Armor-focused loot pool.'},
+ {id:'charm_cache',name:'Charm Cache',color:'#d6a2ff',k:2,filter:{category:'c'},warp:[130,280],description:'Boosts and charms loot pool.'},
+ {id:'spirit_cache',name:'Spirit Cache',color:'#9dffd0',k:2,filter:{category:'p'},warp:[160,320],description:'Spirit Slug companion loot pool.'},
+ {id:'relic_cache',name:'Relic Cache',color:'#f48bcb',k:3,filter:{minTier:2},warp:[260,520],description:'Relics from several advanced sets.'},
+ {id:'elite_cache',name:'Elite Cache',color:'#ffb45e',k:3,filter:{minTier:2},warp:[300,580],description:'Elite gear from advanced equipment pools.'},
+ {id:'monarch_cache',name:'Monarch Vault',color:'#ff3355',k:4,filter:{minTier:3,sets:['void','aether']},warp:[550,1000],description:'An endgame vault with advanced equipment.'},
  // Legacy-only save migration bucket. It is excluded from active loot box IDs, UI, drops, and purchases.
- {id:'key_cache',name:'Legacy Key Cache (migration only)',color:'#ffe17a',k:0,weights:[0,0,0,0],resourceOnly:true,warp:[0,0],description:'Hidden legacy-save compatibility entry; not obtainable or usable.'}
+ {id:'key_cache',name:'Legacy Key Cache (migration only)',color:'#ffe17a',k:0,resourceOnly:true,warp:[0,0],description:'Hidden legacy-save compatibility entry; not obtainable or usable.'}
 ];
 const CRATE_CATALOG={};
 for(const [id,m] of Object.entries(CRATE_BASE_META))CRATE_CATALOG[id]={id,...m,family:id,set:null};
-for(const family of CRATE_SET_FAMILIES)for(const slot of CRATE_SLOTS){const id=family.prefix+'_'+slot.slug;const keyCost=family.set==='aether'||family.set==='void'?3:2;CRATE_CATALOG[id]={id,name:family.name+' '+slot.label+' Cache',color:family.color,k:keyCost,weights:family.weights.slice(),set:family.set,family:family.prefix,filter:{category:slot.type,set:family.set},warp:family.set==='aether'?[350,720]:family.set==='void'?[280,600]:[150,360],description:family.name+' set '+slot.label.toLowerCase()+' gear'};}
+for(const family of CRATE_SET_FAMILIES)for(const slot of CRATE_SLOTS){const id=family.prefix+'_'+slot.slug;const keyCost=family.set==='aether'||family.set==='void'?3:2;CRATE_CATALOG[id]={id,name:family.name+' '+slot.label+' Cache',color:family.color,k:keyCost,set:family.set,family:family.prefix,filter:{category:slot.type,set:family.set},warp:family.set==='aether'?[350,720]:family.set==='void'?[280,600]:[150,360],description:family.name+' set '+slot.label.toLowerCase()+' gear'};}
 for(const special of CRATE_SPECIALS)CRATE_CATALOG[special.id]={...special,id:special.id,family:special.id};
 const CRATE_TYPES=Object.keys(CRATE_CATALOG);
 const CRATE_COLORS=Object.fromEntries(CRATE_TYPES.map(id=>[id,CRATE_CATALOG[id].color]));Object.assign(CC,CRATE_COLORS);
@@ -82,7 +82,7 @@ pip:{n:'Pip Slug',t:'p',k:.35,r:.55,sc:60,tier:1,ds:'Tiny drone, steady shots.'}
 bolt:{n:'Bolt Slug',t:'p',k:.6,r:.45,sc:150,tier:2,ds:'Faster, harder drone.'},
 aesl:{n:'Aether Slug',t:'p',k:1.1,r:.35,pi:3,sc:300,tier:3,ds:'Piercing divine drone.'}};
 const SETS={fire:{n:'Pyre',need:3,b2:'+10% fire damage while attuned to Fire',b:'A damaging fire aura while attuned to Fire.'},ice:{n:'Cryo',need:3,b2:'+15% damage reduction',b:'Cryo plating slows hazards and reduces incoming damage.'},solar:{n:'Solar Flare',need:3,b2:'+10% damage',b:'Scorching aura and the Solar Cataclysm special.'},vortex:{n:'Vortex Void',need:3,b2:'+10% thrust',b:'Black-hole special that drags small foes.'},void:{n:'Void Rift',need:3,b2:'+20% Vortex damage',b:'Rift pulse pulls nearby enemies and improves Vortex shots.'},aether:{n:'Aether Divine',need:4,b2:'+10% max HP',b:'Damage taken becomes empowered ammo (+60% shot damage). Hazard immunity applies once hazards exist.'}},SN={w:'Weapon',s:'Shield',a:'Armor',c:'Boost / Charm',p:'Spirit'};
-const SK='slugger_neo_v0.2-alpha',SAVE_OWNER_KEY='slugger_neo_save_owner_v054',saveScopedKey=owner=>SK+':'+String(owner||'guest'),DEF=()=>({warp:0,cr:makeCrateCounts(),discoveredCrates:{},discoveredSets:{},inv:{blaster:{d:0,rarity:0}},eq:{w:'blaster',s:null,a:null,c:null,p:null},aw:{},att:['neutral'],up:{hp:0,oc:0,thr:0,slime:0,amp:0},cp:[1],rec:{},hi:0,lastSaveTimestamp:Date.now()});
+const SK='slugger_neo_v0.2-alpha',SAVE_OWNER_KEY='slugger_neo_save_owner_v054',saveScopedKey=owner=>SK+':'+String(owner||'guest'),DEF=()=>({warp:0,cr:makeCrateCounts(),discoveredCrates:{},discoveredSets:{},inv:{blaster:{d:0}},eq:{w:'blaster',s:null,a:null,c:null,p:null},aw:{},att:['neutral'],up:{hp:0,oc:0,thr:0,slime:0,amp:0},cp:[1],rec:{},hi:0,lastSaveTimestamp:Date.now()});
 let S;try{S=normaliseSave(JSON.parse(localStorage.getItem(SK)||'{}'))}catch(e){S=DEF()}
 const V05_SESSION_KEY='slugger_neo_save_1v1_v05';let save_sp=S,save_1v1=null,activeSaveMode='sp';
 const firebaseConfig={apiKey:"AIzaSyAu7prBgEdGWbPY8u8g2CYCJbHjz2fLTl4",authDomain:"slugger-aether.firebaseapp.com",projectId:"slugger-aether",storageBucket:"slugger-aether.firebasestorage.app",messagingSenderId:"156152123566",appId:"1:156152123566:web:22cc7d829fa41ecd615d3f",measurementId:"G-TDDDMFNKZ9"};
@@ -247,7 +247,7 @@ function normaliseSave(raw){
   out.cr=makeCrateCounts();for(const id of CRATE_TYPES)out.cr[id]=Math.max(0,Number(v.cr?.[id])||0);
   out.discoveredCrates={...(v.discoveredCrates||{})};out.discoveredSets={...(v.discoveredSets||{})};
   const rawInv={...base.inv,...(v.inv||{})};out.inv={};
-  for(const [id,rawItem] of Object.entries(rawInv)){if(!rawItem||typeof rawItem!=='object')continue;const item={...rawItem,d:Math.max(0,Number(rawItem.d)||0),rarity:Math.max(0,Math.min(3,Math.floor(Number(rawItem.rarity)||0)))};delete item.r;out.inv[id]=item;if(IT[id]?.set)out.discoveredSets[IT[id].set]=true;}
+  for(const [id,rawItem] of Object.entries(rawInv)){if(!rawItem||typeof rawItem!=='object')continue;const item={...rawItem,d:Math.max(0,Number(rawItem.d)||0)};delete item.r;delete item.rarity;out.inv[id]=item;if(IT[id]?.set)out.discoveredSets[IT[id].set]=true;}
   for(const id of CRATE_TYPES){if(out.cr[id]>0)out.discoveredCrates[id]=true;const set=CRATE_CATALOG[id]?.set;if(set&&out.discoveredCrates[id])out.discoveredSets[set]=true;}
   out.eq={...base.eq,...(v.eq||{})};out.aw={...(v.aw||{})};
   out.att=Array.from(new Set(['neutral',...((Array.isArray(v.att)?v.att:[]).filter(x=>EL6.includes(x)))]));
@@ -290,7 +290,7 @@ function mergeSaveProgress(localRaw,cloudRaw){
   // Preserve owned items and remaining duplicate stock; legacy reinforcement ranks are discarded.
   out.inv={};const ids=new Set([...Object.keys(l.inv||{}),...Object.keys(c.inv||{})]);
   for(const id of ids){const nv=newer.inv?.[id],ov=older.inv?.[id];
-    if(nv||ov){out.inv[id]={...(nv||ov||{}),d:nv?Math.max(0,Number(nv.d)||0):0,rarity:Math.max(0,Math.min(3,Math.max(Number(nv?.rarity)||0,Number(ov?.rarity)||0)))};delete out.inv[id].r;if(IT[id]?.set)out.discoveredSets[IT[id].set]=true;}}
+    if(nv||ov){out.inv[id]={...(nv||ov||{}),d:nv?Math.max(0,Number(nv.d)||0):0};delete out.inv[id].r;delete out.inv[id].rarity;if(IT[id]?.set)out.discoveredSets[IT[id].set]=true;}}
   // Ensure equipped items exist in inventory without inventing duplicate counts.
   for(const id of Object.values(out.eq||{}).filter(Boolean)){if(!out.inv[id])out.inv[id]={d:0};}
   out.lastSaveTimestamp=Math.max(ln,cn);return normaliseSave(out)

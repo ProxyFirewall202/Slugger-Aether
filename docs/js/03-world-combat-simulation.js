@@ -4,7 +4,7 @@
  */
 const stars=Array.from({length:70},()=>({x:R(0,W),y:R(0,H),s:R(.6,1.8)}));
 const eqI=t=>IT[S.eq[t]]||null,setN=s=>'wsacp'.split('').filter(t=>eqI(t)&&eqI(t).set===s).length,nearest=(x,y,r)=>{let b=null,bd=r*r;for(const e of E){const d=(e.x-x)**2+(e.y-y)**2;if(d<bd){bd=d;b=e}}return b};
-function calc(){const id=IT[S.eq.w]?S.eq.w:'blaster',w=IT[id],a=eqI('a'),c=S.eq.c,fi=setN('fire'),ic=setN('ice'),so=setN('solar'),vo=setN('vortex'),vd=setN('void'),ae=setN('aether');const wr=typeof v06GearRarityMultiplier==='function'?v06GearRarityMultiplier(id):1,ar=a&&typeof v06GearRarityMultiplier==='function'?v06GearRarityMultiplier(S.eq.a):1,cr=c&&typeof v06GearRarityMultiplier==='function'?v06GearRarityMultiplier(c):1;
+function calc(){const id=IT[S.eq.w]?S.eq.w:'blaster',w=IT[id],a=eqI('a'),c=S.eq.c,fi=setN('fire'),ic=setN('ice'),so=setN('solar'),vo=setN('vortex'),vd=setN('void'),ae=setN('aether');const wr=typeof v06ItemPowerMultiplier==='function'?v06ItemPowerMultiplier(id):1,ar=a&&typeof v06ItemPowerMultiplier==='function'?v06ItemPowerMultiplier(S.eq.a):1,cr=c&&typeof v06ItemPowerMultiplier==='function'?v06ItemPowerMultiplier(c):1;
 return{w,dmg:w.d*wr*cr*(c==='rotc'?1.25:1)*(so>=2?1.1:1),cd:w.r*Math.max(.3,1-.12*S.up.oc)/Math.max(1,wr),mhp:(100+20*S.up.hp+(a?a.hp*ar:0))*(ae>=2?1.1:1),dr:Math.min(.75,(a?a.dr*ar:0)+(ic>=2?.15:0)),spd:vo>=2?1.1:1,mag:c==='magn'?200:80,fi:fi>=2,ic:ic>=3,fireAura:fi>=3,so:so===3,vo:vo===3||vd>=3,vd:vd>=2,ad:ae===4,tk:c==='rotc'?1.25:1}}
 function burst(x,y,c,n,s){const sh=c===EC.ice?2:(c===EC.fire||c===EC.solar)?1:0;for(let i=0;i<n&&PT.length<500;i++){const a=Math.random()*6.283,v=(.2+Math.random()*.8)*s;PT.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:.3+Math.random()*.4,c,sh,a})}}
 function swap(el){if(mode!=='play'||!S.att.includes(el)||P.at===el)return;P.at=el;SFX.swap();burst(P.x,P.y,EC[el],18,220)}
@@ -141,7 +141,7 @@ function kill(e,j){
  }else G.warp+=bounty;
  burst(e.x,e.y,EC[e.el],e.ty==='b'?70:14,e.ty==='b'?320:170);SFX.boom();
  SHK=Math.max(SHK,e.ty==='b'?18:2.5);if(e.ty==='b')HS=6;if(e.dk)DK[e.dk](e);
- if(e.ty==='b'||seededRand()<.07)addCrate(e.x,e.y,typeof v06ChooseCrateDrop==='function'?v06ChooseCrateDrop(G.w,e,e.ty==='b'):CT[G.w-1],0);
+ const boxDrop=typeof v06ChooseCrateDrop==='function'?v06ChooseCrateDrop(G.w,e,e.ty==='b'):CT[G.w-1];const boxDropChance=typeof v06LootBoxWorldDropChance==='function'?v06LootBoxWorldDropChance(boxDrop,.07):.07;if(e.ty==='b'||seededRand()<boxDropChance)addCrate(e.x,e.y,boxDrop,0);
  if(PVP.active&&PVP.role==='host'&&e.ty==='b'&&G.w===PVP.target&&!PVP.finished){endPvp(killer==='guest'?'guest':'host','boss',{wave:G.w,boss:e.id,killer});return;}
  if(G.dead>=G.tot&&E.length===0&&G.q.length===0)clearWave();
 }
@@ -230,7 +230,7 @@ function upd(dt){
   if((md||window.__sluggerMobileFireHeld)&&P.cd<=0&&!isSpectator)fire();
   P.rv=(P.rv-.15*P.rx)*.82;P.rx+=P.rv;
   if(!isSpectator&&Math.hypot(P.vx,P.vy)>120&&Math.random()<.4)PT.push({x:P.x-Math.cos(P.fa)*18,y:P.y-Math.sin(P.fa)*18,vx:Math.random()*50-25,vy:Math.random()*50-25,l:.5,c:'#7dff3c',sh:0,a:0});
-  if(G.spi&&!isSpectator){const s=eqI('p'),a=T*1.7,spiritRarity=typeof v06GearRarityMultiplier==='function'?v06GearRarityMultiplier(S.eq.p):1;G.spi.x=P.x+Math.cos(a)*50;G.spi.y=P.y+Math.sin(a)*50;G.spi.cd-=dt;const t=G.spi.cd<=0&&s&&nearest(G.spi.x,G.spi.y,420);if(t){G.spi.cd=(Number(s.r)||.5)/spiritRarity;const an=Math.atan2(t.y-G.spi.y,t.x-G.spi.x);B.push({uid:++bulletUidCounter,x:G.spi.x,y:G.spi.y,vx:Math.cos(an)*560,vy:Math.sin(an)*560,d:ST.dmg*s.k*spiritRarity,el:P.at,l:1,pi:s.pi||1,r:3,h:[]})}if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&Math.hypot(G.spi.x-PVP.oppX,G.spi.y-PVP.oppY)<18)damagePvpGuest(12*dt,'player-drone')}if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&!PVP.playerDead&&PVP.oppDrone&&Math.hypot(PVP.oppDrone.x-P.x,PVP.oppDrone.y-P.y)<18&&Date.now()>(PVP.guestDroneHitAt||0)){PVP.guestDroneHitAt=Date.now()+300;const dd=Math.max(2,(PVP.opponentLoadout?.damage||10)*.25);PVP.stats.guest.damage=(PVP.stats.guest.damage||0)+dd;hurt(dd,P.x,P.y,true);}
+  if(G.spi&&!isSpectator){const s=eqI('p'),a=T*1.7,spiritPowerScale=typeof v06ItemPowerMultiplier==='function'?v06ItemPowerMultiplier(S.eq.p):1;G.spi.x=P.x+Math.cos(a)*50;G.spi.y=P.y+Math.sin(a)*50;G.spi.cd-=dt;const t=G.spi.cd<=0&&s&&nearest(G.spi.x,G.spi.y,420);if(t){G.spi.cd=(Number(s.r)||.5)/spiritPowerScale;const an=Math.atan2(t.y-G.spi.y,t.x-G.spi.x);B.push({uid:++bulletUidCounter,x:G.spi.x,y:G.spi.y,vx:Math.cos(an)*560,vy:Math.sin(an)*560,d:ST.dmg*s.k*spiritPowerScale,el:P.at,l:1,pi:s.pi||1,r:3,h:[]})}if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&Math.hypot(G.spi.x-PVP.oppX,G.spi.y-PVP.oppY)<18)damagePvpGuest(12*dt,'player-drone')}if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&!PVP.playerDead&&PVP.oppDrone&&Math.hypot(PVP.oppDrone.x-P.x,PVP.oppDrone.y-P.y)<18&&Date.now()>(PVP.guestDroneHitAt||0)){PVP.guestDroneHitAt=Date.now()+300;const dd=Math.max(2,(PVP.opponentLoadout?.damage||10)*.25);PVP.stats.guest.damage=(PVP.stats.guest.damage||0)+dd;hurt(dd,P.x,P.y,true);}
   if(S.up.slime>0&&!isSpectator){P.sl-=dt;if(P.sl<=0&&Math.hypot(P.vx,P.vy)>40){P.sl=.1;SL.push({x:P.x,y:P.y,t:2+S.up.slime})}}
   SL.forEach(s=>s.t-=dt);SL=SL.filter(s=>s.t>0);
   if(PVP.active&&PVP.role==='guest'){

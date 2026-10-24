@@ -1,28 +1,21 @@
-SLUGGER NEO v0.6.3.0 — QUICK START
+SLUGGER NEO v0.6.4.0 — QUICK START
 
-WHAT TO UPLOAD
-Use the docs/ folder inside this archive.
+1. Extract the release ZIP.
+2. Upload the contents of docs/ into your existing repository's top-level docs/ directory. Do not create docs/docs/.
+3. Commit to main; keep GitHub Pages on main -> /docs.
+4. Reload the website. Fully close/reopen the installed iOS PWA if it serves cached files.
 
-STEPS
-1. Extract the ZIP.
-2. Open your GitHub repository.
-3. Open the existing top-level docs/ folder on the main branch.
-4. Upload the CONTENTS of the package's docs/ folder, replacing the previous game files.
-5. Ensure there is exactly one docs/index.html path in the repository (not docs/docs/index.html).
-6. Commit the changes and wait for GitHub Pages to finish deploying.
-7. Reload the game; close and reopen the iOS Home Screen app if it shows cached content.
-
-DO NOT
-- Upload cloudflare-worker/ into docs/.
-- Change the Metered TURN credentials or Cloudflare Worker for this update.
-- Expect full unique item animations or the new outcome tiers yet; these are later sub-phases.
+NO BACKEND UPDATE
+No Cloudflare Worker or Firebase changes are required. The TURN endpoint is unchanged.
 
 TEST THESE FIRST
-- Sign in and load the hub.
-- Check the 30 set names and their five item definitions are present.
-- Open the Loot Box market and verify Scrap / Ironclad naming.
-- Equip one of the new set pieces; make sure stats and tracker render.
-- Start a run and check wave loot-box drops.
-- Try a 1v1 session and confirm the upgrade HUD still shows Warp / Loot Boxes.
+- Check tier labels for the loot boxes, set cards and each item in Equip Slot Grid/Equipment Stats.
+- Open boxes and verify the explicit Lucky/Standard/Unlucky result.
+- Verify the 10 tier filter includes Tier 1–Tier 10.
+- Try several opens of the same box and confirm Warp/item rewards taper as more pieces from its set are collected.
+- Smoke-test a normal run and a real two-device 1v1 session if available.
 
-If something fails, note the screen and exact error before reloading.
+Local simulated tests passed, but live cloud and two-peer network tests were not performed.
+
+ANTI-GRIND RULE
+Random enemy loot-box drop chance scales down per box family as you collect its five set pieces (7% base down to 1.4% at full set). Guaranteed wave/boss milestone boxes are unaffected. Warp from a box also scales down to 20% at full set collection.
