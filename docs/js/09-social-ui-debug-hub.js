@@ -1,4 +1,4 @@
-/* Slugger NEO v0.6.2 Phase 2 — Friends UI, connection diagnostics, developer console, and main hub renderer.
+/* Slugger NEO v0.6.3.0 Sub-phase 1 — Friends UI, connection diagnostics, developer console, and main hub renderer.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -53,10 +53,9 @@ const fmtB=b=>b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFi
 function dbgToggle(){DBG.open=!DBG.open;$('dbgPanel').classList.toggle('on',DBG.open);if(DBG.open)buildDbg();SFX.click()}
 function dbgGod(v){DBG.god=!!v;dbgSave();if(mode==='play'&&DBG.god)P.hp=ST.mhp;SFX.click()}
 function dbgKillAll(){if(mode!=='play')return;for(let i=E.length-1;i>=0;i--)kill(E[i],i);G.q=[];G.dead=G.tot;SFX.boom()}
-function dbgCrate(t){if(mode!=='play')return;addCrate(P.x+R(-50,50),P.y+R(-50,50),t,0);SFX.pick()}
+function dbgCrate(t){if(mode!=='play'||!Array.isArray(V063_LOOTBOX_IDS)||!V063_LOOTBOX_IDS.includes(t))return;addCrate(P.x+R(-50,50),P.y+R(-50,50),t,0);SFX.pick()}
 function dbgMoney(){S.warp+=10000;fin()}
-function dbgMoney2(){S.pro+=50;fin()}
-function dbgMoney5(){S.souls+=1000;fin()}
+function dbgLootBoxes(){S.cr.wood=(Number(S.cr.wood)||0)+5;v06MarkCrateDiscovered('wood',false);fin()}
 function dbgWarpWave(){if(mode!=='play')return;const sel=$('dbgWave');if(!sel)return;const w=+sel.value;if(!(w>=1&&w<=10))return;E=[];B=[];EB=[];HZ=[];BM=[];TL=[];MS=[];G.q=[];G.w=w-1;nextWave();SFX.tab()}
 function buildDbg(){
   const p=$('dbgPanel');if(!p)return;
@@ -65,9 +64,9 @@ function buildDbg(){
     <label><input type="checkbox" id="dbgGodCb" ${DBG.god?'checked':''} onchange="dbgGod(this.checked)"> God Mode</label>
     <div class=row>${bt('dbgKillAll()','Insta-Kill All',mode==='play'?1:0)}</div>
     <h3>Spawn Crate</h3>
-    <div class=row>${bt("dbgCrate('wood')",'Wood',mode==='play'?1:0)}${bt("dbgCrate('iron')",'Iron',mode==='play'?1:0)}${bt("dbgCrate('solar')",'Solar',mode==='play'?1:0)}${bt("dbgCrate('vortex')",'Vortex',mode==='play'?1:0)}${bt("dbgCrate('aether')",'Aether',mode==='play'?1:0)}</div>
+    <div class=row>${bt("dbgCrate('wood')",'Scrap',mode==='play'?1:0)}${bt("dbgCrate('iron')",'Ironclad',mode==='play'?1:0)}${bt("dbgCrate('overgrown')",'Overgrown',mode==='play'?1:0)}${bt("dbgCrate('refuse')",'Refuse',mode==='play'?1:0)}${bt("dbgCrate('divine_aether')",'Divine Aether',mode==='play'?1:0)}</div>
     <h3>Currency Injector</h3>
-    <div class=row>${bt('dbgMoney()','+10k Warp',1)}${bt('dbgMoney2()','+50 Protons',1)}${bt('dbgMoney5()','+1000 Souls',1)}</div>
+    <div class=row>${bt('dbgMoney()','+10k Warp',1)}${bt('dbgLootBoxes()','+5 Scrap Loot Boxes',1)}</div>
     <h3>Wave Teleport</h3>
     <div class=row><select id=dbgWave>${Array.from({length:10},(_,i)=>`<option value="${i+1}">Wave ${i+1}${i%5===4?' (Boss)':''}</option>`).join('')}</select>${bt('dbgWarpWave()','Teleport',mode==='play'?1:0)}</div>
     <h3>DIAGNOSTICS</h3><div id=dbgDiag></div>`;
@@ -98,9 +97,9 @@ function hub(){
   try{if(!S||typeof S!=='object')S=DEF();if(typeof normaliseSave==='function')S=normaliseSave(S);}catch(e){console.error('[Slugger] Save normalisation before hub render failed:',e);}
   const authState=typeof AUTH!=='undefined'&&AUTH?AUTH:{user:null,username:null,guest:true};
   const pvpState=typeof PVP!=='undefined'&&PVP?PVP:{active:false,phase:'idle',upgradeDeadline:Date.now(),upgradeReady:false,peerUpgradeReady:false};
-  const tabsList=typeof TABS!=='undefined'&&Array.isArray(TABS)?TABS:['Deploys & checkpoints','Crates & Decryption','Skill Tree & Upgrades','Loadout & Sets','Friends & network'];
+  const tabsList=typeof TABS!=='undefined'&&Array.isArray(TABS)?TABS:['Deploys & checkpoints','Loot Boxes','Skill Tree & Upgrades','Loadout & Sets','Friends & network'];
   if(!Number.isInteger(Number(tab))||Number(tab)<0||Number(tab)>4)tab=0;else tab=Number(tab);
-  const rs5=[['Warp','🌀',S?.warp??0,'Earned from kills and cleared waves.'],['Protons','⚛',S?.pro??0,'Used to craft Decryption Keys.'],['Keys','🗝',S?.key??0,'Decrypt crates.'],['Fusion','🔮',S?.fus??0,'Unlock Aether attunement.'],['Souls','👻',S?.souls??0,'Awaken Spirit Slugs.']];
+  const _lootBoxCount=Object.values(S?.cr||{}).reduce((a,n)=>a+(Number(n)||0),0),_ownedEquipment=Object.keys(S?.inv||{}).length,_completedSets=Object.keys(SETS||{}).filter(id=>!SETS[id]?.legacy&&['w','s','a','c','p'].every(slot=>Object.values(S?.inv||{}).some((v)=>{const key=Object.keys(S.inv||{}).find(k=>S.inv[k]===v);return key&&IT[key]?.set===id&&IT[key]?.t===slot;}))).length;const rs5=[['Warp','🌀',S?.warp??0,'Earned from kills and cleared waves.'],['Loot Boxes','📦',_lootBoxCount,'Boxes owned and ready to open.'],['Gear','✦',_ownedEquipment,'Different equipment items owned.'],['Sets','◈',_completedSets,'Complete five-piece sets.'],['Checkpoints','⚑',(S?.cp||[1]).length,'Unlocked wave starting points.']];
   const inPvpUpgrade=!!(pvpState.active&&pvpState.phase==='upgrade');
   let body='',renderWarning='';
   try{
@@ -128,7 +127,7 @@ function hub(){
   const statusHtml=inPvpUpgrade?`<div class="v05-upgrade-status" style="margin:8px auto;padding:10px 14px;max-width:1100px;border:1px solid #00ccff66;border-radius:10px;background:#101a2a;color:#d5e8f7;text-align:center;font-family:Orbitron,sans-serif;font-size:12px">UPGRADE WINDOW · <b><span id="v05Timer">${Math.max(0,Math.ceil(((pvpState.upgradeDeadline||Date.now())-Date.now())/1000))}</span>s</b> · <b>${pvpState.upgradeReady?'✓ YOU READY':'YOU NOT READY'}</b> · <b>${pvpState.peerUpgradeReady?'✓ OPPONENT READY':'WAITING FOR OPPONENT'}</b></div>`:'';
   const logHtml=Array.isArray(logs)&&logs.length?`<div class="p log">${logs.map(x=>esc(String(x))).join('<br>')}</div>`:'';
   const footer=pvpState.active?(inPvpUpgrade?'':'<button onclick="returnToV05PvpMenu()">Return to 1v1</button>'):`${signBtn} <button onclick="rs()">Reset save</button>`;
-  const versionLabel='<span class=ds>v0.6.0.4 · Phase 1 polish · F2 or ~ opens dev console</span>';
+  const versionLabel='<span class=ds>v0.6.3.0 · Set Registry & Economy Foundation · F2 or ~ opens dev console</span>';
   const header=`<div class=hd><svg class=logo viewBox='0 0 380 74'><defs><linearGradient id='lg' x1='0' x2='1'><stop offset='0' stop-color='#00ff88'/><stop offset='1' stop-color='#00ccff'/></linearGradient></defs><text x='190' y='46' text-anchor='middle' font-size='40' font-weight='800' font-family='Orbitron,sans-serif' fill='url(#lg)' stroke='#0a0814' stroke-width='7' paint-order='stroke' stroke-linejoin='round'>SLUGGER <tspan fill='#ff0055'>(NEO)</tspan></text><path class=dr d='M70 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/><path class=dr d='M190 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/><path class=dr d='M300 52q5 12 0 18q-5-6 0-18' fill='#00ff88' stroke='#0a0814' stroke-width='2'/></svg><div class=rs>${rs5.map(r=>`<span class=tt data-tip="${r[3]}"><b>${r[1]} ${r[2]}</b> ${r[0]}</span>`).join('')}</div></div>`;
   let html='';
   try{html=header+navHtml+statusHtml+logHtml+`<div class=tbc>${body}</div><p>${footer} ${versionLabel}</p>`;}

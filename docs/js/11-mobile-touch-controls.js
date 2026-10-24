@@ -1,4 +1,4 @@
-/* Slugger NEO v0.6.2 Phase 2 — Mobile controls hotfix.
+/* Slugger NEO v0.6.3.0 Sub-phase 1 — Mobile controls hotfix.
  * Loaded after game/network modules and before the final startup module.
  * Touch screens get a virtual joystick, hold-to-shoot with auto-aim, special, and element cycling.
  */

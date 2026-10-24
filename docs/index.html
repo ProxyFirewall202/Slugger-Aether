@@ -9,19 +9,19 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
-<title>Slugger (NEO) v0.6.2 · Phase 2 Mystery Crates & Rarity</title>
+<title>Slugger (NEO) v0.6.3.0 · Set Registry & Economy Foundation</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><link rel="stylesheet" href="./css/styles.css?v=0.6.2-phase2-mystery-crates"></head><body>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><link rel="stylesheet" href="./css/styles.css?v=0.6.3.0-set-registry"></head><body>
 <div id="wrap"><canvas id="gameCanvas"></canvas><div id="topHUD"></div><div id="hubOverlay" class="ov"></div>
 <div id="pauseOverlay" class="ov" style="text-align:center;padding-top:18%"><h2>Paused</h2><button onclick="pz()">Resume (Esc)</button><button onclick="endRun(false)">Abandon run</button></div></div>
 <div id="dbgPanel"></div>
 <div id="authModal" class="modal2">
   <div class="authBox">
     <h1>SLUGGER (NEO)</h1>
-    <p style="text-align:center;color:#a9c4d8;font-size:11px;margin:0 0 12px">v0.6.2 — Phase 2: Mystery Crates & Nested Rarity</p>
+    <p style="text-align:center;color:#a9c4d8;font-size:11px;margin:0 0 12px">v0.6.3.0 — Sub-phase 1: Set Registry & Economy Foundation</p>
     <label for="authUsername" style="display:block;font-size:11px;color:#a9c4d8;margin:12px 0 4px">Username</label>
     <input class="nin" id="authUsername" placeholder="Choose or enter a username" autocomplete="username" maxlength="20" onkeydown="if(event.key==='Enter'){event.preventDefault();authSubmit()}">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
@@ -57,15 +57,16 @@
   </div>
 </div>
 <!-- v0.6 Phase 1: ordered classic scripts preserve shared scope: preserve this order; do not add async/defer. Touch controls initialize before final startup. -->
-<script src="./js/01-core-save-auth.js?v=0.6.2-phase2-mystery-crates"></script>
-<script src="./js/02-art-assets-audio.js?v=0.6.2-phase2-mystery-crates"></script>
-<script src="./js/03-world-combat-simulation.js?v=0.6.2-phase2-mystery-crates"></script>
-<script src="./js/04-rendering-hud-loop.js?v=0.6.2-phase2-mystery-crates"></script>
-<script src="./js/05-upgrades-inventory-hub.js?v=0.6.2-phase2-mystery-crates"></script>
-<script src="./js/06-turn-peer-lifecycle.js?v=0.6.2-phase2-mystery-crates"></script>
-<script src="./js/07-network-data-messages.js?v=0.6.2-phase2-mystery-crates"></script>
-<script src="./js/08-pvp-lobby-cloud-social.js?v=0.6.2-phase2-mystery-crates"></script>
-<script src="./js/09-social-ui-debug-hub.js?v=0.6.2-phase2-mystery-crates"></script>
-<script src="./js/10-pvp-hotfix-overrides.js?v=0.6.2-phase2-mystery-crates"></script>
-<script src="./js/11-mobile-touch-controls.js?v=0.6.2-phase2-mystery-crates"></script>
-<script src="./js/12-input-and-startup.js?v=0.6.2-phase2-mystery-crates"></script></body></html>
+<script src="./js/01-core-save-auth.js?v=0.6.3.0-set-registry"></script>
+<script src="./js/02-art-assets-audio.js?v=0.6.3.0-set-registry"></script>
+<script src="./js/13-v063-set-registry.js?v=0.6.3.0-set-registry"></script>
+<script src="./js/03-world-combat-simulation.js?v=0.6.3.0-set-registry"></script>
+<script src="./js/04-rendering-hud-loop.js?v=0.6.3.0-set-registry"></script>
+<script src="./js/05-upgrades-inventory-hub.js?v=0.6.3.0-set-registry"></script>
+<script src="./js/06-turn-peer-lifecycle.js?v=0.6.3.0-set-registry"></script>
+<script src="./js/07-network-data-messages.js?v=0.6.3.0-set-registry"></script>
+<script src="./js/08-pvp-lobby-cloud-social.js?v=0.6.3.0-set-registry"></script>
+<script src="./js/09-social-ui-debug-hub.js?v=0.6.3.0-set-registry"></script>
+<script src="./js/10-pvp-hotfix-overrides.js?v=0.6.3.0-set-registry"></script>
+<script src="./js/11-mobile-touch-controls.js?v=0.6.3.0-set-registry"></script>
+<script src="./js/12-input-and-startup.js?v=0.6.3.0-set-registry"></script></body></html>

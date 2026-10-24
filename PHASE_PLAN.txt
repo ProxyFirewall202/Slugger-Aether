@@ -1,12 +1,24 @@
-SLUGGER NEO v0.6 PHASE PLAN
+SLUGGER NEO v0.6 — 5 SUB-PHASE PLAN
 
-PHASE 1 — ECONOMY TRIM & MENU OVERHAUL
-Previously delivered. Removes Purified Warp/weapon level/reinforcement progression and provides tabbed Crate/Loadout menus.
+SUB-PHASE 1 — Set registry & economy foundation (this release)
+- 30 complete five-slot set data, Warp + Loot Box economy, starter box rename, legacy save migration.
+- Set bonus/special descriptions registered for later gameplay implementation.
 
-PHASE 2 — MYSTERY CRATES & NESTED RARITY
-This package. Expanded 38-type registry, owned/discovered filtering, family rarity tiers, SVG crate previews/particles, expanded equipment stats and runtime guard fixes.
+SUB-PHASE 2 — Loot Box outcomes and discovery scaling
+- Lucky 5%, Standard 80%, Unlucky 15% outcomes.
+- Warp/item payout rules and box-family collection-scaled drop-rate reduction.
+- Explicit outcome card/UI.
 
-PHASE 3 — UNIQUE GEAR, ARMOR SHELLS & SOCIAL POLISH
-Not included yet. Planned: truly item-specific animated weapon/shield art and behaviours, visible animated armor plates on the player, and realtime friend-online toasts.
+SUB-PHASE 3 — Unique gear visuals, behaviours, set bonus & special mechanics
+- Individual procedural SVGs/animations and item-specific weapon/shield behaviour.
+- Implement set passives and actives in combat, with tuning.
 
-Complete and test Phase 2 before starting Phase 3.
+SUB-PHASE 4 — Character and world visual systems
+- Animated armor shells wrapping the slug with eyes exposed.
+- Atmospheric animated wave backgrounds with each element's colour identity.
+
+SUB-PHASE 5 — Social and multiplayer parity
+- Firebase friend online/offline transition toasts.
+- 1v1 synchronization/reconnect audit for new Loot Boxes, rarity, set bonuses/specials and visuals.
+
+Each sub-phase must be provided for user testing and bug fixes before proceeding to the next. Do not start another sub-phase until the current one is reviewed.

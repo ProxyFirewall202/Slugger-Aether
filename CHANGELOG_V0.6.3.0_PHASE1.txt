@@ -1,0 +1,24 @@
+Slugger (NEO) v0.6.3.0 — Sub-phase 1
+
+Added:
+- Complete source catalogue registry: 30 sets × 5 equipment pieces = 150 entries.
+- Set passive bonus and active special metadata (descriptive only at this stage).
+- 30 specialized set-linked Loot Box types plus Ironclad starter; Scrap is the Garden Pests box.
+- Wave/tier association for three catalogue-linked boxes per wave.
+- New set items use their own ID, slot, set, tier/wave/theme metadata and baseline stats parsed from the supplied descriptions.
+
+Changed:
+- Active economy now uses Warp and Loot Boxes only.
+- Protons, Keys, Fusion Keys, Souls, Cells and Purified Warp save properties are removed without refunds; weapon level/reinforcement fields are discarded.
+- Legacy crate counts are migrated to related new boxes where mappings exist. Obsolete legacy box types are removed from the active catalogue after migration.
+- Starter box names changed to Scrap Loot Box and Ironclad Loot Box.
+- Debug crate spawner updated to use active Loot Box IDs.
+
+Preserved:
+- Existing account/cloud/social and TURN Worker endpoint.
+- Mobile controls, PC controls, save ownership separation, and existing PvP loop/UI.
+
+Not in this sub-phase:
+- Lucky/Standard/Unlucky crate outcome system and collection-based scaling.
+- Unique individual gear SVGs/animations and item-specific combat behaviours.
+- Armor shell plates, atmospheric backgrounds, online-friend notifications and complete multiplayer parity testing.

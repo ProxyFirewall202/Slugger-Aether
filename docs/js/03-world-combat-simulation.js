@@ -1,9 +1,9 @@
-/* Slugger NEO v0.6.2 Phase 2 — World data, player/equipment stats, enemy AI, wave simulation, combat, hazards, and snapshots.
+/* Slugger NEO v0.6.3.0 Sub-phase 1 — World data, player/equipment stats, enemy AI, wave simulation, combat, hazards, and snapshots.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
 const stars=Array.from({length:70},()=>({x:R(0,W),y:R(0,H),s:R(.6,1.8)}));
-const eqI=t=>IT[S.eq[t]]||null,setN=s=>'wsac'.split('').filter(t=>eqI(t)&&eqI(t).set===s).length,nearest=(x,y,r)=>{let b=null,bd=r*r;for(const e of E){const d=(e.x-x)**2+(e.y-y)**2;if(d<bd){bd=d;b=e}}return b};
+const eqI=t=>IT[S.eq[t]]||null,setN=s=>'wsacp'.split('').filter(t=>eqI(t)&&eqI(t).set===s).length,nearest=(x,y,r)=>{let b=null,bd=r*r;for(const e of E){const d=(e.x-x)**2+(e.y-y)**2;if(d<bd){bd=d;b=e}}return b};
 function calc(){const id=IT[S.eq.w]?S.eq.w:'blaster',w=IT[id],a=eqI('a'),c=S.eq.c,fi=setN('fire'),ic=setN('ice'),so=setN('solar'),vo=setN('vortex'),vd=setN('void'),ae=setN('aether');const wr=typeof v06GearRarityMultiplier==='function'?v06GearRarityMultiplier(id):1,ar=a&&typeof v06GearRarityMultiplier==='function'?v06GearRarityMultiplier(S.eq.a):1,cr=c&&typeof v06GearRarityMultiplier==='function'?v06GearRarityMultiplier(c):1;
 return{w,dmg:w.d*wr*cr*(c==='rotc'?1.25:1)*(so>=2?1.1:1),cd:w.r*Math.max(.3,1-.12*S.up.oc)/Math.max(1,wr),mhp:(100+20*S.up.hp+(a?a.hp*ar:0))*(ae>=2?1.1:1),dr:Math.min(.75,(a?a.dr*ar:0)+(ic>=2?.15:0)),spd:vo>=2?1.1:1,mag:c==='magn'?200:80,fi:fi>=2,ic:ic>=3,fireAura:fi>=3,so:so===3,vo:vo===3||vd>=3,vd:vd>=2,ad:ae===4,tk:c==='rotc'?1.25:1}}
 function burst(x,y,c,n,s){const sh=c===EC.ice?2:(c===EC.fire||c===EC.solar)?1:0;for(let i=0;i<n&&PT.length<500;i++){const a=Math.random()*6.283,v=(.2+Math.random()*.8)*s;PT.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:.3+Math.random()*.4,c,sh,a})}}
@@ -116,7 +116,7 @@ TL.forEach(l=>l.t-=dt);TL=TL.filter(l=>l.t>0);
 MS.forEach(m=>{m.t+=dt;if(m.t>=m.T)burst(m.x1,m.y1,m.c,10,180)});MS=MS.filter(m=>m.t<m.T);
 BM.forEach(b=>{if(b.e){if(b.e.hp>0){b.x=b.e.x;b.y=b.e.y}else b.t=0}b.a+=b.rot*dt;if(b.w>0){b.w-=dt;return}b.t-=dt;const test=(x,y,r)=>{const px=x-b.x,py=y-b.y;return px*Math.cos(b.a)+py*Math.sin(b.a)>0&&Math.abs(-px*Math.sin(b.a)+py*Math.cos(b.a))<b.wd+r};if(test(P.x,P.y,P.r))hurt(12+G.w*2,P.x,P.y,true);if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&!PVP.oppHazardImmune&&test(PVP.oppX,PVP.oppY,13))damagePvpGuest((12+G.w*2)*dt,'boss-beam')});BM=BM.filter(b=>b.t>0);
 SHK=Math.max(0,SHK-dt*30)}
-function deploy(cp){if(PVP.active&&PVP.phase!=='playing')return;SFX.click();ST=calc();pendingGuestCrates.clear();enemyUidCounter=0;crateUidCounter=0;bulletUidCounter=0;G={w:cp-1,warp:S.rec[cp]||0,startWarp:S.rec[cp]||0,runBanked:false,seed:PVP.active?(PVP.seed||1):((Math.random()*0xffffffff)>>>0),rngState:((PVP.seed||1)^cp)>>>0,cr:makeCrateCounts(),kills:0,q:[],t:0,gap:1,st:'inter',tmr:1.5,el:'neutral',name:'Get ready',storm:0,stt:0,souls:0,spi:(eqI('p')&&S.aw[S.eq.p])?{cd:0,x:0,y:0}:null};P.at='neutral';P.rx=P.rv=P.ammo=0;
+function deploy(cp){if(PVP.active&&PVP.phase!=='playing')return;SFX.click();ST=calc();pendingGuestCrates.clear();enemyUidCounter=0;crateUidCounter=0;bulletUidCounter=0;G={w:cp-1,warp:S.rec[cp]||0,startWarp:S.rec[cp]||0,runBanked:false,seed:PVP.active?(PVP.seed||1):((Math.random()*0xffffffff)>>>0),rngState:((PVP.seed||1)^cp)>>>0,cr:makeCrateCounts(),kills:0,q:[],t:0,gap:1,st:'inter',tmr:1.5,el:'neutral',name:'Get ready',storm:0,stt:0,spi:(eqI('p')&&S.aw[S.eq.p])?{cd:0,x:0,y:0}:null};P.at='neutral';P.rx=P.rv=P.ammo=0;
 Object.assign(P,{x:W/2,y:H/2,vx:0,vy:0,hp:ST.mhp,inv:0,sp:0,spm:6,cd:0});deterministicRandom=(PVP.active&&PVP.role==='host')?()=>seededRand():null;E=[];B=[];EB=[];CR=[];PT=[];SL=[];HO=[];TL=[];HZ=[];MS=[];BM=[];SHK=HS=0;P.sm=1;mode='play';$('hubOverlay').className='ov';$('pauseOverlay').className='ov';netBroadcast({type:'status',mode:'play'})}
 function nextWave(){const w=++G.w;G.rngState=((PVP.seed||G.seed||1)^Math.imul(w,0x9e3779b1))>>>0;S.rec[w]=Math.max(S.rec[w]||0,G.warp);G.q=[];HZ=[];BM=[];TL=[];MS=[];EB=[];const b=w%5===0,ids=w===5?[13,14]:[w*3-3,w*3-2,w*3-1],wt=w===5?[.5,.5]:[.45,.3,.25];
 const baseCount=b?w+6:5+w*3,actualCount=PVP.active?Math.ceil(baseCount*1.35):baseCount;
@@ -128,8 +128,23 @@ e={x:x0!=null?x0:s<2?R(0,W):s===2?-20:W+20,y:y0!=null?y0:s<2?(s?H+20:-20):R(0,H)
 const hpScale=(PVP.active?1.5:1)*(mini?.4:1);
 e.hp=e.mh=n.hp*sc*hpScale;E.push(e);if(bs&&PVP.active&&PVP.role==='host'&&PVP.phase==='playing')netSend(PVP.opponent,{type:'pvp_boss_spawn',matchId:PVP.matchId,uid:e.uid,id,wave:G.w,name:n.n,el:e.el});}
 function dmgE(e,d,el,fromGuest){if(e.inv>0||e.gh)return;const actual=Math.max(0,d*emul(el,e.el));e.hp-=actual;if(d>2)e.fl=.034;e._lastHitBy=fromGuest?'guest':'host';if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'&&PVP.stats){PVP.stats[fromGuest?'guest':'host'].damage+=actual;}}
-function kill(e,j){const killer=e._lastHitBy||'host';E.splice(j,1);G.dead++;G.kills++;const bounty=Math.round((e.ty==='b'?150:Math.max(5,EN30[e.id].hp/6))*(1+.12*G.w)),souls=e.ty==='b'?25:1;if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'&&PVP.stats){const who=killer==='guest'?'guest':'host',st=PVP.stats[who],now=Date.now();st.kills++;st.souls=(st.souls||0)+souls;st.warp=(st.warp||0)+bounty;if(now-(st.lastKillAt||0)>3500)st.combo=0;st.combo=(st.combo||0)+1;st.bestCombo=Math.max(st.bestCombo||0,st.combo);st.lastKillAt=now;if(who==='host'){G.souls+=souls;G.warp+=bounty;}}else{G.souls+=souls;G.warp+=bounty;}burst(e.x,e.y,EC[e.el],e.ty==='b'?70:14,e.ty==='b'?320:170);SFX.boom();SHK=Math.max(SHK,e.ty==='b'?18:2.5);if(e.ty==='b')HS=6;if(e.dk)DK[e.dk](e);if(e.ty==='b'||seededRand()<.07)addCrate(e.x,e.y,typeof v06ChooseCrateDrop==='function'?v06ChooseCrateDrop(G.w,e,e.ty==='b'):CT[G.w-1],0);
-if(PVP.active&&PVP.role==='host'&&e.ty==='b'&&G.w===PVP.target&&!PVP.finished){endPvp(killer==='guest'?'guest':'host','boss',{wave:G.w,boss:e.id,killer})}}
+function kill(e,j){
+ const killer=e._lastHitBy||'host';
+ E.splice(j,1);G.dead++;G.kills++;
+ const bounty=Math.round((e.ty==='b'?150:Math.max(5,EN30[e.id].hp/6))*(1+.12*G.w));
+ if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'&&PVP.stats){
+  const who=killer==='guest'?'guest':'host',st=PVP.stats[who],now=Date.now();
+  st.kills++;st.warp=(st.warp||0)+bounty;
+  if(now-(st.lastKillAt||0)>3500)st.combo=0;
+  st.combo=(st.combo||0)+1;st.bestCombo=Math.max(st.bestCombo||0,st.combo);st.lastKillAt=now;
+  if(who==='host')G.warp+=bounty;
+ }else G.warp+=bounty;
+ burst(e.x,e.y,EC[e.el],e.ty==='b'?70:14,e.ty==='b'?320:170);SFX.boom();
+ SHK=Math.max(SHK,e.ty==='b'?18:2.5);if(e.ty==='b')HS=6;if(e.dk)DK[e.dk](e);
+ if(e.ty==='b'||seededRand()<.07)addCrate(e.x,e.y,typeof v06ChooseCrateDrop==='function'?v06ChooseCrateDrop(G.w,e,e.ty==='b'):CT[G.w-1],0);
+ if(PVP.active&&PVP.role==='host'&&e.ty==='b'&&G.w===PVP.target&&!PVP.finished){endPvp(killer==='guest'?'guest':'host','boss',{wave:G.w,boss:e.id,killer});return;}
+ if(G.dead>=G.tot&&E.length===0&&G.q.length===0)clearWave();
+}
 function damagePvpGuest(amount,reason='hazard'){
   if(!PVP.active||PVP.role!=='host'||PVP.phase!=='playing'||!PVP.oppAlive||PVP.finished)return;
   const raw=Math.max(0,Number(amount)||0),dmg=raw*(1-cl(Number(PVP.oppDr)||0,0,.75))*cl(Number(PVP.oppTk)||1,.5,2);if(!dmg)return;

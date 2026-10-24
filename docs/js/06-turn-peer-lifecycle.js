@@ -1,4 +1,4 @@
-/* Slugger NEO v0.6.2 Phase 2 — Friend ID, TURN endpoint loading, mode policy, PeerJS lifecycle, signalling, and route inspection.
+/* Slugger NEO v0.6.3.0 Sub-phase 1 — Friend ID, TURN endpoint loading, mode policy, PeerJS lifecycle, signalling, and route inspection.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */

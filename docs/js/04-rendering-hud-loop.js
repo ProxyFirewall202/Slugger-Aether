@@ -1,4 +1,4 @@
-/* Slugger NEO v0.6.2 Phase 2 — Canvas drawing, player/enemy rendering, HUD, run conclusion UI, and base loop declaration.
+/* Slugger NEO v0.6.3.0 Sub-phase 1 — Canvas drawing, player/enemy rendering, HUD, run conclusion UI, and base loop declaration.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -60,16 +60,16 @@ const b=(v,m,c)=>`<span class=bar><i style="width:${Math.max(0,Math.min(100,100*
 let pvp='';
 if(PVP.active){
   const hostSide=PVP.role==='host',ohp=Math.max(0,Number(PVP.oppHp)||0),omhp=Math.max(1,Number(PVP.oppMh)||100),oalive=PVP.oppAlive!==false,youDead=PVP.playerDead,elapsed=Math.max(1,(Date.now()-(PVP.startTime||Date.now()))/1000),mine=PVP.stats?.[PVP.role]||{},theirs=PVP.stats?.[hostSide?'guest':'host']||{},myDps=Math.round((Number(mine.damage)||0)/elapsed),opDps=Math.round((Number(theirs.damage)||0)/elapsed),shield=eqI('s')?'SHIELD ON':'NO SHIELD';
-  pvp=`<div class=pvpBanner>⚔ ${PVP.target===5?'SHORT SPRINT':'FULL RAID'} · Wave ${G?.w||1} · <b>${PVP.role.toUpperCase()}</b> · ${youDead?'<span class=dead>YOU DEAD</span>':`You ${Math.round(P.hp)}/${Math.round(ST.mhp)}`} · Opp ${Math.round(ohp)}/${Math.round(omhp)}${oalive?'':' ☠'} · ${shield} · Protons ${S.pro||0} · DPS ${myDps}:${opDps} · ${EN[PVP.oppAt]||'Neutral'}</div>`;
+  pvp=`<div class=pvpBanner>⚔ ${PVP.target===5?'SHORT SPRINT':'FULL RAID'} · Wave ${G?.w||1} · <b>${PVP.role.toUpperCase()}</b> · ${youDead?'<span class=dead>YOU DEAD</span>':`You ${Math.round(P.hp)}/${Math.round(ST.mhp)}`} · Opp ${Math.round(ohp)}/${Math.round(omhp)}${oalive?'':' ☠'} · ${shield} · DPS ${myDps}:${opDps} · ${EN[PVP.oppAt]||'Neutral'}</div>`;
 }
-$('topHUD').innerHTML=`${pvp}<span>Warp ${G.warp}</span><span style="color:${EC[G.el]}">Wave ${G.w||1}: ${G.name}</span><span>HP ${b(P.hp,ST.mhp,'#ff3355')}</span><span>Special ${b(P.spm-P.sp,P.spm,'#ffcc00')}</span>${ST.ad?`<span>Ammo ${P.ammo}</span>`:''}<span>Crates ${n}</span><span>Souls ${G.souls}</span><span>Foes ${E.length+G.q.length}${G.fr?' FRENZY':''}</span><div class=ch>${chips}</div>`}
+$('topHUD').innerHTML=`${pvp}<span>Warp ${G.warp}</span><span style="color:${EC[G.el]}">Wave ${G.w||1}: ${G.name}</span><span>HP ${b(P.hp,ST.mhp,'#ff3355')}</span><span>Special ${b(P.spm-P.sp,P.spm,'#ffcc00')}</span>${ST.ad?`<span>Ammo ${P.ammo}</span>`:''}<span>Loot Boxes ${n}</span><span>Foes ${E.length+G.q.length}${G.fr?' FRENZY':''}</span><div class=ch>${chips}</div>`}
 function endRun(win){if(mode==='hub'||(G&&G.runBanked))return;if(G)G.runBanked=true;mode='hub';$('pauseOverlay').className='ov';
 if(win)CR.forEach(c=>G.cr[c.t]++);
-S.warp+=G.warp;S.souls+=G.souls;let n=0;for(const k in G.cr){S.cr[k]+=G.cr[k];n+=G.cr[k]}S.hi=Math.max(S.hi,G.warp);S.cp.sort((a,b)=>a-b);md=false;
-logs=[(win?'Victory: the Aether boss is down.':'Run over.')+` Reached wave ${G.w}, banked ${G.warp} Warp, ${G.souls} souls and ${n} crate${n==1?'':'s'}.`];save();netBroadcast({type:'status',mode:'hub'});hub()}
+S.warp+=G.warp;let n=0;for(const k in G.cr){S.cr[k]+=G.cr[k];n+=G.cr[k]}S.hi=Math.max(S.hi,G.warp);S.cp.sort((a,b)=>a-b);md=false;
+logs=[(win?'Victory: the Aether boss is down.':'Run over.')+` Reached wave ${G.w}, banked ${G.warp} Warp and ${n} loot box${n==1?'':'es'}.`];save();netBroadcast({type:'status',mode:'hub'});hub()}
 function pz(){if(PVP.active){return}if(mode==='play'){mode='pause';$('pauseOverlay').className='ov on'}else if(mode==='pause'){mode='play';$('pauseOverlay').className='ov'}}
 const bt=(f,t,x,tp)=>`<button${x?'':' disabled'} onclick="${f}"${tp?` class=tt data-tip="${tp}"`:''}>${t}</button>`;
-const TABS=['Deploys & checkpoints','Crates & Decryption','Skill Tree & Upgrades','Loadout & Sets','Friends & network'];
+const TABS=['Deploys & checkpoints','Loot Boxes','Skill Tree & Upgrades','Loadout & Sets','Friends & network'];
 const UP=[['hp','Max health',5,60,'❤'],['oc','Blaster overclock',5,80,'⚡'],['thr','Movement thrusters',3,70,'🚀'],['slime','Slime trail generator',3,150,'🧪'],['amp','Attunement amplifiers',5,90,'✨']];
 
 /* Base loop declaration is placed here intentionally: it was hoisted in the original monolithic script. */

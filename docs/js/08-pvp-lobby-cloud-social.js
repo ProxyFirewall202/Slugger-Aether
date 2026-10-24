@@ -1,4 +1,4 @@
-/* Slugger NEO v0.6.2 Phase 2 — PvP lobby and ready protocol, loadouts, cloud friend relationships, cloud presence, and invites.
+/* Slugger NEO v0.6.3.0 Sub-phase 1 — PvP lobby and ready protocol, loadouts, cloud friend relationships, cloud presence, and invites.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -7,7 +7,7 @@ function enterPvpLobby(role,pid,target){
   PVP.phase='lobby';PVP.hostReady=false;PVP.guestReady=false;
   PVP.playerDead=false;PVP.oppDead=false;PVP.oppHazardImmune=false;PVP.finished=false;PVP.winner=null;PVP.reason='';PVP.pendingResult=null;PVP.initAck=false;PVP.syncStartedAt=0;
   PVP.oppHp=100;PVP.oppMh=100;PVP.oppInitialised=false;PVP.oppTk=1;PVP.oppMag=80;PVP.oppShotDamageMax=120;PVP.oppShotCooldown=.11;PVP.oppFireLastAt=0;PVP.oppVolleyMap=new Map();PVP.oppAlive=true;PVP.oppX=W/2;PVP.oppY=H/2;PVP.oppXT=W/2;PVP.oppYT=H/2;PVP.oppAt='neutral';PVP.oppAng=0;PVP.oppAngTarget=0;PVP.oppDrone=null;PVP.oppDroneTarget=null;PVP.hostDrone=null;PVP.hostDroneTarget=null;PVP.oppLastInputAt=0;PVP.oppFireLastAt=0;PVP.oppVolleyMap=new Map();PVP.oppInitialised=false;PVP.resultBanked=false;PVP.resultAt=0;PVP.resultAcked=false;PVP.guestResultApplied=false;
-  PVP.hostBulletsSnap=[];PVP.lastInput=0;PVP.lastSnapshot=0;PVP.matchId=null;PVP.seed=1;PVP.stats={host:{damage:0,kills:0,crates:0,souls:0,warp:0,combo:0,bestCombo:0,lastKillAt:0},guest:{damage:0,kills:0,crates:0,souls:0,warp:0,combo:0,bestCombo:0,lastKillAt:0}};PVP.receivedShots=new Set();PVP.guestSpecialReadyAt=0;PVP.reconnectDeadline=0;PVP.reconnectPhase=null;PVP.timeoutRequested=false;pendingGuestCrates.clear();
+  PVP.hostBulletsSnap=[];PVP.lastInput=0;PVP.lastSnapshot=0;PVP.matchId=null;PVP.seed=1;PVP.stats={host:{damage:0,kills:0,crates:0,warp:0,combo:0,bestCombo:0,lastKillAt:0},guest:{damage:0,kills:0,crates:0,warp:0,combo:0,bestCombo:0,lastKillAt:0}};PVP.receivedShots=new Set();PVP.guestSpecialReadyAt=0;PVP.reconnectDeadline=0;PVP.reconnectPhase=null;PVP.timeoutRequested=false;pendingGuestCrates.clear();
   showPvpLobby();
   SFX.warn();
 }
@@ -55,7 +55,7 @@ function onPvpReady(pid){
 function tryStartCountdown(){
   if(PVP.phase!=='lobby'||PVP.role!=='host'||!PVP.hostReady||!PVP.guestReady)return;
   PVP.phase='sync';PVP.matchId=`${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;PVP.seed=(Math.random()*0xffffffff)>>>0;PVP.countdownStart=0;PVP.syncStartedAt=Date.now();PVP.initAck=false;
-  PVP.stats={host:{damage:0,kills:0,crates:0,souls:0,combo:0,bestCombo:0,lastKillAt:0},guest:{damage:0,kills:0,crates:0,souls:0,combo:0,bestCombo:0,lastKillAt:0}};PVP.receivedShots=new Set();PVP.initAck=false;PVP.lastGuestHpPacket=0;
+  PVP.stats={host:{damage:0,kills:0,crates:0,combo:0,bestCombo:0,lastKillAt:0},guest:{damage:0,kills:0,crates:0,combo:0,bestCombo:0,lastKillAt:0}};PVP.receivedShots=new Set();PVP.initAck=false;PVP.lastGuestHpPacket=0;
   cleanupPvpLobbyUi();showPvpCountdown();netBroadcast({type:'status',mode:'game'});
   netSend(PVP.opponent,{type:'pvp_init',matchId:PVP.matchId,target:PVP.target,seed:PVP.seed,waves:[5,10],settings:{enemyHp:1.5,spawnScale:1.35},hostStatus:'ready',guestStatus:'ready'});const o=$('pvpCountdownOverlay');if(o)o.textContent='SYNC';
 }
@@ -78,7 +78,7 @@ function pvpTickCountdown(){
   const elapsed=Date.now()-(PVP.countdownStart||Date.now());
   if(elapsed>=3000){
     PVP.phase='playing';
-    PVP.startTime=Date.now();PVP.stats=PVP.stats||{host:{damage:0,kills:0,crates:0,souls:0,warp:0,combo:0,bestCombo:0,lastKillAt:0},guest:{damage:0,kills:0,crates:0,souls:0,warp:0,combo:0,bestCombo:0,lastKillAt:0}};
+    PVP.startTime=Date.now();PVP.stats=PVP.stats||{host:{damage:0,kills:0,crates:0,warp:0,combo:0,bestCombo:0,lastKillAt:0},guest:{damage:0,kills:0,crates:0,warp:0,combo:0,bestCombo:0,lastKillAt:0}};
     PVP.oppInitialised=false;PVP.resultAcked=false;PVP.resultPacket=null;PVP.guestResultApplied=false;PVP.oppVolleyMap=new Map();PVP.oppFireLastAt=0;
     deploy(1);
     if(PVP.role==='guest'){PVP.oppHp=PVP.opponentLoadout?.hp||100;PVP.oppMh=PVP.oppHp;}else{PVP.oppHp=PVP.opponentLoadout?.hp||100;PVP.oppMh=PVP.oppHp;PVP.oppInitialised=!!PVP.opponentLoadout;}PVP.oppAlive=true;PVP.playerDead=false;PVP.oppDead=false;
@@ -126,7 +126,7 @@ function endPvp(winner,reason,details={}){
   if(PVP.pendingResultTimer)clearTimeout(PVP.pendingResultTimer);PVP.pendingResultTimer=null;PVP.pendingResult=null;
   PVP.finished=true;PVP.winner=winner;PVP.reason=reason;PVP.phase='finished';PVP.resultAt=Date.now();PVP.resultBanked=false;mode='pause';$('pauseOverlay').className='ov';
   const iWon=winner===PVP.role,isDraw=winner==='draw';
-  if(PVP.role==='guest'&&reason==='disconnect'&&G&&!PVP.guestResultApplied){const gs=PVP.stats?.guest||{},reached=cl(Math.floor(Number(G.w)||1),1,10),clearedWave=cl(Math.floor(Number(G.lastClearedWave)||0),0,10);G.warp=(Number(G.startWarp)||0)+(Number(gs.warp)||0);G.souls=Number(gs.souls)||0;S.hi=Math.max(Number(S.hi)||0,G.warp);for(let cleared=4;cleared<=clearedWave;cleared++){const cp=cleared-2;if(cp>=2&&cp<=8&&!S.cp.includes(cp))S.cp.push(cp)}S.rec[reached]=Math.max(Number(S.rec[reached])||0,G.warp);PVP.guestResultApplied=true;}
+  if(PVP.role==='guest'&&reason==='disconnect'&&G&&!PVP.guestResultApplied){const gs=PVP.stats?.guest||{},reached=cl(Math.floor(Number(G.w)||1),1,10),clearedWave=cl(Math.floor(Number(G.lastClearedWave)||0),0,10);G.warp=(Number(G.startWarp)||0)+(Number(gs.warp)||0);S.hi=Math.max(Number(S.hi)||0,G.warp);for(let cleared=4;cleared<=clearedWave;cleared++){const cp=cleared-2;if(cp>=2&&cp<=8&&!S.cp.includes(cp))S.cp.push(cp)}S.rec[reached]=Math.max(Number(S.rec[reached])||0,G.warp);PVP.guestResultApplied=true;}
   if(iWon&&G){G.warp+=500;if(PVP.stats&&PVP.stats[PVP.role])PVP.stats[PVP.role].warp=(PVP.stats[PVP.role].warp||0)+500;}
   const elapsed=Math.max(0,Date.now()-(PVP.startTime||Date.now()));
   PVP.resultPacket=Object.freeze({type:'pvp_end',matchId:PVP.matchId,winner,reason,details:JSON.parse(JSON.stringify(details||{})),stats:JSON.parse(JSON.stringify(PVP.stats||{})),elapsed,reachedWave:G?G.w:1,lastClearedWave:G?Number(G.lastClearedWave)||0:0,finishedAt:PVP.resultAt});
@@ -144,7 +144,7 @@ function showPvpEnd(iWon,reason,isDraw,details={},stats=PVP.stats,elapsed=0){
   else if(reason==='both-dead')sub='Both players fell.';else if(reason==='disconnect')sub='Opponent did not reconnect within the grace period.';else if(reason==='forfeit')sub=details&&details.quitRole==='host'?'Host ended the session; opponent wins.':'Opponent left the session; you win.';else if(reason==='player-death'||reason==='opponent-death')sub=iWon?'Opponent defeated; you win.':'You were defeated.';else sub='Match ended.';
   const fmt=n=>{n=Math.max(0,Math.floor(Number(n)||0));return Math.floor(n/60000)+':'+String(Math.floor(n/1000)%60).padStart(2,'0')};
   const h=stats&&stats.host||{},g=stats&&stats.guest||{};
-  const table=`<div class=p style="max-width:660px;width:min(660px,88vw);text-align:left"><h3>Match stats</h3><div class=pvpLobbyRow><b>Metric</b><b>Host</b><b>Guest</b></div><div class=pvpLobbyRow><span>Total time</span><span>${fmt(elapsed||details.elapsed||0)}</span><span>${fmt(elapsed||details.elapsed||0)}</span></div><div class=pvpLobbyRow><span>Wave reached</span><b>${Math.max(1,Math.floor(Number(details.wave||G?.w||PVP.roundWave||1)))}</b><b>${Math.max(1,Math.floor(Number(details.wave||G?.w||PVP.roundWave||1)))}</b></div><div class=pvpLobbyRow><span>Damage dealt</span><b>${Math.round(h.damage||0)}</b><b>${Math.round(g.damage||0)}</b></div><div class=pvpLobbyRow><span>Enemies defeated</span><b>${h.kills||0}</b><b>${g.kills||0}</b></div><div class=pvpLobbyRow><span>Crates collected</span><b>${h.crates||0}</b><b>${g.crates||0}</b></div><div class=pvpLobbyRow><span>Highest combo</span><b>${h.bestCombo||0}</b><b>${g.bestCombo||0}</b></div><div class=pvpLobbyRow><span>Ranked souls earned</span><b>${h.souls||0}</b><b>${g.souls||0}</b></div></div>`;
+  const table=`<div class=p style="max-width:660px;width:min(660px,88vw);text-align:left"><h3>Match stats</h3><div class=pvpLobbyRow><b>Metric</b><b>Host</b><b>Guest</b></div><div class=pvpLobbyRow><span>Total time</span><span>${fmt(elapsed||details.elapsed||0)}</span><span>${fmt(elapsed||details.elapsed||0)}</span></div><div class=pvpLobbyRow><span>Wave reached</span><b>${Math.max(1,Math.floor(Number(details.wave||G?.w||PVP.roundWave||1)))}</b><b>${Math.max(1,Math.floor(Number(details.wave||G?.w||PVP.roundWave||1)))}</b></div><div class=pvpLobbyRow><span>Damage dealt</span><b>${Math.round(h.damage||0)}</b><b>${Math.round(g.damage||0)}</b></div><div class=pvpLobbyRow><span>Enemies defeated</span><b>${h.kills||0}</b><b>${g.kills||0}</b></div><div class=pvpLobbyRow><span>Crates collected</span><b>${h.crates||0}</b><b>${g.crates||0}</b></div><div class=pvpLobbyRow><span>Highest combo</span><b>${h.bestCombo||0}</b><b>${g.bestCombo||0}</b></div></div>`;
   const tie=details&&details.tieBreak?`<p class=ds>Timeout tie-break order: damage dealt, kills, then crates.</p>`:'';
   o.innerHTML=`<h2>${title}</h2><p style="color:#d6ffe9;max-width:620px">${esc(sub)}</p>${table}${tie}<p class=ds>${iWon&&!isDraw?'Winner bonus: +500 Warp. ':''}Returning to hub…</p>`;
 }

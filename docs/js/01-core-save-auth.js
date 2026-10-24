@@ -1,4 +1,4 @@
-/* Slugger NEO v0.6.2 Phase 2 — Core constants, save normalisation/merging, authentication, and cloud persistence.
+/* Slugger NEO v0.6.3.0 Sub-phase 1 — Core constants, save normalisation/merging, authentication, and cloud persistence.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -16,8 +16,8 @@ const CRATE_SET_FAMILIES=[
 ];
 const CRATE_SLOTS=[{slug:'weapon',type:'w',label:'Weapon'},{slug:'shield',type:'s',label:'Shield'},{slug:'armor',type:'a',label:'Armor'},{slug:'charm',type:'c',label:'Charm'}];
 const CRATE_BASE_META={
- wood:{name:'Wood Cache',color:'#c8884a',k:1,weights:[76,19,4,1],warp:[40,110],description:'A basic field cache with common equipment.'},
- iron:{name:'Iron Cache',color:'#9fb0c8',k:1,weights:[51,34,12,3],warp:[100,240],description:'A reinforced cache with reliable uncommon gear.'},
+ wood:{name:'Scrap Loot Box',color:'#c8884a',k:1,weights:[76,19,4,1],warp:[40,110],description:'A basic field cache with common equipment.'},
+ iron:{name:'Ironclad Loot Box',color:'#9fb0c8',k:1,weights:[51,34,12,3],warp:[100,240],description:'A reinforced cache with reliable uncommon gear.'},
  solar:{name:'Solar Cache',color:'#ffcc00',k:2,weights:[35,38,21,6],warp:[180,380],description:'A solar-themed cache with broad gear selection.'},
  vortex:{name:'Vortex Cache',color:'#aa00ff',k:2,weights:[29,37,25,9],warp:[180,420],description:'A reality-warped cache with improved rare odds.'},
  aether:{name:'Aether Vault',color:'#ff0055',k:4,weights:[14,29,36,21],warp:[450,850],description:'A high-security vault with an elevated legendary chance.'}
@@ -31,7 +31,8 @@ const CRATE_SPECIALS=[
  {id:'relic_cache',name:'Relic Cache',color:'#f48bcb',k:3,weights:[10,25,40,25],filter:{minTier:2},warp:[260,520],description:'High-tier relics from several sets.'},
  {id:'elite_cache',name:'Elite Cache',color:'#ffb45e',k:3,weights:[8,22,42,28],filter:{minTier:2},warp:[300,580],description:'Elite gear with a strong rare and legendary chance.'},
  {id:'monarch_cache',name:'Monarch Vault',color:'#ff3355',k:4,weights:[2,12,38,48],filter:{minTier:3,sets:['void','aether']},warp:[550,1000],description:'An endgame vault with a very high legendary chance.'},
- {id:'key_cache',name:'Key Cache',color:'#ffe17a',k:1,weights:[58,26,12,4],resourceOnly:true,warp:[80,180],description:'A resource cache that specializes in keys and crafting materials.'}
+ // Legacy-only save migration bucket. It is excluded from active loot box IDs, UI, drops, and purchases.
+ {id:'key_cache',name:'Legacy Key Cache (migration only)',color:'#ffe17a',k:0,weights:[0,0,0,0],resourceOnly:true,warp:[0,0],description:'Hidden legacy-save compatibility entry; not obtainable or usable.'}
 ];
 const CRATE_CATALOG={};
 for(const [id,m] of Object.entries(CRATE_BASE_META))CRATE_CATALOG[id]={id,...m,family:id,set:null};
@@ -81,7 +82,7 @@ pip:{n:'Pip Slug',t:'p',k:.35,r:.55,sc:60,tier:1,ds:'Tiny drone, steady shots.'}
 bolt:{n:'Bolt Slug',t:'p',k:.6,r:.45,sc:150,tier:2,ds:'Faster, harder drone.'},
 aesl:{n:'Aether Slug',t:'p',k:1.1,r:.35,pi:3,sc:300,tier:3,ds:'Piercing divine drone.'}};
 const SETS={fire:{n:'Pyre',need:3,b2:'+10% fire damage while attuned to Fire',b:'A damaging fire aura while attuned to Fire.'},ice:{n:'Cryo',need:3,b2:'+15% damage reduction',b:'Cryo plating slows hazards and reduces incoming damage.'},solar:{n:'Solar Flare',need:3,b2:'+10% damage',b:'Scorching aura and the Solar Cataclysm special.'},vortex:{n:'Vortex Void',need:3,b2:'+10% thrust',b:'Black-hole special that drags small foes.'},void:{n:'Void Rift',need:3,b2:'+20% Vortex damage',b:'Rift pulse pulls nearby enemies and improves Vortex shots.'},aether:{n:'Aether Divine',need:4,b2:'+10% max HP',b:'Damage taken becomes empowered ammo (+60% shot damage). Hazard immunity applies once hazards exist.'}},SN={w:'Weapon',s:'Shield',a:'Armor',c:'Boost / Charm',p:'Spirit'};
-const SK='slugger_neo_v0.2-alpha',SAVE_OWNER_KEY='slugger_neo_save_owner_v054',saveScopedKey=owner=>SK+':'+String(owner||'guest'),DEF=()=>({warp:0,pro:0,key:3,fus:0,souls:0,cr:makeCrateCounts(),discoveredCrates:{},discoveredSets:{},inv:{blaster:{d:0,rarity:0}},eq:{w:'blaster',s:null,a:null,c:null,p:null},aw:{},att:['neutral'],up:{hp:0,oc:0,thr:0,slime:0,amp:0},cp:[1],rec:{},hi:0,lastSaveTimestamp:Date.now()});
+const SK='slugger_neo_v0.2-alpha',SAVE_OWNER_KEY='slugger_neo_save_owner_v054',saveScopedKey=owner=>SK+':'+String(owner||'guest'),DEF=()=>({warp:0,cr:makeCrateCounts(),discoveredCrates:{},discoveredSets:{},inv:{blaster:{d:0,rarity:0}},eq:{w:'blaster',s:null,a:null,c:null,p:null},aw:{},att:['neutral'],up:{hp:0,oc:0,thr:0,slime:0,amp:0},cp:[1],rec:{},hi:0,lastSaveTimestamp:Date.now()});
 let S;try{S=normaliseSave(JSON.parse(localStorage.getItem(SK)||'{}'))}catch(e){S=DEF()}
 const V05_SESSION_KEY='slugger_neo_save_1v1_v05';let save_sp=S,save_1v1=null,activeSaveMode='sp';
 const firebaseConfig={apiKey:"AIzaSyAu7prBgEdGWbPY8u8g2CYCJbHjz2fLTl4",authDomain:"slugger-aether.firebaseapp.com",projectId:"slugger-aether",storageBucket:"slugger-aether.firebasestorage.app",messagingSenderId:"156152123566",appId:"1:156152123566:web:22cc7d829fa41ecd615d3f",measurementId:"G-TDDDMFNKZ9"};
@@ -237,7 +238,7 @@ function saveLocalOnly(){S.lastSaveTimestamp=Math.max(Date.now(),(Number(S.lastS
 function cancelCloudWork(){cloudGeneration++;if(cloudSaveTimer){clearTimeout(cloudSaveTimer);cloudSaveTimer=null}cloudSavePending=false}
 function stopCloudSocial(){if(presenceTimer){clearInterval(presenceTimer);presenceTimer=null}if(presenceUnsub){presenceUnsub();presenceUnsub=null}if(cloudProfileUnsub){cloudProfileUnsub();cloudProfileUnsub=null}if(cloudRequestUnsub){cloudRequestUnsub();cloudRequestUnsub=null}Object.values(cloudDmUnsubs).forEach(fn=>{try{fn()}catch(e){}});cloudDmUnsubs={};cloudPresenceUnsubs.forEach(fn=>{try{fn()}catch(e){}});cloudPresenceUnsubs=[];cloudUidBySlug={};cloudFriends=[];cloudSocialUidStarted=null;cloudDmSeen.clear();NET.msgs=NET.msgs.filter(m=>m.sys)}
 let cloudSaveTimer=null,cloudSavePending=false;
-function saveScore(s){if(!s)return 0;let score=0;if(s.cp&&s.cp.length)score+=Math.max(...s.cp)*100000;score+=(s.hi||0)*1000;score+=(s.warp||0)+(s.pro||0)*10+(s.souls||0)*5;score+=Object.keys(s.inv||{}).length*2000;if(s.up)score+=Object.values(s.up).reduce((a,b)=>a+(Number(b)||0),0)*5000;return score}
+function saveScore(s){if(!s)return 0;let score=0;if(s.cp&&s.cp.length)score+=Math.max(...s.cp)*100000;score+=(s.hi||0)*1000;score+=(s.warp||0);score+=Object.keys(s.inv||{}).length*2000;if(s.up)score+=Object.values(s.up).reduce((a,b)=>a+(Number(b)||0),0)*5000;return score}
 function normaliseSave(raw){
   const base=DEF(),v=raw&&typeof raw==='object'?raw:{};
   const out={...base,...v};
@@ -324,7 +325,7 @@ async function loadCloudSave(){
   }catch(e){console.warn('Cloud load failed:',e);logs=['Cloud load failed; using local save.']}
 }
 const save=()=>{const sessionWrite=activeSaveMode==='pvp'&&!!save_1v1;S.lastSaveTimestamp=Math.max(Date.now(),(Number(S.lastSaveTimestamp)||0)+1);S=normaliseSave(S);if(sessionWrite){save_1v1=S;try{sessionStorage.setItem(V05_SESSION_KEY,JSON.stringify(S))}catch(e){}return;}save_sp=S;persistScopedSave();cloudSaveDebounced();};
-function cloudProfileSummary(s=S){const crates=Object.values(s.cr||{}).reduce((a,v)=>a+(Number(v)||0),0);const equipment={weapon:s.eq?.w?{id:s.eq.w}:null,shield:s.eq?.s?{id:s.eq.s}:null,armor:s.eq?.a?{id:s.eq.a}:null,boost:s.eq?.c?{id:s.eq.c}:null,spirit:s.eq?.p?{id:s.eq.p}:null};return{stats:{warp:Number(s.warp)||0,protons:Number(s.pro)||0,souls:Number(s.souls)||0,crates},checkpoints:s.cp||[1],equipment,inventory:Object.entries(s.inv||{}).map(([id,v])=>({id,duplicates:Math.max(0,Number(v.d)||0),awakened:!!s.aw?.[id]})),lastSaveTimestamp:Number(s.lastSaveTimestamp)||0};}
+function cloudProfileSummary(s=S){const crates=Object.values(s.cr||{}).reduce((a,v)=>a+(Number(v)||0),0);const equipment={weapon:s.eq?.w?{id:s.eq.w}:null,shield:s.eq?.s?{id:s.eq.s}:null,armor:s.eq?.a?{id:s.eq.a}:null,boost:s.eq?.c?{id:s.eq.c}:null,spirit:s.eq?.p?{id:s.eq.p}:null};return{stats:{warp:Number(s.warp)||0,crates},checkpoints:s.cp||[1],equipment,inventory:Object.entries(s.inv||{}).map(([id,v])=>({id,duplicates:Math.max(0,Number(v.d)||0),awakened:!!s.aw?.[id]})),lastSaveTimestamp:Number(s.lastSaveTimestamp)||0};}
 async function syncCloudProfileSummary(){if(!fbDb||!AUTH.user||AUTH.guest||activeSaveMode==='pvp')return;const uid=AUTH.user.uid;try{await fbDb.collection('users').doc(uid).set({...cloudProfileSummary(),username:AUTH.username||'Player',usernameLower:cleanUsernameInput(AUTH.username||'Player').toLowerCase(),slugId:NET.id||loadId(),lastLogin:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})}catch(e){console.warn('Profile stats sync failed:',e)}}
 let tab=0,ub=null,dm=false,T=0;
 const O="stroke='#0a0814' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'",sv=(w,h,b)=>`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${w} ${h}' width='${w}' height='${h}'>${b}</svg>`;

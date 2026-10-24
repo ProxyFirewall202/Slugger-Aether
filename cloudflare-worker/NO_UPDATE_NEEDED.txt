@@ -1,0 +1,2 @@
+REFERENCE ONLY — DO NOT DEPLOY FOR v0.6.3.0 SUB-PHASE 1
+This folder is included as a reference copy. The Sub-phase 1 changes are client-side and do not change the Worker API. Keep your deployed Cloudflare Worker as-is.
