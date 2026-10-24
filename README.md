@@ -1,4 +1,4 @@
-# Slugger (NEO) v0.6.6.0 — Complete Package
+# Slugger (NEO) v0.6.6.1 — Complete Package
 
 This release builds on v0.6.5.0 with unique animated equipment art, animated armor shell plates, five-piece set passives and set-special attacks, weapon-specific projectile behaviours, and improved end-run loot cinematics.
 
@@ -21,3 +21,6 @@ No Cloudflare Worker, Firebase, TURN, or Metered configuration changes are requi
 - Test direct gameplay and a real two-device 1v1 match, especially set-special effects.
 
 See `README.txt`, `QUICK_START.txt`, `PHASE_PLAN.txt`, and `CHANGELOG_V0.6.6.0.txt` for more details.
+
+## v0.6.6.1 deployment hotfix
+Fixed recursion in the unique-gear wrappers that could make Deploy here fail with “Maximum call stack size exceeded”. A simulated browser test now starts Wave 1 and runs fire/special without page errors. No Cloudflare/Firebase/Metered changes are needed.

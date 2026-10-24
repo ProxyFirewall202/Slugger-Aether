@@ -1,4 +1,4 @@
-/* Slugger NEO v0.6.6.0 — unique gear art, animated armor shells, set effects, and structured run rewards.
+/* Slugger NEO v0.6.6.1 — deploy recursion hotfix for unique gear wrappers, armor shells, set effects, and run rewards.
  * Loaded after all v0.6.5.0 modules so the shared classic-script API remains compatible.
  */
 const V066_SET_COLORS={garden:'#a6ef62',pyre:'#ff652d',cryo:'#80ddff',solar:'#ffd348',vortex:'#c47aff',aether:'#ff75df',void:'#f36dff',omega:'#fff0a0'};
@@ -32,8 +32,8 @@ function v066SvgItem(id){
  return sv(96,72,`<defs><linearGradient id="g${h}" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${hi}" stop-opacity=".65"/><stop offset="1" stop-color="${c}" stop-opacity=".08"/></linearGradient></defs><rect x="1.5" y="1.5" width="93" height="69" rx="11" fill="#071322" stroke="${c}" stroke-opacity=".8"/><path d="M7 61H89" stroke="${c}" stroke-opacity=".3"/><g>${body}</g><rect x="4" y="4" width="88" height="64" rx="9" fill="url(#g${h})" opacity=".1"/>${sparks}<text x="48" y="66" text-anchor="middle" font-size="5.5" fill="${hi}" opacity=".68">${label.replace(/&/g,'and')}</text>`);
 }
 function v06GearSvg(id){return v066SvgItem(id)}
-const v066OriginalItemImage=v06ItemImage;
-function v06ItemImage(id,cls='v06-item-art'){const h=v066Hash(id),it=IT[id];return `<img class="${cls} v066-animated-art v066-slot-${it?.t||'x'} v066-motion-${h%6}" src="${uri(v066SvgItem(id))}" alt="${esc(it?.n||id)} preview" loading="lazy">`}
+const v066OriginalItemImage=window.v06ItemImage;
+window.v06ItemImage=function v066ItemImage(id,cls='v06-item-art'){const h=v066Hash(id),it=IT[id];return `<img class="${cls} v066-animated-art v066-slot-${it?.t||'x'} v066-motion-${h%6}" src="${uri(v066SvgItem(id))}" alt="${esc(it?.n||id)} preview" loading="lazy">`}
 function v066EquippedSet(){const counts={};for(const slot of ['w','s','a','c','p']){const id=S?.eq?.[slot],it=id&&IT[id];if(it?.set)counts[it.set]=(counts[it.set]||0)+1}return Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[1]>=5?Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0]:null}
 function v066SetSource(setId){return (typeof V063_SET_SOURCE!=='undefined'?V063_SET_SOURCE:[]).find(s=>s.id===setId)||null}
 function v066SetColor(setId){const src=v066SetSource(setId);return V066_SET_COLORS[src?.theme]||V06_SET_COLOR[setId]||'#65e6ae'}
@@ -44,13 +44,13 @@ function v066ArmorShell(){const id=S?.eq?.a,it=id&&IT[id];if(!it||!cx||!P)return
  // Rear dorsal ridge and side rivets vary by item identity/tier.
  if(h%3===0){cx.beginPath();cx.moveTo(-15,-15);cx.lineTo(-10,-23);cx.lineTo(-5,-16);cx.lineTo(0,-24);cx.lineTo(5,-16);cx.stroke()}else if(h%3===1){cx.beginPath();cx.ellipse(-4,0,19,13,.1,0,Math.PI*2);cx.stroke()}else{cx.beginPath();cx.moveTo(-20,-7);cx.lineTo(-9,0);cx.lineTo(-20,7);cx.moveTo(-7,-12);cx.lineTo(4,0);cx.lineTo(-7,12);cx.stroke()}
  cx.globalAlpha=1;cx.shadowBlur=0;cx.restore()}
-const v066BaseDrSlug=drSlug;
-function drSlug(){v066BaseDrSlug();v066ArmorShell()}
+const v066BaseDrSlug=window.drSlug;
+window.drSlug=function v066DrawSlugWithArmor(){v066BaseDrSlug();v066ArmorShell()}
 function v066ActiveSetData(){const id=v066EquippedSet();return id?{id,src:v066SetSource(id)}:null}
 function v066ApplySetBonus(){const active=v066ActiveSetData();if(!active?.src)return;const theme=active.src.theme;const n=active.src.name.toLowerCase();if(theme==='garden'){ST.spd=Math.max(ST.spd||1,1.15)}else if(theme==='pyre'){if(P.at==='fire')ST.dmg*=1.15}else if(theme==='cryo'){ST.dr=Math.min(.78,(ST.dr||0)+.08)}else if(theme==='solar'){ST.dmg*=1.12}else if(theme==='vortex'){ST.spd*=1.12}else if(theme==='aether'){ST.mhp=Math.round(ST.mhp*1.12);ST.dr=Math.min(.78,(ST.dr||0)+.06)}else if(theme==='void'){ST.dmg*=1.12}}
 // Apply the five-piece passive at each deployment, while preserving all pre-existing calculated stats.
-const v066BaseCalc=calc;
-function calc(){const st=v066BaseCalc();const old=ST;ST=st;try{v066ApplySetBonus()}finally{ST=old}return st}
+const v066BaseCalc=window.calc;
+window.calc=function v066CalculateWithSetBonus(){const st=v066BaseCalc();const old=ST;ST=st;try{v066ApplySetBonus()}finally{ST=old}return st}
 function v066RunSetSpecial(active){const src=active?.src;if(!src||!P||!G)return false;const theme=src.theme||'garden',name=(src.specialName||'Set Special').toLowerCase(),col=V066_SET_COLORS[theme]||EC[P.at]||'#65e6ae';const base=Math.max(10,Number(ST.dmg)||10),range=/eruption|collapse|shatter|earthquake|explosion|nova|barrage|rain|burst|storm/.test(name)?270:210;P.sp=P.spm=Math.max(5,Number(ST.spm)||8);SHK=Math.max(SHK,(/collapse|earthquake|explosion|hellfire|absolute/.test(name)?13:8));burst(P.x,P.y,col,/barrage|explosion|rain|collapse/.test(name)?95:55,340);SFX.sp();
  if(/dash/.test(name)){P.vx+=Math.cos(P.ang)*780;P.vy+=Math.sin(P.ang)*780;for(let i=0;i<8;i++)HZ.push({x:P.x-Math.cos(P.ang)*i*16,y:P.y-Math.sin(P.ang)*i*16,r:24,t:1.8,w:0,ty:theme==='cryo'?'ice':'fire'});return true}
  if(/veil|fortress|aegis|ward|shield|mirror/.test(name)){P.inv=Math.max(P.inv||0,3);P.hp=Math.min(ST.mhp,P.hp+ST.mhp*.08);burst(P.x,P.y,col,70,240);return true}
@@ -59,14 +59,14 @@ function v066RunSetSpecial(active){const src=active?.src;if(!src||!P||!G)return 
  if(/pull|singularity|rift|void/.test(name)){HO.push({x:P.x,y:P.y,t:4,owner:PVP.active&&PVP.role==='guest'?'guest':'host'});E.forEach(e=>{const d=Math.hypot(e.x-P.x,e.y-P.y)||1;if(d<range){e.kx+=(P.x-e.x)/d*680;e.ky+=(P.y-e.y)/d*680;dmgE(e,base*2.5,P.at)}});return true}
  // Default unique set-special pulse: large themed shockwave, damage and a brief defensive window.
  E.forEach(e=>{const d=Math.hypot(e.x-P.x,e.y-P.y)||1;if(d<range){dmgE(e,base*2.5,P.at);e.kx+=(e.x-P.x)/d*250;e.ky+=(e.y-P.y)/d*250}});P.inv=Math.max(P.inv||0,.6);return true}
-const v066BaseSpecial=special;
-function special(){if(mode!=='play'||P.sp>0||PVP.playerDead)return;const active=v066ActiveSetData();if(active?.src){if(PVP.active){const kind=active.src.theme==='solar'?'solar':active.src.theme==='vortex'||active.src.theme==='void'?'vortex':'neutral';const x=P.x,y=P.y;netSend(PVP.opponent,{type:'pvp_special',matchId:PVP.matchId,kind,x,y,setSpecial:active.id});P.sp=P.spm=active.src.theme==='solar'?15:active.src.theme==='vortex'?12:8;if(PVP.role==='host')v066RunSetSpecial(active);else{burst(P.x,P.y,V066_SET_COLORS[active.src.theme]||'#65e6ae',45,260);SHK=Math.max(SHK,7)}return}v066RunSetSpecial(active);return}v066BaseSpecial()}
+const v066BaseSpecial=window.special;
+window.special=function v066Special(){if(mode!=='play'||P.sp>0||PVP.playerDead)return;const active=v066ActiveSetData();if(active?.src){if(PVP.active){const kind=active.src.theme==='solar'?'solar':active.src.theme==='vortex'||active.src.theme==='void'?'vortex':'neutral';const x=P.x,y=P.y;netSend(PVP.opponent,{type:'pvp_special',matchId:PVP.matchId,kind,x,y,setSpecial:active.id});P.sp=P.spm=active.src.theme==='solar'?15:active.src.theme==='vortex'?12:8;if(PVP.role==='host')v066RunSetSpecial(active);else{burst(P.x,P.y,V066_SET_COLORS[active.src.theme]||'#65e6ae',45,260);SHK=Math.max(SHK,7)}return}v066RunSetSpecial(active);return}v066BaseSpecial()}
 // Weapon identity drives shot geometry/physics while keeping the existing reliable collision lifecycle.
-const v066BaseFire=fire;
-function fire(){if(!P||!ST?.w)return;const id=S?.eq?.w||'blaster',it=IT[id],nm=(it?.n||'').toLowerCase();const oldPush=B.length;v066BaseFire();for(let i=oldPush;i<B.length;i++){const b=B[i];if(!b)continue;b.weaponId=id;if(/lance|spear|needle|pierc|beam/.test(nm)){b.pi=Math.max(Number(b.pi)||1,3);b.r=Math.max(Number(b.r)||3,5);b.l=Math.max(Number(b.l)||1,1.35);b.trail=true}else if(/cannon|launcher|eruptor|mortar/.test(nm)){b.vx*=.76;b.vy*=.76;b.d*=1.28;b.r=Math.min(9,(Number(b.r)||4)+2);b.explode=true}else if(/slime|goo|acid|mucus/.test(nm)){b.vx*=.84;b.vy*=.84;b.bounce=true;b.l=1.35}else if(/repeater|rapid|carbine|driver|rifle/.test(nm)){b.d*=.9;b.l*=1.12}else if(/sunbeam|radiance|ray/.test(nm)){b.pi=Math.max(Number(b.pi)||1,2);b.r=3;b.d*=1.12;b.trail=true}if(it?.set&&v066SetSource(it.set)?.theme==='cryo')b.iceSet=true}}
+const v066BaseFire=window.fire;
+window.fire=function v066FireWithWeaponPhysics(){if(!P||!ST?.w)return;const id=S?.eq?.w||'blaster',it=IT[id],nm=(it?.n||'').toLowerCase();const oldPush=B.length;v066BaseFire();for(let i=oldPush;i<B.length;i++){const b=B[i];if(!b)continue;b.weaponId=id;if(/lance|spear|needle|pierc|beam/.test(nm)){b.pi=Math.max(Number(b.pi)||1,3);b.r=Math.max(Number(b.r)||3,5);b.l=Math.max(Number(b.l)||1,1.35);b.trail=true}else if(/cannon|launcher|eruptor|mortar/.test(nm)){b.vx*=.76;b.vy*=.76;b.d*=1.28;b.r=Math.min(9,(Number(b.r)||4)+2);b.explode=true}else if(/slime|goo|acid|mucus/.test(nm)){b.vx*=.84;b.vy*=.84;b.bounce=true;b.l=1.35}else if(/repeater|rapid|carbine|driver|rifle/.test(nm)){b.d*=.9;b.l*=1.12}else if(/sunbeam|radiance|ray/.test(nm)){b.pi=Math.max(Number(b.pi)||1,2);b.r=3;b.d*=1.12;b.trail=true}if(it?.set&&v066SetSource(it.set)?.theme==='cryo')b.iceSet=true}}
 // Track exact per-box rewards from the real economy roll so cinematics can render actual item SVGs and Warp icons.
-const v066BaseRoll=roll;
-function roll(type,opening){const beforeWarp=Number(S?.warp)||0,before={};for(const [id,v] of Object.entries(S?.inv||{}))before[id]={d:Number(v?.d)||0,owned:true};const out=v066BaseRoll(type,opening);const afterWarp=Number(S?.warp)||0,items=[];for(const [id,v] of Object.entries(S?.inv||{})){const prev=before[id];if(!prev||Number(v?.d||0)>prev.d)items.push({id,name:IT[id]?.n||id,tier:Number(IT[id]?.tier)||1,duplicate:!!prev})}if(opening){opening.rewardDetails={warp:Math.max(0,Math.round(afterWarp-beforeWarp)),items,outcome:opening.outcome||'standard',tier:opening.tier||Number(CRATE_CATALOG[type]?.tier)||1};}return out}
+const v066BaseRoll=window.roll;
+window.roll=function v066RollWithRewardDetails(type,opening){const beforeWarp=Number(S?.warp)||0,before={};for(const [id,v] of Object.entries(S?.inv||{}))before[id]={d:Number(v?.d)||0,owned:true};const out=v066BaseRoll(type,opening);const afterWarp=Number(S?.warp)||0,items=[];for(const [id,v] of Object.entries(S?.inv||{})){const prev=before[id];if(!prev||Number(v?.d||0)>prev.d)items.push({id,name:IT[id]?.n||id,tier:Number(IT[id]?.tier)||1,duplicate:!!prev})}if(opening){opening.rewardDetails={warp:Math.max(0,Math.round(afterWarp-beforeWarp)),items,outcome:opening.outcome||'standard',tier:opening.tier||Number(CRATE_CATALOG[type]?.tier)||1};}return out}
 // Rebuild the end-run box-by-box cinematic with item art cards, a Warp glyph, and accurate totals.
 let v066TotalLootBoxes=0;
 function v065BeginLootSequence(){v065LootIndex=0;v065LootResults=[];v066TotalLootBoxes=v065RunLoot.reduce((a,x)=>a+x.count,0);v065RenderNextLootBox()}
@@ -76,6 +76,6 @@ function v06ItemPowerMultiplier(id){const it=IT[id];if(!it)return 1;const n=Stri
 function v066ApplySetBonus(){const active=v066ActiveSetData();if(!active?.src||!ST)return;const src=active.src,theme=src.theme,bonus=String(src.bonus||'').toLowerCase();if(/movement speed|top speed|thrust/.test(bonus))ST.spd=Math.min(1.35,(ST.spd||1)*1.12);if(/damage reduction|armor protection|damage taken|physical impact/.test(bonus))ST.dr=Math.min(.8,(ST.dr||0)+.08);if(/weapon damage|fire damage|pyre damage|damage by|damage\b/.test(bonus))ST.dmg*=1.1;if(/max hp|\+\d+ hp|health/.test(bonus))ST.mhp=Math.round(ST.mhp*1.08);if(/firing rate|faster energy recharge|cooldown/.test(bonus))ST.cd=Math.max(.055,(ST.cd||.2)*.9);if(theme==='garden')ST.mag=Math.max(ST.mag||80,100);if(theme==='cryo')ST.dr=Math.min(.8,(ST.dr||0)+.035);if(theme==='aether')ST.mhp=Math.round(ST.mhp*1.04)}
 let v066PassiveClock=0;
 function v066TickSetPassive(dt){if(!G||mode!=='play'||PVP.playerDead)return;const active=v066ActiveSetData();if(!active?.src)return;v066PassiveClock-=Math.max(0,Math.min(.1,Number(dt)||0));if(v066PassiveClock>0)return;v066PassiveClock=.35;const src=active.src,theme=src.theme,name=(src.name||'').toLowerCase(),bonus=(src.bonus||'').toLowerCase();if(/aura|trail|nearby|standing still|orbit|periodically|slows minor foes/.test(bonus+' '+name)){const radius=/aura|orbit|circle/.test(bonus+' '+name)?100:72;E.forEach(e=>{const d=Math.hypot(e.x-P.x,e.y-P.y);if(d<radius){if(theme==='cryo')e.slow=Math.max(e.slow||0,.45);if(theme==='vortex'||theme==='aether'){const z=d||1;e.kx+=(P.x-e.x)/z*18;e.ky+=(P.y-e.y)/z*18}if(theme==='pyre'||theme==='garden')dmgE(e,(Number(ST.dmg)||10)*.055,theme==='garden'?'neutral':theme==='pyre'?'fire':P.at)}})}if(/healing|restores health|health regeneration|shattering frozen/.test(bonus+' '+name)&&P.hp<ST.mhp)P.hp=Math.min(ST.mhp,P.hp+0.5)}
-const v066BaseUpd=upd;
-function upd(dt){v066BaseUpd(dt);v066TickSetPassive(dt)}
+const v066BaseUpd=window.upd;
+window.upd=function v066UpdateWithSetPassives(dt){v066BaseUpd(dt);v066TickSetPassive(dt)}
 function v065AdvanceLootBox(){if(!(v065RunLoot[v065LootIndex]&&v065RunLoot[v065LootIndex].count>0))v065LootIndex++;v065RenderNextLootBox()}

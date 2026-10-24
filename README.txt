@@ -1,4 +1,4 @@
-SLUGGER (NEO) v0.6.6.0 — COMPLETE PACKAGE
+SLUGGER (NEO) v0.6.6.1 — COMPLETE PACKAGE
 
 PUBLISH TO GITHUB PAGES
 1. Extract this ZIP.
@@ -21,3 +21,6 @@ RELEASE HIGHLIGHTS
 
 TESTING
 All project JavaScript files were syntax-checked and package paths were checked. Real browser/device and live two-peer 1v1 testing are still recommended before considering multiplayer parity fully verified.
+
+HOTFIX NOTE v0.6.6.1
+This release fixes the Deploy here button triggering a maximum call stack error. It was caused by recursive function wrappers in the unique-gear module. The new package passes a simulated browser deployment test. No backend changes are required.

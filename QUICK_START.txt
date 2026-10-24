@@ -1,4 +1,4 @@
-SLUGGER NEO v0.6.6.0 — QUICK START
+SLUGGER NEO v0.6.6.1 — QUICK START
 
 1. Extract the complete ZIP.
 2. Upload the contents of docs/ into the existing repository docs/ directory. Do not create docs/docs/.
@@ -18,3 +18,6 @@ TEST THESE FIRST
 - If possible, test 1v1 on two separate devices, including set-specials and the post-round loot flow.
 
 All JS files pass syntax checks. Live cloud and two-peer device testing was not available in this build environment.
+
+DEPLOY BUTTON HOTFIX (v0.6.6.1)
+This build fixes the maximum-call-stack error when pressing Deploy here. If deploying on iOS, fully close and reopen the installed PWA to fetch the cache-busted scripts.

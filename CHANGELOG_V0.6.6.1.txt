@@ -1,0 +1,20 @@
+SLUGGER NEO v0.6.6.1 — DEPLOY BUTTON RECURSION HOTFIX
+
+FIX
+- Fixed a JavaScript function-wrapper recursion bug in the v0.6.6.0 unique-gear module.
+- The wrapper setup declared new functions with the same names as base game functions. Classic-script function declaration hoisting meant the supposed “base” references pointed back to the wrapper itself.
+- Replaced the affected wrappers with explicit window function assignments after capturing the prior implementations. This fixes the recursive calls to calc(), drSlug(), special(), fire(), roll(), and upd().
+- The recursion meant clicking “Deploy here” could throw “Maximum call stack size exceeded” before the run initialized. Deploy now enters gameplay and wave updates proceed normally in the simulated browser test.
+
+CACHE
+- Bumped the visible build version to v0.6.6.1 and CSS/JS cache query parameters to v0.6.6.1-deploy-hotfix.
+
+PRESERVED
+- No save schema changes.
+- No changes to account/Firebase settings, Cloudflare Worker, Metered credentials, or TURN endpoint.
+- Unique gear, armor shells, set effects, Roman tier labels, and run/loot cinematics remain in this package.
+
+VALIDATION
+- All 13 JavaScript modules and their concatenated script pass `node --check`.
+- Simulated browser regression test: sign in as guest, click “Deploy here”, advance to Wave 1, call fire() and special(); no JavaScript page errors.
+- PeerJS did not load in the isolated test environment, so live multiplayer/networking was not tested here.

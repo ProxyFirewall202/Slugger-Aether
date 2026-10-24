@@ -1,4 +1,4 @@
-SLUGGER NEO v0.6.6.0 — Unique Gear & Armor Shells
+SLUGGER NEO v0.6.6.1 — Unique Gear & Armor Shells
 
 - Added distinct procedural SVG designs and animated presentation for all generated equipment items; shared IDs keep art consistent across loadout, stats, sets, and rewards.
 - Added animated shell plates over the slug body while leaving the front eye area exposed.
