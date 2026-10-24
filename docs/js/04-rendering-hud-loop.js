@@ -1,4 +1,4 @@
-/* Slugger NEO v0.6 Phase 1 — Canvas drawing, player/enemy rendering, HUD, run conclusion UI, and base loop declaration.
+/* Slugger NEO v0.6.2 Phase 2 — Canvas drawing, player/enemy rendering, HUD, run conclusion UI, and base loop declaration.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -41,7 +41,7 @@ if(PVP.active&&PVP.role==='guest'){
 }
 if(G.spi&&(!PVP.active||!PVP.playerDead)){cx.save();cx.translate(G.spi.x,G.spi.y);cx.shadowColor=EC[P.at];cx.shadowBlur=12;cx.fillStyle='#9dffd0';cx.strokeStyle='#0a0814';cx.lineWidth=2.5;cx.beginPath();cx.ellipse(0,0,10,7,Math.sin(T*3)*.3,0,7);cx.fill();cx.stroke();dc(4,-2,2.5,'#fff');dc(5,-2,1.2,'#0a0814');cx.restore()}
 if(ST.so&&!PVP.playerDead){cx.strokeStyle='#ffcc0099';cx.lineWidth=3;cx.beginPath();cx.arc(P.x,P.y,90+Math.sin(T*6)*3,0,7);cx.stroke()}
-const sh=eqI('s');if(sh&&!PVP.playerDead){cx.strokeStyle='#00ccffcc';cx.lineWidth=5;cx.lineCap='round';cx.beginPath();cx.arc(P.x,P.y,34,P.ang+sh.side-1.1,P.ang+sh.side+1.1);cx.stroke()}
+const sh=eqI('s');if(sh&&!PVP.playerDead){cx.strokeStyle='#00ccffcc';cx.lineWidth=5;cx.lineCap='round';cx.beginPath();cx.arc(P.x,P.y,34,P.ang+sh.side-(typeof v06ShieldHalfArc==='function'?v06ShieldHalfArc(S.eq.s):1.1),P.ang+sh.side+(typeof v06ShieldHalfArc==='function'?v06ShieldHalfArc(S.eq.s):1.1));cx.stroke()}
 if(PVP.active&&PVP.oppAlive!==false&&PVP.oppX!==undefined){
   const ox=PVP.oppX,oy=PVP.oppY;
   cx.save();cx.translate(ox,oy);cx.rotate(PVP.oppAng||0);cx.globalAlpha=.55;cx.shadowColor='#00ccff';cx.shadowBlur=14;

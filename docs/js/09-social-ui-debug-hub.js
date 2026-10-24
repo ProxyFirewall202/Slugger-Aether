@@ -1,4 +1,4 @@
-/* Slugger NEO v0.6 Phase 1 — Friends UI, connection diagnostics, developer console, and main hub renderer.
+/* Slugger NEO v0.6.2 Phase 2 — Friends UI, connection diagnostics, developer console, and main hub renderer.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */

@@ -1,11 +1,11 @@
-/* Slugger NEO v0.6 Phase 1 — World data, player/equipment stats, enemy AI, wave simulation, combat, hazards, and snapshots.
+/* Slugger NEO v0.6.2 Phase 2 — World data, player/equipment stats, enemy AI, wave simulation, combat, hazards, and snapshots.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
 const stars=Array.from({length:70},()=>({x:R(0,W),y:R(0,H),s:R(.6,1.8)}));
 const eqI=t=>IT[S.eq[t]]||null,setN=s=>'wsac'.split('').filter(t=>eqI(t)&&eqI(t).set===s).length,nearest=(x,y,r)=>{let b=null,bd=r*r;for(const e of E){const d=(e.x-x)**2+(e.y-y)**2;if(d<bd){bd=d;b=e}}return b};
-function calc(){const id=IT[S.eq.w]?S.eq.w:'blaster',w=IT[id],a=eqI('a'),c=S.eq.c,fi=setN('fire'),ic=setN('ice'),so=setN('solar'),vo=setN('vortex'),vd=setN('void'),ae=setN('aether');
-return{w,dmg:w.d*(c==='rotc'?1.25:1)*(so>=2?1.1:1),cd:w.r*Math.max(.3,1-.12*S.up.oc),mhp:(100+20*S.up.hp+(a?a.hp:0))*(ae>=2?1.1:1),dr:Math.min(.75,(a?a.dr:0)+(ic>=2?.15:0)),spd:vo>=2?1.1:1,mag:c==='magn'?200:80,fi:fi>=2,ic:ic>=3,fireAura:fi>=3,so:so===3,vo:vo===3||vd>=3,vd:vd>=2,ad:ae===4,tk:c==='rotc'?1.25:1}}
+function calc(){const id=IT[S.eq.w]?S.eq.w:'blaster',w=IT[id],a=eqI('a'),c=S.eq.c,fi=setN('fire'),ic=setN('ice'),so=setN('solar'),vo=setN('vortex'),vd=setN('void'),ae=setN('aether');const wr=typeof v06GearRarityMultiplier==='function'?v06GearRarityMultiplier(id):1,ar=a&&typeof v06GearRarityMultiplier==='function'?v06GearRarityMultiplier(S.eq.a):1,cr=c&&typeof v06GearRarityMultiplier==='function'?v06GearRarityMultiplier(c):1;
+return{w,dmg:w.d*wr*cr*(c==='rotc'?1.25:1)*(so>=2?1.1:1),cd:w.r*Math.max(.3,1-.12*S.up.oc)/Math.max(1,wr),mhp:(100+20*S.up.hp+(a?a.hp*ar:0))*(ae>=2?1.1:1),dr:Math.min(.75,(a?a.dr*ar:0)+(ic>=2?.15:0)),spd:vo>=2?1.1:1,mag:c==='magn'?200:80,fi:fi>=2,ic:ic>=3,fireAura:fi>=3,so:so===3,vo:vo===3||vd>=3,vd:vd>=2,ad:ae===4,tk:c==='rotc'?1.25:1}}
 function burst(x,y,c,n,s){const sh=c===EC.ice?2:(c===EC.fire||c===EC.solar)?1:0;for(let i=0;i<n&&PT.length<500;i++){const a=Math.random()*6.283,v=(.2+Math.random()*.8)*s;PT.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:.3+Math.random()*.4,c,sh,a})}}
 function swap(el){if(mode!=='play'||!S.att.includes(el)||P.at===el)return;P.at=el;SFX.swap();burst(P.x,P.y,EC[el],18,220)}
 function cyc(d){const l=EL6.filter(x=>S.att.includes(x)),i=l.indexOf(P.at);swap(l[(i+d+l.length)%l.length])}
@@ -103,7 +103,7 @@ turret:(e,t,dx,dy,d)=>{e.cd-=t;if(e.cd<=0){e.cd=5.5;e.ph+=1;for(let i=0;i<3;i++)
 core:(e,t,dx,dy,d)=>{ch(e,t,dx,dy,d,d>250?1:-.3);e.cd-=t;if(e.cd<=0){e.cd=3.2;for(let i=0;i<2;i++)pool(SIM.x+R(-120,120),SIM.y+R(-120,120),38,'void',5,.7);for(let i=0;i<12;i++)eb(e,i*.5236,140,7+G.w,6);burst(e.x,e.y,EC.void,20,200)}}};
 const DK={shard:e=>{for(let i=0;i<6;i++)eb(e,i*1.047,170,6+G.w,5)},split:e=>{if(!e.sm)for(let i=0;i<3;i++)spawn(23,e.x+R(-12,12),e.y+R(-12,12),1)}};
 let enemyUidCounter=0,crateUidCounter=0,bulletUidCounter=0;const pendingGuestCrates=new Map();
-function addCrate(x,y,t,b=0,uid){const c={uid:uid==null?++crateUidCounter:uid,x,y,t,b};crateUidCounter=Math.max(crateUidCounter,Number(c.uid)||0);CR.push(c);return c;}
+function addCrate(x,y,t,b=0,uid){if(!CRATE_CATALOG[t])t='wood';const c={uid:uid==null?++crateUidCounter:uid,x,y,t,b};crateUidCounter=Math.max(crateUidCounter,Number(c.uid)||0);CR.push(c);if(typeof v06MarkCrateDiscovered==='function')v06MarkCrateDiscovered(t,false);return c;}
 function seededRand(){if(!PVP.active||PVP.role!=='host'||!G)return Math.random();let x=(G.rngState=(Math.imul(G.rngState||PVP.seed||1,1664525)+1013904223)>>>0);return x/4294967296;}
 function pvpRandom(a,b){return a+seededRand()*(b-a);}
 
@@ -116,7 +116,7 @@ TL.forEach(l=>l.t-=dt);TL=TL.filter(l=>l.t>0);
 MS.forEach(m=>{m.t+=dt;if(m.t>=m.T)burst(m.x1,m.y1,m.c,10,180)});MS=MS.filter(m=>m.t<m.T);
 BM.forEach(b=>{if(b.e){if(b.e.hp>0){b.x=b.e.x;b.y=b.e.y}else b.t=0}b.a+=b.rot*dt;if(b.w>0){b.w-=dt;return}b.t-=dt;const test=(x,y,r)=>{const px=x-b.x,py=y-b.y;return px*Math.cos(b.a)+py*Math.sin(b.a)>0&&Math.abs(-px*Math.sin(b.a)+py*Math.cos(b.a))<b.wd+r};if(test(P.x,P.y,P.r))hurt(12+G.w*2,P.x,P.y,true);if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&!PVP.oppHazardImmune&&test(PVP.oppX,PVP.oppY,13))damagePvpGuest((12+G.w*2)*dt,'boss-beam')});BM=BM.filter(b=>b.t>0);
 SHK=Math.max(0,SHK-dt*30)}
-function deploy(cp){if(PVP.active&&PVP.phase!=='playing')return;SFX.click();ST=calc();pendingGuestCrates.clear();enemyUidCounter=0;crateUidCounter=0;bulletUidCounter=0;G={w:cp-1,warp:S.rec[cp]||0,startWarp:S.rec[cp]||0,runBanked:false,seed:PVP.active?(PVP.seed||1):((Math.random()*0xffffffff)>>>0),rngState:((PVP.seed||1)^cp)>>>0,cr:{wood:0,iron:0,solar:0,vortex:0,aether:0},kills:0,q:[],t:0,gap:1,st:'inter',tmr:1.5,el:'neutral',name:'Get ready',storm:0,stt:0,souls:0,spi:(eqI('p')&&S.aw[S.eq.p])?{cd:0,x:0,y:0}:null};P.at='neutral';P.rx=P.rv=P.ammo=0;
+function deploy(cp){if(PVP.active&&PVP.phase!=='playing')return;SFX.click();ST=calc();pendingGuestCrates.clear();enemyUidCounter=0;crateUidCounter=0;bulletUidCounter=0;G={w:cp-1,warp:S.rec[cp]||0,startWarp:S.rec[cp]||0,runBanked:false,seed:PVP.active?(PVP.seed||1):((Math.random()*0xffffffff)>>>0),rngState:((PVP.seed||1)^cp)>>>0,cr:makeCrateCounts(),kills:0,q:[],t:0,gap:1,st:'inter',tmr:1.5,el:'neutral',name:'Get ready',storm:0,stt:0,souls:0,spi:(eqI('p')&&S.aw[S.eq.p])?{cd:0,x:0,y:0}:null};P.at='neutral';P.rx=P.rv=P.ammo=0;
 Object.assign(P,{x:W/2,y:H/2,vx:0,vy:0,hp:ST.mhp,inv:0,sp:0,spm:6,cd:0});deterministicRandom=(PVP.active&&PVP.role==='host')?()=>seededRand():null;E=[];B=[];EB=[];CR=[];PT=[];SL=[];HO=[];TL=[];HZ=[];MS=[];BM=[];SHK=HS=0;P.sm=1;mode='play';$('hubOverlay').className='ov';$('pauseOverlay').className='ov';netBroadcast({type:'status',mode:'play'})}
 function nextWave(){const w=++G.w;G.rngState=((PVP.seed||G.seed||1)^Math.imul(w,0x9e3779b1))>>>0;S.rec[w]=Math.max(S.rec[w]||0,G.warp);G.q=[];HZ=[];BM=[];TL=[];MS=[];EB=[];const b=w%5===0,ids=w===5?[13,14]:[w*3-3,w*3-2,w*3-1],wt=w===5?[.5,.5]:[.45,.3,.25];
 const baseCount=b?w+6:5+w*3,actualCount=PVP.active?Math.ceil(baseCount*1.35):baseCount;
@@ -128,7 +128,7 @@ e={x:x0!=null?x0:s<2?R(0,W):s===2?-20:W+20,y:y0!=null?y0:s<2?(s?H+20:-20):R(0,H)
 const hpScale=(PVP.active?1.5:1)*(mini?.4:1);
 e.hp=e.mh=n.hp*sc*hpScale;E.push(e);if(bs&&PVP.active&&PVP.role==='host'&&PVP.phase==='playing')netSend(PVP.opponent,{type:'pvp_boss_spawn',matchId:PVP.matchId,uid:e.uid,id,wave:G.w,name:n.n,el:e.el});}
 function dmgE(e,d,el,fromGuest){if(e.inv>0||e.gh)return;const actual=Math.max(0,d*emul(el,e.el));e.hp-=actual;if(d>2)e.fl=.034;e._lastHitBy=fromGuest?'guest':'host';if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'&&PVP.stats){PVP.stats[fromGuest?'guest':'host'].damage+=actual;}}
-function kill(e,j){const killer=e._lastHitBy||'host';E.splice(j,1);G.dead++;G.kills++;const bounty=Math.round((e.ty==='b'?150:Math.max(5,EN30[e.id].hp/6))*(1+.12*G.w)),souls=e.ty==='b'?25:1;if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'&&PVP.stats){const who=killer==='guest'?'guest':'host',st=PVP.stats[who],now=Date.now();st.kills++;st.souls=(st.souls||0)+souls;st.warp=(st.warp||0)+bounty;if(now-(st.lastKillAt||0)>3500)st.combo=0;st.combo=(st.combo||0)+1;st.bestCombo=Math.max(st.bestCombo||0,st.combo);st.lastKillAt=now;if(who==='host'){G.souls+=souls;G.warp+=bounty;}}else{G.souls+=souls;G.warp+=bounty;}burst(e.x,e.y,EC[e.el],e.ty==='b'?70:14,e.ty==='b'?320:170);SFX.boom();SHK=Math.max(SHK,e.ty==='b'?18:2.5);if(e.ty==='b')HS=6;if(e.dk)DK[e.dk](e);if(e.ty==='b'||seededRand()<.07)addCrate(e.x,e.y,CT[G.w-1],0);
+function kill(e,j){const killer=e._lastHitBy||'host';E.splice(j,1);G.dead++;G.kills++;const bounty=Math.round((e.ty==='b'?150:Math.max(5,EN30[e.id].hp/6))*(1+.12*G.w)),souls=e.ty==='b'?25:1;if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'&&PVP.stats){const who=killer==='guest'?'guest':'host',st=PVP.stats[who],now=Date.now();st.kills++;st.souls=(st.souls||0)+souls;st.warp=(st.warp||0)+bounty;if(now-(st.lastKillAt||0)>3500)st.combo=0;st.combo=(st.combo||0)+1;st.bestCombo=Math.max(st.bestCombo||0,st.combo);st.lastKillAt=now;if(who==='host'){G.souls+=souls;G.warp+=bounty;}}else{G.souls+=souls;G.warp+=bounty;}burst(e.x,e.y,EC[e.el],e.ty==='b'?70:14,e.ty==='b'?320:170);SFX.boom();SHK=Math.max(SHK,e.ty==='b'?18:2.5);if(e.ty==='b')HS=6;if(e.dk)DK[e.dk](e);if(e.ty==='b'||seededRand()<.07)addCrate(e.x,e.y,typeof v06ChooseCrateDrop==='function'?v06ChooseCrateDrop(G.w,e,e.ty==='b'):CT[G.w-1],0);
 if(PVP.active&&PVP.role==='host'&&e.ty==='b'&&G.w===PVP.target&&!PVP.finished){endPvp(killer==='guest'?'guest':'host','boss',{wave:G.w,boss:e.id,killer})}}
 function damagePvpGuest(amount,reason='hazard'){
   if(!PVP.active||PVP.role!=='host'||PVP.phase!=='playing'||!PVP.oppAlive||PVP.finished)return;
@@ -150,7 +150,7 @@ function hurtPlayerDeath(){
   endRun(false);
 }
 function hurt(d,x,y,melee){if(mode!=='play'||P.inv>0||DBG.god||PVP.playerDead)return;const s=eqI('s');
-if(s&&!melee){const a=Math.atan2(y-P.y,x-P.x)-P.ang-s.side;if(Math.abs(Math.atan2(Math.sin(a),Math.cos(a)))<1.1){burst(x,y,'#fff',6,120);SFX.hit();return}}
+if(s&&!melee){const a=Math.atan2(y-P.y,x-P.x)-P.ang-s.side;if(Math.abs(Math.atan2(Math.sin(a),Math.cos(a)))<(typeof v06ShieldHalfArc==='function'?v06ShieldHalfArc(S.eq.s):1.1)){burst(x,y,'#fff',6,120);SFX.hit();return}}
 const dm=d*(1-ST.dr)*ST.tk;P.hp-=dm;if(ST.ad)P.ammo+=Math.ceil(dm/2);P.inv=.5;SFX.hurt();burst(P.x,P.y,'#ff3355',10,170);if(P.hp<=0)hurtPlayerDeath()}
 function fire(){if(PVP.playerDead)return;const w=ST.w,k=w.k||1,gunLen=w.pi?24:w.k?15:w.r<.15?21:17,volleyId=PVP.active&&PVP.role==='guest'?`${PVP.matchId||'match'}-v${++bulletUidCounter}`:null;let dm=ST.dmg;if(ST.fi&&P.at==='fire')dm*=1.1;if(ST.vd&&P.at==='vortex')dm*=1.2;const cr=Math.random()<.08;if(w.pi)SHK=Math.max(SHK,3);P.cd=ST.cd;P.rx=-9;SFX.shoot();if(ST.ad&&P.ammo>0){P.ammo--;dm*=1.6}
 for(let i=0;i<k;i++){const a=P.ang+(k>1?(i-(k-1)/2)*(w.sp||.2):0)+R(-.03,.03),shotId=PVP.active&&PVP.role==='guest'?`${PVP.matchId||'match'}-${++bulletUidCounter}`:null,shotDamage=dm*(cr?1.8:1);
@@ -175,9 +175,32 @@ function special(){
   else{P.sp=P.spm=6;burst(P.x,P.y,'#00ff88',50,300);E.forEach(e=>{const d=D(e,P)||1;if(d<170){dmgE(e,ST.dmg*3,'neutral');e.kx+=(e.x-P.x)/d*600;e.ky+=(e.y-P.y)/d*600}});if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&Math.hypot(P.x-PVP.oppX,P.y-PVP.oppY)<170)damagePvpGuest(ST.dmg*3,'player-special');EB=EB.filter(b=>D(b,P)>150)}
 }
 function clearWave(){if(PVP.active&&PVP.finished)return;const w=G.w;G.lastClearedWave=Math.max(Number(G.lastClearedWave)||0,w);const clearBonus=w*25;if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'){if(!PVP.playerDead){G.warp+=clearBonus;PVP.stats.host.warp=(PVP.stats.host.warp||0)+clearBonus;}if(PVP.oppAlive)PVP.stats.guest.warp=(PVP.stats.guest.warp||0)+clearBonus;}else G.warp+=clearBonus;SFX.pick();if(w>=4&&!S.cp.includes(w-2))S.cp.push(w-2);
-if(w===10){if(!S.cp.includes(8))S.cp.push(8);if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'){return;}G.cr[CT[9]]++;return endRun(true)}
-addCrate(R(100,W-100),R(100,H-100),CT[w-1],0);G.st='inter';G.tmr=2.5;if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing')netSend(PVP.opponent,{type:'pvp_intermission_tick',matchId:PVP.matchId,wave:w,remaining:G.tmr,nextWave:w+1,name:WV[w][0]});save()}
+if(w===10){if(!S.cp.includes(8))S.cp.push(8);if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing'){return;}const bossCrate=typeof v06ChooseCrateDrop==='function'?v06ChooseCrateDrop(10,{ty:'b',el:'void'},true):CT[9];G.cr[bossCrate]=(Number(G.cr[bossCrate])||0)+1;if(typeof v06MarkCrateDiscovered==='function')v06MarkCrateDiscovered(bossCrate,false);return endRun(true)}
+addCrate(R(100,W-100),R(100,H-100),typeof v06ChooseCrateDrop==='function'?v06ChooseCrateDrop(w,null,true):CT[w-1],0);G.st='inter';G.tmr=2.5;if(PVP.active&&PVP.role==='host'&&PVP.phase==='playing')netSend(PVP.opponent,{type:'pvp_intermission_tick',matchId:PVP.matchId,wave:w,remaining:G.tmr,nextWave:w+1,name:WV[w][0]});save()}
+let lastBadProjectileLogAt=0;
+function sanitizeProjectileArray(arr,label){
+ if(!Array.isArray(arr))return [];
+ let removed=0;
+ for(let i=arr.length-1;i>=0;i--){const b=arr[i];
+  if(!b||typeof b!=='object'||!['x','y','vx','vy'].every(k=>Number.isFinite(Number(b[k])))){arr.splice(i,1);removed++;continue;}
+  b.x=Number(b.x);b.y=Number(b.y);b.vx=Number(b.vx);b.vy=Number(b.vy);b.l=Number.isFinite(Number(b.l))?Number(b.l):1;
+  b.d=Number.isFinite(Number(b.d))?Number(b.d):0;b.r=Number.isFinite(Number(b.r))?Math.max(1,Math.min(24,Number(b.r))):4;
+  b.pi=Number.isFinite(Number(b.pi))?Math.max(1,Math.min(12,Math.floor(Number(b.pi)))):1;
+  // A stale peer snapshot may carry a missing/non-array hit list; always replace it before collision code uses push/includes.
+  b.h=Array.isArray(b.h)?b.h.filter(v=>v!=null&&(typeof v==='string'||typeof v==='number'||typeof v==='object')):[];
+  if(!Number.isFinite(b.l)||b.l<=-10){arr.splice(i,1);removed++;}
+ }
+ if(removed&&Date.now()-lastBadProjectileLogAt>2500){lastBadProjectileLogAt=Date.now();console.warn('[Slugger] Removed malformed '+label+' projectile(s) from a runtime/network update:',removed);}
+ return arr;
+}
+function sanitizeEnemyArray(arr){
+ if(!Array.isArray(arr))return [];let removed=0;
+ for(let i=arr.length-1;i>=0;i--){const e=arr[i];if(!e||typeof e!=='object'||!Number.isFinite(Number(e.x))||!Number.isFinite(Number(e.y))||!Number.isFinite(Number(e.r))){arr.splice(i,1);removed++;continue;}e.x=Number(e.x);e.y=Number(e.y);e.r=Math.max(1,Math.min(120,Number(e.r)));if(!Number.isFinite(Number(e.hp)))e.hp=1;if(e.uid==null)e.uid='runtime-'+i;}
+ if(removed&&Date.now()-lastBadProjectileLogAt>2500){lastBadProjectileLogAt=Date.now();console.warn('[Slugger] Removed malformed enemy state(s) from a runtime/network update:',removed);}return arr;
+}
 function upd(dt){
+  // Defensive scrub: a malformed/stale projectile received during mobile PvP must not abort the animation loop.
+  B=sanitizeProjectileArray(B,'player');EB=sanitizeProjectileArray(EB,'enemy');E=sanitizeEnemyArray(E);
   const isSpectator=PVP.active&&PVP.playerDead;
   if(PVP.active&&PVP.role==='guest'){let slow=1;for(const h of HZ){if(h.w>0)continue;if(Math.hypot(h.x-P.x,h.y-P.y)<h.r+P.r&&h.ty!=='fire'&&h.ty!=='acid')slow=Math.min(slow,.6)}P.sm=slow;}else if(!Number.isFinite(P.sm)||P.sm<=0)P.sm=1;
   if(!isSpectator){
@@ -192,7 +215,7 @@ function upd(dt){
   if((md||window.__sluggerMobileFireHeld)&&P.cd<=0&&!isSpectator)fire();
   P.rv=(P.rv-.15*P.rx)*.82;P.rx+=P.rv;
   if(!isSpectator&&Math.hypot(P.vx,P.vy)>120&&Math.random()<.4)PT.push({x:P.x-Math.cos(P.fa)*18,y:P.y-Math.sin(P.fa)*18,vx:Math.random()*50-25,vy:Math.random()*50-25,l:.5,c:'#7dff3c',sh:0,a:0});
-  if(G.spi&&!isSpectator){const s=eqI('p'),a=T*1.7;G.spi.x=P.x+Math.cos(a)*50;G.spi.y=P.y+Math.sin(a)*50;G.spi.cd-=dt;const t=G.spi.cd<=0&&nearest(G.spi.x,G.spi.y,420);if(t){G.spi.cd=s.r;const an=Math.atan2(t.y-G.spi.y,t.x-G.spi.x);B.push({uid:++bulletUidCounter,x:G.spi.x,y:G.spi.y,vx:Math.cos(an)*560,vy:Math.sin(an)*560,d:ST.dmg*s.k,el:P.at,l:1,pi:s.pi||1,r:3,h:[]})}if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&Math.hypot(G.spi.x-PVP.oppX,G.spi.y-PVP.oppY)<18)damagePvpGuest(12*dt,'player-drone')}if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&!PVP.playerDead&&PVP.oppDrone&&Math.hypot(PVP.oppDrone.x-P.x,PVP.oppDrone.y-P.y)<18&&Date.now()>(PVP.guestDroneHitAt||0)){PVP.guestDroneHitAt=Date.now()+300;const dd=Math.max(2,(PVP.opponentLoadout?.damage||10)*.25);PVP.stats.guest.damage=(PVP.stats.guest.damage||0)+dd;hurt(dd,P.x,P.y,true);}
+  if(G.spi&&!isSpectator){const s=eqI('p'),a=T*1.7,spiritRarity=typeof v06GearRarityMultiplier==='function'?v06GearRarityMultiplier(S.eq.p):1;G.spi.x=P.x+Math.cos(a)*50;G.spi.y=P.y+Math.sin(a)*50;G.spi.cd-=dt;const t=G.spi.cd<=0&&s&&nearest(G.spi.x,G.spi.y,420);if(t){G.spi.cd=(Number(s.r)||.5)/spiritRarity;const an=Math.atan2(t.y-G.spi.y,t.x-G.spi.x);B.push({uid:++bulletUidCounter,x:G.spi.x,y:G.spi.y,vx:Math.cos(an)*560,vy:Math.sin(an)*560,d:ST.dmg*s.k*spiritRarity,el:P.at,l:1,pi:s.pi||1,r:3,h:[]})}if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&Math.hypot(G.spi.x-PVP.oppX,G.spi.y-PVP.oppY)<18)damagePvpGuest(12*dt,'player-drone')}if(PVP.active&&PVP.role==='host'&&PVP.oppAlive&&!PVP.playerDead&&PVP.oppDrone&&Math.hypot(PVP.oppDrone.x-P.x,PVP.oppDrone.y-P.y)<18&&Date.now()>(PVP.guestDroneHitAt||0)){PVP.guestDroneHitAt=Date.now()+300;const dd=Math.max(2,(PVP.opponentLoadout?.damage||10)*.25);PVP.stats.guest.damage=(PVP.stats.guest.damage||0)+dd;hurt(dd,P.x,P.y,true);}
   if(S.up.slime>0&&!isSpectator){P.sl-=dt;if(P.sl<=0&&Math.hypot(P.vx,P.vy)>40){P.sl=.1;SL.push({x:P.x,y:P.y,t:2+S.up.slime})}}
   SL.forEach(s=>s.t-=dt);SL=SL.filter(s=>s.t>0);
   if(PVP.active&&PVP.role==='guest'){
@@ -206,7 +229,7 @@ function upd(dt){
     PVP.lastInput+=dt;
     if(PVP.lastInput>=0.05&&PVP.opponent&&PVP.phase==='playing'){PVP.lastInput=0;netSend(PVP.opponent,{type:'pvp_input',matchId:PVP.matchId,x:P.x,y:P.y,ang:P.ang,alive:!PVP.playerDead,at:P.at,dr:ST.dr,tk:ST.tk,mhp:ST.mhp,mag:ST.mag,shield:!!eqI('s'),shieldSide:eqI('s')?eqI('s').side:0,hazardImmune:!!ST.ad,drone:G.spi?{x:G.spi.x,y:G.spi.y}:null})}
     for(let i=B.length-1;i>=0;i--){
-      const b=B[i];b.x+=b.vx*dt;b.y+=b.vy*dt;b.l-=dt;
+      const b=B[i];if(!b||typeof b!=='object'){B.splice(i,1);continue;}if(!Array.isArray(b.h))b.h=[];b.x+=b.vx*dt;b.y+=b.vy*dt;b.l-=dt;
       if(b.l<=0||b.x<-20||b.x>W+20||b.y<-20||b.y>H+20){B.splice(i,1);continue}
       if(PVP.active&&PVP.role==='guest'&&!PVP.playerDead&&Math.hypot(b.x-PVP.oppX,b.y-PVP.oppY)<13+(b.r||4)){burst(b.x,b.y,'#00ccff',5,100);B.splice(i,1);break;}
       for(const e of E){
@@ -228,7 +251,7 @@ function upd(dt){
     return;
   }
   if(G.st==='inter'){G.tmr-=dt;if(G.tmr<=0)nextWave()}else{G.t-=dt;if(G.q.length&&G.t<=0&&E.length<45){spawn(G.q.shift());G.t=G.gap}if(!G.q.length&&!E.length)clearWave()}
-  for(let i=B.length-1;i>=0;i--){const b=B[i];b.x+=b.vx*dt;b.y+=b.vy*dt;b.l-=dt;if(b.l<=0||b.x<-20||b.x>W+20||b.y<-20||b.y>H+20){B.splice(i,1);continue}
+  for(let i=B.length-1;i>=0;i--){const b=B[i];if(!b||typeof b!=='object'){B.splice(i,1);continue;}if(!Array.isArray(b.h))b.h=[];b.x+=b.vx*dt;b.y+=b.vy*dt;b.l-=dt;if(b.l<=0||b.x<-20||b.x>W+20||b.y<-20||b.y>H+20){B.splice(i,1);continue}
   if(PVP.active&&PVP.role==='host'&&b._guest&&!PVP.playerDead&&P.inv<=0&&Math.hypot(b.x-P.x,b.y-P.y)<P.r+(b.r||4)){const dmg=Math.max(0,Number(b.d)||8);PVP.stats.guest.damage=(PVP.stats.guest.damage||0)+dmg;B.splice(i,1);hurt(dmg,b.x,b.y,false);burst(b.x,b.y,'#ff3355',7,130);continue;}
   if(PVP.active&&PVP.role==='host'&&!b._guest&&PVP.oppAlive&&Math.hypot(b.x-PVP.oppX,b.y-PVP.oppY)<13+(b.r||4)){B.splice(i,1);damagePvpGuest(Math.max(0,Number(b.d)||8),'player-projectile');burst(b.x,b.y,'#00ccff',7,130);continue;}
   for(let j=0;j<E.length;j++){const e=E[j];if(e.hp<=0||e.gh||b.h.includes(e))continue;

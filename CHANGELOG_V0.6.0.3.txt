@@ -1,7 +1,0 @@
-Slugger NEO v0.6.0.3 — Phase 1 Runtime Freeze Hotfix
-
-- Removed a dangling rk() reinforcement-rank call from spirit-slug drone damage.
-- Added guarded animation-loop fault handling to pause/show diagnostic errors instead of silently freezing if another unexpected exception occurs.
-- Bumped local CSS/JavaScript cache keys to v0.6.0.3-hotfix.
-- Preserved the existing Phase 1 design and the TURN endpoint.
-- Cloudflare Worker update is not required.

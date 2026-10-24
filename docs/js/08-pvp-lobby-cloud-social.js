@@ -1,4 +1,4 @@
-/* Slugger NEO v0.6 Phase 1 — PvP lobby and ready protocol, loadouts, cloud friend relationships, cloud presence, and invites.
+/* Slugger NEO v0.6.2 Phase 2 — PvP lobby and ready protocol, loadouts, cloud friend relationships, cloud presence, and invites.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */

@@ -1,16 +1,12 @@
 SLUGGER NEO v0.6 PHASE PLAN
 
-Phase 1 — Economy Trim & Menu Overhaul
-- Remove Purified Warp, weapon levels, and reinforcement progression.
-- Organize Crates and Loadout into sub-tabs.
-- Phase 1 polish in v0.6.0.4: fix crate opening state transitions and add multi-category sortable/filterable equipment stats.
+PHASE 1 — ECONOMY TRIM & MENU OVERHAUL
+Previously delivered. Removes Purified Warp/weapon level/reinforcement progression and provides tabbed Crate/Loadout menus.
 
-Phase 2 — Mystery Crates & Nested Rarity
-- Expand crate registry to 30+ variants, discovery-only owned views, internal rarity tiers, unique crate SVGs and opening particles.
+PHASE 2 — MYSTERY CRATES & NESTED RARITY
+This package. Expanded 38-type registry, owned/discovered filtering, family rarity tiers, SVG crate previews/particles, expanded equipment stats and runtime guard fixes.
 
-Phase 3 — Unique Gear, Armor Shells & Social Polish
-- Give individual weapons/shields/items unique SVGs, animation and combat behaviour.
-- Render animated armor shell plates on player slugs.
-- Implement online friend transition toasts and verify expanded systems in 1v1.
+PHASE 3 — UNIQUE GEAR, ARMOR SHELLS & SOCIAL POLISH
+Not included yet. Planned: truly item-specific animated weapon/shield art and behaviours, visible animated armor plates on the player, and realtime friend-online toasts.
 
-Do not begin Phase 2 until the current Phase 1 build has been tested and any reported bugs are addressed.
+Complete and test Phase 2 before starting Phase 3.

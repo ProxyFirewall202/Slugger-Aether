@@ -1,4 +1,4 @@
-/* Slugger NEO v0.6 Phase 1 — Existing v0.5.1 campaign/spectator/upgrade/results/network overrides, preserved as one ordered IIFE.
+/* Slugger NEO v0.6.2 Phase 2 — Existing v0.5.1 campaign/spectator/upgrade/results/network overrides, preserved as one ordered IIFE.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */
@@ -9,14 +9,14 @@
 */
 (function installV05(){
   const V05_REWARDS={winner:{warp:500,pro:10},participant:{warp:100,pro:2},draw:{warp:50,pro:1}};
-  const blankCrates=()=>({wood:0,iron:0,solar:0,vortex:0,aether:0});
+  const blankCrates=()=>makeCrateCounts();
   const clone=x=>JSON.parse(JSON.stringify(x));
   const clampCheckpoint=(w,target)=>cl(Math.floor(Number(w)||1),1,target===5?5:8);
   const commonCheckpoints=()=>Array.from(new Set([...(PVP.myCheckpoints||[1]),...(PVP.opponentCheckpoints||[1])].filter(x=>(PVP.myCheckpoints||[1]).includes(x)&&(PVP.opponentCheckpoints||[1]).includes(x)&&x<=PVP.target))).sort((a,b)=>a-b);
   const safeCommon=()=>{const c=commonCheckpoints();return c.length?c:[1]};
   function beginPvpSaveSession(){
     if(activeSaveMode==='pvp'&&save_1v1){S=save_1v1;return;}
-    if(activeSaveMode!=='pvp'&&ub&&ub.ph===1){const opening=ub;opening.res=roll(opening.t);opening.ph=2;save();SFX.open();}
+    if(activeSaveMode!=='pvp'&&ub&&ub.ph===1){const opening=ub;opening.res=roll(opening.t,opening);opening.ph=2;save();SFX.open();}
     save_sp=normaliseSave(S);
     // UI-only crate reveal state must not appear in the isolated PvP hub.
     ub=null;dm=false;tab=0;
@@ -134,7 +134,7 @@
   function pvpAwaken(k){if(!pvpCanEditHub()||!S.inv[k]||IT[k]?.t!=='p')return;aw(k);}
   const _hubBeforePvpUpgrade=hub;hub=function(){if(PVP.active&&PVP.phase==='upgrade'){renderPvpUpgradeHub();return;}_hubBeforePvpUpgrade();};
   function pvpEquip(k){if(!PVP.active||PVP.phase!=='upgrade'||PVP.upgradeReady||!IT[k]||!S.inv[k])return;S.eq[IT[k].t]=k;ST=calc();save();SFX.click();renderPvpUpgradeHub();}
-  function pvpDecrypt(t){if(!PVP.active||PVP.phase!=='upgrade'||PVP.upgradeReady||!LT[t]||(Number(S.cr[t])||0)<1||S.key<LT[t].k)return;S.cr[t]--;S.key-=LT[t].k;const results=roll(t);save();SFX.open();renderPvpUpgradeHub();showV05Toast('Decryption',results.join(' · ')||'No bonus loot this time.',null);}
+  function pvpDecrypt(t){if(!PVP.active||PVP.phase!=='upgrade'||PVP.upgradeReady||!LT[t]||(Number(S.cr[t])||0)<1||S.key<LT[t].k)return;oc(t);}
   function pvpCraftKey(){if(!PVP.active||PVP.phase!=='upgrade'||PVP.upgradeReady||S.pro<2||S.warp<45)return;S.pro-=2;S.warp-=45;S.key++;save();SFX.buy();renderPvpUpgradeHub();}
   function pvpStartSelectedWave(){if(!PVP.active||PVP.role!=='host'||PVP.phase!=='waveSelect')return;const choices=safeCommon().filter(c=>Number.isInteger(c)&&c>=1&&c<=(PVP.target===5?5:8));if(!choices.length)choices.push(1);const el=$('v05WaveSelect');let w=Number(el?.value);if(!Number.isInteger(w)||!choices.includes(w))w=choices[choices.length-1];PVP.nextSelectedWave=w;netSend(PVP.opponent,{type:'pvp_start_wave',matchId:PVP.matchId,wave:w,checkpoints:PVP.myCheckpoints,opponentCheckpoints:PVP.opponentCheckpoints,hostDead:!!PVP.playerDead});PVPStartWaveLocal(w);}
   function PVPStartWaveLocal(w){if(!PVP.active||PVP.finished||!G)return;const shared=safeCommon().filter(c=>Number.isInteger(c)&&c>=1&&c<=(PVP.target===5?5:8));if(!shared.length)shared.push(1);w=Number(w);if(!Number.isInteger(w)||!shared.includes(w))w=shared[shared.length-1];PVP.startWave=cl(w,1,PVP.target===5?5:10);PVP.phase='playing';PVP.continueReady=false;PVP.peerContinueReady=false;PVP.upgradeReady=false;PVP.peerUpgradeReady=false;PVP.playerDead=false;PVP.oppDead=false;PVP.oppAlive=true;PVP.oppInitialised=false;PVP.oppLastInputAt=0;PVP.lastGuestHpPacket=0;PVP.oppMh=cl(Number(PVP.opponentLoadout?.hp)||Number(PVP.oppMh)||100,50,2000);PVP.oppHp=PVP.oppMh;P.x=PVP.role==='host'?W*.42:W*.58;P.y=H/2;P.vx=P.vy=0;P.rx=P.rv=0;P.sp=0;P.cd=0;P.inv=1;P.hp=100;PVP.oppX=PVP.role==='host'?W*.58:W*.42;PVP.oppY=H/2;PVP.oppXT=PVP.oppX;PVP.oppYT=H/2;PVP.oppDrone=null;PVP.oppDroneTarget=null;PVP.hostDrone=null;PVP.hostDroneTarget=null;PVP.hostDroneHitAt=0;PVP.guestDroneHitAt=0;for(const k of Object.keys(K))K[k]=0;md=false;PVP.hostBulletsSnap=[];PVP.hostParticlesSnap=[];PVP.hostMortarsSnap=[];PVP.hostHolesSnap=[];PVP.hostSlimeSnap=[];PVP.hostStorm={t:0,stt:0,owner:'host'};PVP.receivedShots=new Set();PVP.oppVolleyMap=new Map();PVP.oppFireLastAt=0;PVP.oppAng=0;PVP.oppAngTarget=0;PVP.oppTaunt=null;P.taunt=null;PVP.guestSpecialReadyAt=0;pendingGuestCrates.clear();G.bossSpawned=false;G.w=PVP.startWave-1;G.st='inter';G.tmr=.45;G.q=[];E=[];B=[];EB=[];CR=[];PT=[];SL=[];HZ=[];TL=[];BM=[];MS=[];HO=[];G.spi=(eqI('p')&&S.aw[S.eq.p])?{cd:0,x:0,y:0}:null;G.storm=0;G.stt=0;G.stormOwner='host';G.fr=0;G.dead=0;G.tot=0;G.runBanked=false;PVP.roundBanked=false;G.warp=Math.max(0,Number(S.rec[PVP.startWave])||0);G.startWarp=G.warp;G.cr=blankCrates();G.souls=0;ST=calc();P.hp=ST.mhp;P.at=S.att.includes(P.at)?P.at:'neutral';mode='play';$('hubOverlay').className='ov';$('topHUD').innerHTML='';$('v05RoundOverlay').className='v05-modal';$('pauseOverlay').className='ov';save();}
@@ -164,7 +164,7 @@
   const _nextWave=nextWave;
   nextWave=function(){if(PVP.active&&PVP.role==='host'&&(PVP.finished||PVP.phase!=='playing'))return;PVP.roundBanked=false;_nextWave();};
   const _clearWave=clearWave;
-  clearWave=function(){if(PVP.active){if(PVP.role!=='host'||PVP.phase!=='playing'||PVP.finished)return;}else{return _clearWave();}const wave=G.w;G.lastClearedWave=Math.max(Number(G.lastClearedWave)||0,wave);const bonus=wave*25;if(!PVP.playerDead){G.warp+=bonus;PVP.stats.host.warp=(PVP.stats.host.warp||0)+bonus;}if(PVP.oppAlive)PVP.stats.guest.warp=(PVP.stats.guest.warp||0)+bonus;/* Shared run checkpoint: both session saves unlock the cleared stage, even if one player is spectating. */unlockSessionCheckpoint(wave,'host');unlockSessionCheckpoint(wave,'guest');netSend(PVP.opponent,{type:'pvp_checkpoint_unlock',matchId:PVP.matchId,wave,record:Number(PVP.stats.guest.warp)||0});if(!PVP.playerDead)S.rec[wave]=Math.max(Number(S.rec[wave])||0,Number(G.warp)||0);SFX.pick();if(wave>=PVP.target){return;}addCrate(R(100,W-100),R(100,H-100),CT[wave-1],0);G.st='inter';G.tmr=2.5;netSend(PVP.opponent,{type:'pvp_intermission_tick',matchId:PVP.matchId,wave,remaining:G.tmr,nextWave:wave+1,name:WV[wave]?.[0]||'Campaign'});save();};
+  clearWave=function(){if(PVP.active){if(PVP.role!=='host'||PVP.phase!=='playing'||PVP.finished)return;}else{return _clearWave();}const wave=G.w;G.lastClearedWave=Math.max(Number(G.lastClearedWave)||0,wave);const bonus=wave*25;if(!PVP.playerDead){G.warp+=bonus;PVP.stats.host.warp=(PVP.stats.host.warp||0)+bonus;}if(PVP.oppAlive)PVP.stats.guest.warp=(PVP.stats.guest.warp||0)+bonus;/* Shared run checkpoint: both session saves unlock the cleared stage, even if one player is spectating. */unlockSessionCheckpoint(wave,'host');unlockSessionCheckpoint(wave,'guest');netSend(PVP.opponent,{type:'pvp_checkpoint_unlock',matchId:PVP.matchId,wave,record:Number(PVP.stats.guest.warp)||0});if(!PVP.playerDead)S.rec[wave]=Math.max(Number(S.rec[wave])||0,Number(G.warp)||0);SFX.pick();if(wave>=PVP.target){return;}addCrate(R(100,W-100),R(100,H-100),typeof v06ChooseCrateDrop==='function'?v06ChooseCrateDrop(wave,null,true):CT[wave-1],0);G.st='inter';G.tmr=2.5;netSend(PVP.opponent,{type:'pvp_intermission_tick',matchId:PVP.matchId,wave,remaining:G.tmr,nextWave:wave+1,name:WV[wave]?.[0]||'Campaign'});save();};
   // A dead player cannot leave owner-tagged specials or projectiles dealing damage.
   function clearV05DeadAttacks(deadRole){if(!PVP.active)return;if(PVP.role==='host'){if(deadRole==='host'){B=B.filter(b=>b._guest===true);HO=HO.filter(h=>h.owner==='guest');SL=[];if(G&&G.stormOwner==='host'){G.storm=0;G.stt=0;}if(G)G.spi=null;P.taunt=null;}else{B=B.filter(b=>!b._guest);HO=HO.filter(h=>h.owner==='host');if(G&&G.stormOwner==='guest'){G.storm=0;G.stt=0;}PVP.oppDrone=null;PVP.oppDroneTarget=null;PVP.oppTaunt=null;}}else{if(deadRole==='guest'){B=[];HO=HO.filter(h=>h.owner==='host');if(G&&G.stormOwner==='guest'){G.storm=0;G.stt=0;}if(G)G.spi=null;P.taunt=null;}else{HO=HO.filter(h=>h.owner==='guest');SL=[];if(G&&G.stormOwner==='host'){G.storm=0;G.stt=0;}PVP.hostDrone=null;PVP.hostDroneTarget=null;PVP.oppTaunt=null;PVP.hostBulletsSnap=[];}}}
   // Keep a corpse inert and spectate until the campaign boss falls or both are dead.
@@ -276,10 +276,10 @@
 
   // Keep the local hit-stop visual-only: simulation and network snapshots continue advancing.
   const _loopDraw=draw;
-  let v0603RuntimeFault=null;
+  let v062RuntimeFault=null;
   loop=function(t){
     try{
-      if(v0603RuntimeFault)return;
+      if(v062RuntimeFault)return;
       const dt=Math.min(.05,(t-last)/1000)||0;last=t;T+=dt;DBG.frames++;
       if(t-DBG.lastFpsT>500){DBG.fps=DBG.frames*1000/(t-DBG.lastFpsT);DBG.dt=dt*1000;DBG.frames=0;DBG.lastFpsT=t;}
       if(DBG.open){DBG.diagT+=dt;if(DBG.diagT>.25){DBG.diagT=0;tickDbgDiag();}}
@@ -288,10 +288,10 @@
       if(mode==='play'){upd(dt);hh-=dt;if(hh<=0){hh=.1;hud();}}
       if(HS>0&&mode==='play'){HS--;}else draw();
     }catch(err){
-      v0603RuntimeFault=err;
+      v062RuntimeFault=err;
       const detail=String(err&&err.stack||err&&err.message||err);
       window.__sluggerRuntimeFault=detail;
-      console.error('[Slugger runtime fault — v0.6.0.4]',err);
+      console.error('[Slugger runtime fault — v0.6.2]',err);
       try{
         mode='pause';
         const pause=$('pauseOverlay');
@@ -302,7 +302,7 @@
         }
       }catch(uiErr){console.error('[Slugger] Could not display runtime diagnostic:',uiErr);}
     }finally{
-      if(!v0603RuntimeFault)requestAnimationFrame(loop);
+      if(!v062RuntimeFault)requestAnimationFrame(loop);
     }
   };
   ensureV05Ui();

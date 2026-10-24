@@ -1,20 +1,17 @@
-SLUGGER NEO v0.6.0.4 — QUICK START
+SLUGGER NEO v0.6.2 — QUICK START
 
-GITHUB PAGES DEPLOY
-1. Extract the v0.6.0.4 docs ZIP.
-2. Upload its contents to your existing top-level docs/ folder on branch main, replacing the prior files.
-3. Keep index.html, manifest.webmanifest, css/, js/, and icons/ together.
-4. Commit changes and let GitHub Pages deploy from main -> /docs.
-5. Fully reload the site. On iOS Home Screen app, close it completely and reopen it.
+1. Extract the release ZIP.
+2. Open docs/.
+3. Upload the contents of docs/ into the existing repository's top-level docs/ directory. Do NOT create docs/docs/.
+4. Commit to main.
+5. Keep GitHub Pages on main -> /docs.
+6. Reload the website; fully close/reopen the installed iOS PWA if it shows cached files.
 
-TEST
-- Open a crate from Crates & Decryption. Confirm the animation completes and the results show; click away/back while opening and confirm it still completes.
-- Open Loadout & Sets -> Weapon Stats & DPS. Test category, search, tier, equipped-only and sorting filters.
-- Verify weapons, shields, armor, boosts/charms and Spirit Slugs show their relevant stats and visuals.
-- Smoke-test normal run launch and 1v1 upgrade screen.
+No Cloudflare Worker redeploy is required. TURN endpoint remains the existing slugger-turn-ice workers.dev endpoint.
 
-BACKEND
-No Worker/Firebase/Metered configuration changes are needed for this release. Existing TURN endpoint is preserved.
-
-NOTE
-All JavaScript modules were syntax checked. The crate completion state and stats UI/filters were exercised in local targeted harnesses. The full game was not tested against a live cloud account or in a full end-to-end browser gameplay run.
+Please test:
+- Buy/open a crate; verify the result reveal finishes and shows the correct rarity.
+- Verify only owned/discovered crates appear.
+- Check sorting/filtering for each equipment category.
+- Play a complete wave/run on PC and iPhone.
+- Test an actual two-device 1v1 session if possible. Simulated tests are not a substitute for live network testing.

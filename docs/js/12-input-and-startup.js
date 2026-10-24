@@ -1,4 +1,4 @@
-/* Slugger NEO v0.6 Phase 1 — Desktop input handlers and final boot/init sequence. Base loop is declared in module 04 for hoisting compatibility.
+/* Slugger NEO v0.6.2 Phase 2 — Desktop input handlers and final boot/init sequence. Base loop is declared in module 04 for hoisting compatibility.
  * Load order is controlled by index.html. These are classic scripts (not ES modules)
  * so the existing shared global scope and inline UI handlers remain compatible.
  */

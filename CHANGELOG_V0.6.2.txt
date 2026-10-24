@@ -1,0 +1,12 @@
+Slugger NEO v0.6.2 — Phase 2: Mystery Crates & Nested Rarity
+
+- Added 38 specialized crate variants across basic, elemental/set, category, spirit, relic, elite, key, and monarch families.
+- Added Common, Uncommon, Rare, Legendary rarity rolls with family-specific weights and rarity-scaled gear metrics/effects.
+- Crate lists and discovered drop-rate views only show owned/discovered types; basic Wood/Iron acquisition remains available.
+- Added procedural SVG crate designs and per-family/type particle opening effects.
+- Fixed the reveal completion transaction so save-object normalization no longer invalidates the opening and rarity is present in results.
+- Improved equipment stats filtering/sorting and rarity-aware metrics across weapons, shields, armor, boosts/charms and Spirit Slugs.
+- Added defensive normalization for projectile hit history and incoming enemy/projectile snapshots to reduce a rare PvP update crash seen on mobile.
+- Preserved v0.6 Phase 1 economy trim, menus, mobile controls, username/social code, and the existing TURN endpoint.
+
+Phase 3 work (fully unique item-specific weapon/shield behaviours and animations, animated armor shell plates, realtime friend-online toasts) is not included.
