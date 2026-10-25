@@ -1,23 +1,18 @@
-SLUGGER NEO v0.6.6.1 — QUICK START
+SLUGGER NEO v0.6.6.2 — QUICK START
 
-1. Extract the complete ZIP.
-2. Upload the contents of docs/ into the existing repository docs/ directory. Do not create docs/docs/.
-3. Keep GitHub Pages set to main -> /docs, then commit and push.
-4. Refresh the website. On iPhone, fully close and reopen the installed PWA.
+1. Extract the release archive.
+2. Open the docs/ folder.
+3. Upload every item INSIDE docs/ into the existing top-level docs/ directory in your GitHub repository's main branch.
+4. Do not make a docs/docs/ folder.
+5. Commit changes; keep Pages configured for main -> /docs.
+6. Let Pages deploy, then reload the site. For the iPhone Home Screen app, fully close it and open again to refresh cached scripts.
 
-NO BACKEND UPDATE
-No Cloudflare Worker, Firebase, TURN, or Metered changes are needed.
+WHAT TO TEST
+- Loadout: Weapons, Shields, Armor, Boosts & Charms, and Spirit Slugs should have clearly varied silhouettes, not just recoloured copies.
+- Open the set tracker and Equipment Stats: the same item art should appear there.
+- Earn and open a loot box: its equipment SVGs should match the Loadout artwork.
+- Start a run with armor equipped and verify the animated shell remains visible with eyes exposed.
+- Run a quick PC round, an iPhone round, and a live 1v1 if possible.
 
-TEST THESE FIRST
-- Start a run and check Time survived and Damage dealt on the end screen.
-- Open multiple loot boxes and verify each result shows the real item SVG, Warp icon, and exact Warp amount.
-- Confirm the summary's Total Warp gained equals the sum of per-box Warp payouts.
-- Equip a full five-piece set and verify its passive and set-special attack.
-- Inspect animated armor shell plates in a run; eyes should remain visible.
-- Test several different weapons and equipment items to confirm distinct visuals and projectile behaviours.
-- If possible, test 1v1 on two separate devices, including set-specials and the post-round loot flow.
-
-All JS files pass syntax checks. Live cloud and two-peer device testing was not available in this build environment.
-
-DEPLOY BUTTON HOTFIX (v0.6.6.1)
-This build fixes the maximum-call-stack error when pressing Deploy here. If deploying on iOS, fully close and reopen the installed PWA to fetch the cache-busted scripts.
+BACKEND
+No Cloudflare Worker, Firebase, Metered credentials or TURN endpoint changes are required.

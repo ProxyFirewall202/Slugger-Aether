@@ -1,0 +1,28 @@
+Slugger (NEO) v0.6.6.2 — Unique Equipment Art Hotfix
+
+WHY THIS UPDATE
+The prior equipment illustrations relied on a small number of repeated silhouettes with set-colour changes. This hotfix replaces that template-heavy presentation with item-specific geometry and animated structural accents across all equipment categories, based on the item names and visual/gameplay descriptions in the catalogue.
+
+ARTWORK CHANGES
+- 39 weapons: distinct procedural receiver/stock/muzzle profiles, with different structural details for rifles, repeaters, cannons, launchers, lances, scythes, beam weapons and other described forms.
+- 38 shields: varied guard profiles, side wings, crests, portal/disc/leaf/mirror/wall shapes and item-specific hardware.
+- 38 armor items: distinct shell, porous coating, hide/jerkin, vest/harness, segmented carapace, coat, chain/mesh, cloak/mantle, wings and plate/cuirass silhouettes.
+- 36 charms/boosts: varied rings, cores, hearts, sigils, crystals, magnets, crowns, skulls, pendants, orbit frames and hanging elements.
+- 33 Spirit Slugs: distinct appendages, antennae, tail structures, wings, mechanical parts, horns, flame/frost/star body details and item-specific animation accents.
+- Existing menus, loadout cards, stats views, set tracker, in-game item previews and loot-cinematic item cards all use the same v066SvgItem SVG source, so the updated art is shared across those surfaces.
+- Fresh CSS/JS cache keys: v0.6.6.2-unique-equipment-art.
+
+PRESERVED
+- Existing v0.6.6.1 deploy recursion fix and the account/social systems.
+- Mobile controls, 10 Roman-numeral tiers, Warp + Loot Box economy, set abilities, end-run loot cinematic, and existing PvP architecture.
+- Existing Cloudflare TURN endpoint: https://slugger-turn-ice.tholloway540.workers.dev/ice-servers
+- No Worker, Firebase or Metered credential changes are required.
+
+VALIDATION
+- 184 catalogue SVGs generated across five equipment types.
+- Unique path-geometry signature per item in the visual render test (after stripping names, colours and animation tags).
+- All 184 SVGs parse and rasterize to images; no SVG parse/render failures.
+- All local JS modules and the concatenated script pass Node syntax checks.
+- Browser render produced no page errors. The isolated environment cannot load the PeerJS CDN, so that expected network warning is not a gameplay regression.
+- ZIP/TAR integrity and local script/style references are checked.
+- A live two-device multiplayer run has not been performed in this environment; please smoke-test on PC and iPhone after deployment.

@@ -1,26 +1,22 @@
-SLUGGER (NEO) v0.6.6.1 — COMPLETE PACKAGE
+SLUGGER (NEO) v0.6.6.2 — UNIQUE EQUIPMENT ART HOTFIX
+
+START HERE
+- QUICK_START.txt has the publishing steps.
+- CHANGELOG_V0.6.6.2.txt explains the art changes and validation.
+- docs/ contains the GitHub Pages site.
+- cloudflare-worker/ is a reference copy and does not need deployment for this update.
 
 PUBLISH TO GITHUB PAGES
-1. Extract this ZIP.
-2. Upload the contents of docs/ into your existing top-level docs/ folder in the GitHub repository. Do not create docs/docs/.
-3. Keep GitHub Pages configured to branch main, folder /docs.
-4. Commit/push and wait for deployment to finish.
-5. On iPhone, fully close and reopen the installed PWA to refresh cached files.
+1. Extract the release ZIP.
+2. Open docs/ in the extracted folder.
+3. Upload the CONTENTS of docs/ to your existing top-level docs/ directory on the main branch, replacing the previous game files. Do NOT create docs/docs/.
+4. Keep index.html, css/, js/, icons/ and manifest.webmanifest together.
+5. Commit to main and keep GitHub Pages set to main -> /docs.
+6. Reload the site; fully close and reopen the installed iOS PWA if it shows cached content.
 
-BACKEND
-No Cloudflare Worker, Firebase, TURN, or Metered configuration changes are required for this game-only release. Existing endpoints and secrets are preserved.
+NO BACKEND CHANGE
+No Cloudflare Worker redeploy, Firebase edit, Metered credential change or TURN endpoint change is needed. The existing endpoint is preserved:
+https://slugger-turn-ice.tholloway540.workers.dev/ice-servers
 
-RELEASE HIGHLIGHTS
-- Distinct procedural SVG art and animated presentation for equipment throughout the loadout, stats, set tracker, and loot reveal screens.
-- Animated armor shell plates wrap the player while leaving the eyes exposed.
-- Five-piece set passives and themed set-special attacks are active.
-- Weapon identity affects projectile piercing, speed, size and explosive impact behaviour.
-- End-of-run timer and damage-dealt stats fixed.
-- Loot reveal screens display the equipment art, Warp icon, and per-box Warp amount. The final summary totals Warp correctly.
-- Ten tiers remain displayed with Roman numerals; Lucky, Standard and Unlucky outcomes remain.
-
-TESTING
-All project JavaScript files were syntax-checked and package paths were checked. Real browser/device and live two-peer 1v1 testing are still recommended before considering multiplayer parity fully verified.
-
-HOTFIX NOTE v0.6.6.1
-This release fixes the Deploy here button triggering a maximum call stack error. It was caused by recursive function wrappers in the unique-gear module. The new package passes a simulated browser deployment test. No backend changes are required.
+TESTING NOTE
+The catalogue SVGs and JS syntax passed local automated tests. This build still needs a live PC/iPhone gameplay smoke-test, especially for the in-run armor shell and the PvP loot sequence.

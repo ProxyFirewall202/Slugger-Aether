@@ -1,13 +1,14 @@
-SLUGGER NEO v0.6.6.0 — RELEASE NOTES
+SLUGGER NEO v0.6 WORK PLAN
 
-This build combines the unique-gear / set-special implementation work with animated armor shells and the requested run/loot screen fixes. It follows v0.6.5.0.
+Completed / carried forward:
+- v0.6.3.0: 30 complete five-slot sets and Warp + Loot Box economy foundation.
+- v0.6.4.0: 10 tiers and Lucky / Standard / Unlucky loot outcomes.
+- v0.6.5.0: end-of-run loot cinematics, Roman numeral tiers and reward summary fixes.
+- v0.6.6.0/6.6.1: set effects, armor shell system, and deploy recursion fix.
+- v0.6.6.2: per-item SVG silhouettes and animation details improved across all 184 items.
 
-Completed in this build:
-- Unique generated SVG artwork for each equipment ID and animated presentation in all existing item image views.
-- Animated armor shell plates rendered on the slug with the eye area left clear.
-- Set passives and set-special attacks activate when all five slots are equipped from the same set.
-- Weapon identity influences shot behaviour (piercing, projectile speed/size, and explosive impact).
-- End-run timer and damage tracking corrected.
-- Loot cinematic includes item SVG cards, Warp icon, per-box Warp payout and a total Warp amount in the final summary.
-
-No backend deployment is required. Publish the updated docs/ contents only.
+Still worth validating after release:
+- PC and iPhone visual layout of the per-item art.
+- Animated armor shell while moving / taking damage.
+- Loot-cinematic item art matches the same item shown in the Loadout.
+- Live two-device 1v1 networking.
